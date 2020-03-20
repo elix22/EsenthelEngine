@@ -64,7 +64,7 @@ NewLodClass NewLod;
       Vec2 delta=edit_dist.posRU()-old; REPAO(props).move(delta);
       props_region.rect(Rect_D(ObjEdit.rect().w()/2, -ObjEdit.rect().h(), 0.8f, 0.13f));
    }
-   void LodRegion::toGui() {REPAO(props).toGui();}
+   void LodRegion::toGui() {REPAO(props).toGui(); if(dist)dist->textline.selectAll();}
    void LodRegion::update(C GuiPC &gpc)
 {
       super::update(gpc);
@@ -107,7 +107,7 @@ NewLodClass NewLod;
                else         ObjEdit.selLod(lod.lod_index);
             }
          }
-         int l=lods.elms(), show_l=Min(5, l);
+         int l=lods.elms(), show_l=Min(6, l);
          size(Vec2(show_l*s, s+((l>show_l) ? slidebarSize() : 0)));
          props_region.visible(edit_dist.visible() && edit_dist()==0);
       }
@@ -212,7 +212,7 @@ NewLodClass NewLod;
             // first setup materials
             Memt<MaterialPtr> mtrl_ptrs;
             Str path=GetPath(name);
-            Edit::FileParams fp=name;
+            FileParams fp=name;
             FREPA(mtrls)
             {
                // TODO: detect existing similar materials in the source mesh?

@@ -39,9 +39,10 @@ struct Callbacks
 
    void del(); // manually remove all queued callbacks and delete all used memory
 
-protected:
+private:
    Memc<Callback    > _callbacks     , _temp_callbacks;
    Memc<CallbackUser> _callbacks_user, _temp_callbacks_user;
+   friend struct ThreadSafeCallbacks;
 };
 /******************************************************************************/
 struct ThreadSafeCallbacks : private Callbacks

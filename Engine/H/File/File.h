@@ -219,12 +219,12 @@ struct File
    Bool  flush  (                            );   // flush all buffered data to the disk  , false on fail, this method doesn't set 'ok' to false on error
    Bool  flushOK(                            );   // flush all buffered data to the disk and check if no other errors occurred before - "flush() && ok()", false on fail
    Bool  equal  (File &f   , Long max_size=-1);   // if has the same data as 'f' file   (only data from current positions to the end are compared, and not from the start to the end), 'max_size'=number of bytes to compare (-1=all remaining)
-   Bool  copy   (File &dest, Long max_size=-1);   // copy file to 'dest', false on fail (only data from current position  to the end are copied  , and not from the start to the end), 'max_size'=number of bytes to copy    (-1=all remaining)
+   Bool  copy   (File &dest, Long max_size=-1);   // copy file to 'dest', false on fail (only data from current position  to the end are copied  , and not from the start to the end), 'max_size'=number of bytes to copy    (-1=all remaining), 'dest' should be already opened for writing
    Bool  size   (Long size);                      // set file size                    , false on fail
    Bool  trim   (         ) {return size(pos());} // set file size to current position, false on fail
 #if EE_PRIVATE
-   Bool  copy       (File &dest, DataCallback &callback, Long max_size=-1); // copy with callback file to 'dest', false on fail (only data from the current position to the end are copied, and not from the start to the end), 'max_size'=number of bytes to copy (-1=all remaining)
-   Bool  copyEncrypt(File &dest, Cipher       &cipher  , Long max_size=-1); // copy and  encrypt  file to 'dest', false on fail (only data from the current position to the end are copied, and not from the start to the end), 'max_size'=number of bytes to copy (-1=all remaining)
+   Bool  copy       (File &dest, DataCallback &callback, Long max_size=-1); // copy with callback file to 'dest', false on fail (only data from the current position to the end are copied, and not from the start to the end), 'max_size'=number of bytes to copy (-1=all remaining), 'dest' should be already opened for writing
+   Bool  copyEncrypt(File &dest, Cipher       &cipher  , Long max_size=-1); // copy and  encrypt  file to 'dest', false on fail (only data from the current position to the end are copied, and not from the start to the end), 'max_size'=number of bytes to copy (-1=all remaining), 'dest' should be already opened for writing
 
    Bool copyToAndDiscard(Mems<Byte> &dest); // copy remaining contents of this file to 'dest' and discard this file data after, false on fail
    Bool       sync();

@@ -371,7 +371,7 @@ diffuse=&props.New().create("Diffuse Mode"         , MemberDesc(         ).setFu
    }
    void setScale   (flt  scale)  {T.scale    =scale; setScale();}
    void setScaleWin(bool scale)  {T.scale_win=scale; setScale();}
-   void tAA        (bool on   )C {D.tAA(on); D.texMipBias(D.tAA() ? -0.5 : 0);} // use only -0.5 because for movement when TAA gets disabled, we would get flickering if value was smaller
+   void tAA        (bool on   )C {D.tAA(on); D.texMipBias(D.tAA() ? -0.5 : 0);} // !! Warning: this might still be used even though 'Renderer.allow_taa' is off !! use only -0.5 because for movement when TAA gets disabled, we would get flickering if value was smaller
 
    UID  skinID   (C Str &name)C {REPA(skins)if(skins[i].name==name)return skins[i].id; return UIDZero;}
    int  skinIndex(C UID &id  )C {REPA(skins)if(skins[i].id  ==id  )return i; return -1;}

@@ -102,9 +102,10 @@ struct WorldManager // World Manager
    void (*physics_update )(); // pointer to custom function (may be null) called when frame physics simulation has ended. 'WorldManager.update' method automatically handles physics simulation updates. If 'physics_update' is not null then it will be called after 'Physics.stopSimulation' and before 'Physics.startSimulation'. This function can be useful when physics is being processed in a background thread, and you need to precisely access/modify actor parameters when the simulation is not being processed. For example, if physics simulation is processed in background thread (that processing could occur during entire frame) and on the main thread you wish to adjust actor velocities, then the simulation may not behave the same every time and may not be precise, due to the fact of adjusting actor parameters when the simulation is already running at unknown stage in background thread. To overcome this issue and gain ability of precise adjusting of actor values you can set this callback, which will be called when the simulation is at the moment not running in the background thread.
 
    // init
-   T1(TYPE) WorldManager& setAreaClass(                                   ) { _grid.replaceClass<TYPE>(                                ); return T;} // set class responsible for areas    , TYPE must be extended from 'Game.Area'
-   T1(TYPE) WorldManager& setAreaData (                                   ) {return _setAreaData<TYPE>(                                );          } // set class responsible for area data, TYPE must be extended from 'Game.Area.Data'
-   T1(TYPE) WorldManager& setObjType  (ObjMap<TYPE> &obj_map, Int obj_type) {return _setObjType       (obj_map, obj_type, CType<TYPE>());          } // set memory container responsible for selected OBJ_TYPE
+   T1(TYPE) WorldManager&   setAreaClass(                                   ) { _grid.replaceClass<TYPE>(                                                     ); return T;} // set class responsible for areas    , TYPE must be extended from 'Game.Area'
+   T1(TYPE) WorldManager&   setAreaData (                                   ) {return _setAreaData<TYPE>(                                                     );          } // set class responsible for area data, TYPE must be extended from 'Game.Area.Data'
+   T1(TYPE) WorldManager&   setObjType  (ObjMap<TYPE> &obj_map, Int obj_type) {return _setObjType       (&SCAST(ObjMap<Obj>, obj_map), obj_type, CType<TYPE>());          } // set   memory container responsible for selected OBJ_TYPE
+            WorldManager& clearObjType  (                       Int obj_type) {return _setObjType       ( null                       , obj_type, null         );          } // clear memory container responsible for selected OBJ_TYPE
 
    // manage
    WorldManager& del   (                                                                  ); // manually delete current world
@@ -272,7 +273,7 @@ private:
       CPtr         type;
       ObjMap<Obj> *map ;
    #if EE_PRIVATE
-      void set(ObjMap<Obj> &map, CPtr type) {T.map=&map; T.type=type;}
+      void set(ObjMap<Obj> *map, CPtr type);
    #endif
    };
 
@@ -339,7 +340,7 @@ private:
 #endif
    T1(TYPE) static Area::Data& NewAreaData(Area::Data* &data, Area &area) {data=new TYPE(area); return *data;}
    T1(TYPE) WorldManager& _setAreaData() {ASSERT_BASE_EXTENDED<Area::Data, TYPE>(); _area_data=NewAreaData<TYPE>; return T;}
-            WorldManager& _setObjType (ObjMap<Obj> &obj_map, Int obj_type, CPtr c_type);
+            WorldManager& _setObjType (ObjMap<Obj> *obj_map, Int obj_type, CPtr c_type);
 #if EE_PRIVATE
    void linkReferences();
 #endif

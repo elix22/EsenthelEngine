@@ -36,14 +36,6 @@ You may NOT resell or sub-license the source code to any third-party.
 You may NOT claim that you wrote the source code.
 You may NOT remove or change any copyright messages or this License text from the source code.
 You may NOT copy the source code, change its name, and sell it as your own.
-Esenthel source code is not given to you, it is licensed to you, Esenthel Creators remain as its copyright owners.
-
-If you submit any code to Esenthel Engine developers (for example bug fixes or improvements to the Engine) then
-you agree that: Esenthel Engine developers have the right to use that code without any restrictions and without
-paying you any fees/royalties for usage of that code. For example Esenthel Engine developers can modify that code
-and incorporate it into the Engine, which then they can license to any third-party (which may include providing
-source code access to the Engine, including codes submitted by you). In such case Esenthel Engine developers
-do not owe you any payment for usage of that code.
 
 Esenthel Engine authors are allowed to publicly share that you are using Esenthel Engine,
 include your organization's logo in the information, and share your application's screenshots and videos

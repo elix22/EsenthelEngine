@@ -3,7 +3,7 @@
 class ElmData // !! IMPORTANT: all classes extending 'ElmData' must override 'undo' and 'sync' methods, and adjust 'ver' !!
 {
    Version   ver; // value randomized each time the data is changed indicating that client/server sync is needed
-   Str       src_file; // can have multiple files and parameters, encoded using 'Edit.FileParams'
+   Str       src_file; // can have multiple files and parameters, encoded using 'FileParams'
    TimeStamp src_file_time;
 
    // get

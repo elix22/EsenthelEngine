@@ -8,13 +8,40 @@
    void LeafRegion::RemoveColor(LeafRegion &leaf) {ObjEdit.remVtx(VTX_COLOR, MtrlEdit.game, true);}
    void LeafRegion::SetAttachmentCam(LeafRegion &leaf)
    {
+      ObjEdit.mesh_undos.set("leaf");
       bool changed=false;
       Vec  pos=ObjEdit.v4.last()->camera.at/ObjEdit.mesh_matrix;
+      if(ObjEdit.mesh_parts.edit_selected())
+      {
+         MeshLod &lod=ObjEdit.getLod();
+         Memt<int  > changed_parts;
+         Memt<VecI2> vtxs; ObjEdit.getSelectedVtxs(vtxs);
+         REPA(vtxs)
+         {
+          C VecI2 &v=vtxs[i]; if(MeshPart *part=lod.parts.addr(v.x))if(HasMaterial(*part, MtrlEdit.game))
+            {
+               MeshBase &base=part->base; if(InRange(v.y, base.vtx))
+               {
+                  if(base.vtx.hlp())
+                  {
+                     base.vtx.hlp(v.y)=pos;
+                     changed_parts.binaryInclude(v.x);
+                  }
+               }
+            }
+         }
+         REPA(changed_parts)
+         {
+            MeshPart &part=lod.parts[changed_parts[i]];
+            part.setRender();
+         }
+         if(changed_parts.elms())changed=true;
+      }else
       REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.lod_tabs.visibleFull())
       {
          MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleFull())
          {
-            MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game)){ObjEdit.mesh_undos.set("leaf"); part.setLeafAttachment(pos); changed=true;}
+            MeshPart &part=lod.parts[i]; if(HasMaterial(part, MtrlEdit.game)){part.setLeafAttachment(pos); changed=true;}
          }
       }
       if(changed)ObjEdit.setChangedMesh(true, false);
@@ -40,6 +67,34 @@
       ObjEdit.mesh_undos.set("bending");
       bool changed=false;
       flt  random=Random.f(1024);
+      if(ObjEdit.mesh_parts.edit_selected())
+      {
+         MeshLod &lod=ObjEdit.getLod();
+         Memt<int  > changed_parts;
+         Memt<VecI2> vtxs; ObjEdit.getSelectedVtxs(vtxs);
+         REPA(vtxs)
+         {
+          C VecI2 &v=vtxs[i]; if(MeshPart *part=lod.parts.addr(v.x))if(HasMaterial(*part, MtrlEdit.game) && (part->flag()&VTX_HLP)) // set only for parts that already have leaf attachment
+            {
+               MeshBase &base=part->base; if(InRange(v.y, base.vtx))
+               {
+                  if(!base.vtx.size())
+                  {
+                     base.include(VTX_SIZE);
+                     ZeroN(base.vtx.size(), base.vtxs());
+                  }
+                  if(base.vtx.size())base.vtx.size(v.y)=random;
+                  changed_parts.binaryInclude(v.x);
+               }
+            }
+         }
+         REPA(changed_parts)
+         {
+            MeshPart &part=lod.parts[changed_parts[i]];
+            part.setRender();
+         }
+         if(changed_parts.elms())changed=true;
+      }else
       REPD(i, ObjEdit.mesh.lods())if(ObjEdit.selLod()==i || !ObjEdit.lod_tabs.visibleFull())
       {
          MeshLod &lod=ObjEdit.mesh.lod(i); REPA(lod.parts)if(ObjEdit.partOp(i) || !ObjEdit.mesh_parts.visibleFull())

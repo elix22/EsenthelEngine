@@ -57,7 +57,7 @@ class SplitAnimation : ClosableWindow
          // split
          if(Elm *base=Proj.findElm(anim_id, ELM_ANIM))if(ElmAnim *base_data=base.animData())
          {
-            Mems<Edit.FileParams> files=Edit.FileParams.Decode(base.srcFile());
+            Mems<FileParams> files=FileParams.Decode(base.srcFile());
             if(files.elms()!=1)Gui.msgBox(S, S+"Unknown source file for animation.");else
             {
                Str src=files[0].name, anim_name; if(C TextParam *name=files[0].findParam("name"))anim_name=name.value;
@@ -80,7 +80,7 @@ class SplitAnimation : ClosableWindow
 
                      if(!i) // first animation just updates the existing one
                      {
-                        base.setName(anim.name(), time).setSrcFile(Edit.FileParams.Encode(files), time); Proj.elmReload(base.id, false, false);
+                        base.setName(anim.name(), time).setSrcFile(FileParams.Encode(files), time); Proj.elmReload(base.id, false, false);
                         Server.renameElm(*base); Server.setElmShort(base.id);
                      }else // next are created as new anim elements
                      if(Elm *anim_elm=Proj.newElm(ELM_ANIM, base.parent_id, &anim.name(), false))if(ElmAnim *anim_data=anim_elm.animData())
@@ -90,7 +90,7 @@ class SplitAnimation : ClosableWindow
                         anim_data.transform=base_data.transform;
                         anim_data.linear   (base_data.linear()); // set linear to the same value as the main animation, this will make reload use that value
                         anim_data.fps      =base_data.fps;
-                        anim_data.setSrcFile(Edit.FileParams.Encode(files), time); Proj.elmReload(anim_elm.id, false, false);
+                        anim_data.setSrcFile(FileParams.Encode(files), time); Proj.elmReload(anim_elm.id, false, false);
                         // sending to Server was already queued in 'Proj.newElm'
                      }
                   }

@@ -114,7 +114,7 @@
             {
                REPA(ObjEdit.sel_vtx)
                {
-                C VecI2 &v=ObjEdit.sel_vtx[i]; if(MeshPart *part=ObjEdit.getPart(v.x))
+                C VecI2 &v=ObjEdit.sel_vtx[i]; if(MeshPart *part=lod.parts.addr(v.x))
                   {
                      MeshBase &base=part->base;
                      if(base.vtx.pos() && InRange(v.y, base.vtx))Include(box, is, base.vtx.pos(v.y)*matrix);
@@ -122,7 +122,7 @@
                }
                REPA(ObjEdit.sel_face)
                {
-                C VecI2 &v=ObjEdit.sel_face[i]; if(MeshPart *part=ObjEdit.getPart(v.x))
+                C VecI2 &v=ObjEdit.sel_face[i]; if(MeshPart *part=lod.parts.addr(v.x))
                   {
                      MeshBase &base=part->base; if(C Vec *pos=base.vtx.pos())
                      {
@@ -191,7 +191,7 @@
                {
                   REPA(ObjEdit.sel_face)
                   {
-                   C VecI2 &v=ObjEdit.sel_face[i]; if(MeshPart *part=ObjEdit.getPart(v.x))
+                   C VecI2 &v=ObjEdit.sel_face[i]; if(MeshPart *part=lod.parts.addr(v.x))
                      {
                         MeshBase &base=part->base;
                         if(v.y&SIGN_BIT){int f=v.y^SIGN_BIT; if(InRange(f, base.quad)){C VecI4 &q=base.quad.ind(f); REPA(q)vtxs.binaryInclude(VecI2(v.x, q.c[i]));}}
@@ -210,7 +210,7 @@
                }
                REPA(vtxs)
                {
-                C VecI2 &v=vtxs[i]; if(MeshPart *part=ObjEdit.getPart(v.x))
+                C VecI2 &v=vtxs[i]; if(MeshPart *part=lod.parts.addr(v.x))
                   {
                      MeshBase &base=part->base; if(InRange(v.y, base.vtx))
                      {

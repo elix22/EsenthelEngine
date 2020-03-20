@@ -235,26 +235,20 @@ _MemcThreadSafe::_MemcThreadSafe(Int elm_size, void (*_new)(Ptr elm), void (*_de
 void _MemcThreadSafe::clear() {SyncLocker locker(_lock); _memc.clear();}
 void _MemcThreadSafe::del  () {SyncLocker locker(_lock); _memc.del  ();}
 
-Int _MemcThreadSafe::index(CPtr elm)C {SyncLocker locker(_lock); return _memc.index(elm);}
+Bool _MemcThreadSafe::contains(CPtr elm)C {SyncLocker locker(_lock); return _memc.contains(elm);}
 
-void _MemcThreadSafe::removeLast(                         ) {SyncLocker locker(_lock); _memc.removeLast(               );}
-void _MemcThreadSafe::remove    (Int  i  , Bool keep_order) {SyncLocker locker(_lock); _memc.remove    (i  , keep_order);}
 void _MemcThreadSafe::removeData(CPtr elm, Bool keep_order) {SyncLocker locker(_lock); _memc.removeData(elm, keep_order);}
 
 void _MemcThreadSafe::setNum    (Int num) {SyncLocker locker(_lock);        _memc.setNum    (num);}
 void _MemcThreadSafe::setNumZero(Int num) {SyncLocker locker(_lock);        _memc.setNumZero(num);}
 Int  _MemcThreadSafe::addNum    (Int num) {SyncLocker locker(_lock); return _memc.addNum    (num);}
 
-Bool _MemcThreadSafe::binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C {SyncLocker locker(_lock); return _memc.binarySearch(value, index, compare);}
-
 void _MemcThreadSafe::sort(           Int compare(CPtr a, CPtr b           )) {SyncLocker locker(_lock); _memc.sort(      compare);}
 void _MemcThreadSafe::sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user)) {SyncLocker locker(_lock); _memc.sort(user, compare);}
 
-void _MemcThreadSafe::  reverseOrder(                      ) {SyncLocker locker(_lock); _memc.  reverseOrder(              );}
-void _MemcThreadSafe::randomizeOrder(                      ) {SyncLocker locker(_lock); _memc.randomizeOrder(              );}
-void _MemcThreadSafe::   rotateOrder(Int offset            ) {SyncLocker locker(_lock); _memc.   rotateOrder(offset        );}
-void _MemcThreadSafe::     swapOrder(Int i  , Int j        ) {SyncLocker locker(_lock); _memc.     swapOrder(i, j          );}
-void _MemcThreadSafe::     moveElm  (Int elm, Int new_index) {SyncLocker locker(_lock); _memc.     moveElm  (elm, new_index);}
+void _MemcThreadSafe::  reverseOrder(          ) {SyncLocker locker(_lock); _memc.  reverseOrder(      );}
+void _MemcThreadSafe::randomizeOrder(          ) {SyncLocker locker(_lock); _memc.randomizeOrder(      );}
+void _MemcThreadSafe::   rotateOrder(Int offset) {SyncLocker locker(_lock); _memc.   rotateOrder(offset);}
 /******************************************************************************/
 }
 /******************************************************************************/

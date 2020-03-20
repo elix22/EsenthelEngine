@@ -832,7 +832,7 @@ static void HighlightFind(C Str &str, C Rect &rect, C GuiPC &gpc)
       Rect_LU(rect.lu()+gpc.offset+Vec2(offset*CE.ts.colWidth(), 0), match_length*CE.ts.colWidth(), CE.ts.lineHeight()).draw(ColorAlpha(YELLOW, LINEAR_GAMMA ? Sqr(0.5f) : 0.5f)); offset+=match_length;
    }
 }
-static void ShowElmName(C UID &id, C Rect &rect, C GuiPC &gpc, C VecI2 &range)
+static void ShowElmName(C UID &id, C Rect &rect, C GuiPC &gpc, C VecI2 &range, Bool comment)
 {
    Bool valid;
    Str  name=CE.cei().idToText(id, &valid);
@@ -840,13 +840,17 @@ static void ShowElmName(C UID &id, C Rect &rect, C GuiPC &gpc, C VecI2 &range)
    {
       TextStyleParams ts=CE.ts_small; ts.align=0; ts.color=Theme.colors[TOKEN_ELM_NAME];
       Rect_LU r(rect.lu()+gpc.offset, Max((name.length()+0.5f)*ts.colWidth(), (range.y-range.x+1)*CE.ts.colWidth()), CE.ts.lineHeight()); r+=Vec2(range.x*CE.ts.colWidth(), 0);
-      r.draw(valid ? Theme.colors[TOKEN_ELM_BACKGROUND] : Color(148, 0, 0, 233));
+      r.draw(valid ? Theme.colors[TOKEN_ELM_BACKGROUND] : Color(comment ? 70 : 148, 0, 0, Theme.colors[TOKEN_ELM_BACKGROUND].a));
       D.text(ts, r.center(), name);
    }
 }
-static void ShowElmNames(C Str &str, C Rect &rect, C GuiPC &gpc)
+static void ShowElmNames(C Str &str, C Rect &rect, C GuiPC &gpc, C Line *line, C Source::ViewLine *view_line)
 {
-   UID id; VecI2 range; FREPA(str)if(TextToIDAt(str, i, id, range))ShowElmName(id, rect, gpc, range);
+   UID id; VecI2 range; FREPA(str)if(TextToIDAt(str, i, id, range))
+   {
+      Bool comment=(line ? line->Type(i)==TOKEN_COMMENT : view_line ? view_line->CodeLine::type(i)==TOKEN_COMMENT : false);
+      ShowElmName(id, rect, gpc, range, comment);
+   }
 }
 /******************************************************************************/
 void Line::draw(C GuiPC &gpc)
@@ -885,7 +889,7 @@ void Line::draw(C GuiPC &gpc)
 
       super::draw(gpc2);
       if(CE.find.visible() && CE.find.text().is())HighlightFind(T, rect(), gpc3);
-      if(CE.view_elm_names                       )ShowElmNames (T, rect(), gpc3);
+      if(CE.view_elm_names                       )ShowElmNames (T, rect(), gpc3, this, null);
    }
 }
 void Source::ViewLine::draw(C GuiPC &gpc)
@@ -900,7 +904,7 @@ void Source::ViewLine::draw(C GuiPC &gpc)
          gpc2.offset+=D.alignScreenToPixelOffset(Vec2(gpc2.offset.x, CE.fontSpaceOffset()+CE.ts.posY(gpc2.offset.y)));
       super::draw(gpc2); gpc2.offset.y-=CE.fontSpaceOffset();
       if(CE.find.visible() && CE.find.text().is())HighlightFind(asStr(), rect(), gpc2);
-      if(CE.view_elm_names                       )ShowElmNames (asStr(), rect(), gpc2);
+      if(CE.view_elm_names                       )ShowElmNames (asStr(), rect(), gpc2, null, this);
    }
 }
 /******************************************************************************/

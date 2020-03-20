@@ -262,6 +262,31 @@ MeshLod& MeshLod::joinAll(Bool test_material, Bool test_draw_group, Bool test_na
    }
    return T;
 }
+Int MeshLod::partsAfterJoinAll(Bool test_material, Bool test_draw_group, Bool test_name, UInt test_vtx_flag, Bool skip_hidden)C
+{
+   Memt<C MeshPart*> temp;
+   REPA(T)
+   {
+    C MeshPart &part=parts[i]; if(part.is())if(!skip_hidden || !(part.part_flag&MSHP_HIDDEN))
+      {
+         Int     draw_group=part.drawGroup();
+         UInt part_vtx_flag=(part.flag()&test_vtx_flag);
+
+         REPA(temp) // check if compatible already exists
+         {
+          C MeshPart &test=*temp[i];
+            if(test_material   && !test.sameMaterials(part)    )continue;
+            if(test_draw_group &&  test.drawGroup()!=draw_group)continue;
+            if(test_name       && !Equal(test.name, part.name) )continue;
+            if(test_vtx_flag   && (test.flag()&test_vtx_flag)!=part_vtx_flag)continue;
+            goto found; // everything is the same
+         }
+         temp.add(&part);
+         found:;
+      }
+   }
+   return temp.elms();
+}
 /******************************************************************************/
 MeshPart* MeshLod::splitVtxs(Int i, C MemPtr<Bool> &vtx_is)
 {

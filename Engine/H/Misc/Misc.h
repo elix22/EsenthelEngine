@@ -530,6 +530,32 @@ T1(TYPE) Bool IsVirtual(C TYPE &x) {return std::is_polymorphic<TYPE>();}
 #endif
 #endif
 /******************************************************************************/
+struct Notification
+{
+   Ptr user=null; // user data
+
+   void set(C Str &title, C Str &text, Bool dismissable=true); // set notification parameters, 'dismissable'=if user can dismiss this notification. If this notification already exists, then calling this method will update its properties.
+
+ C Str& title      ()C {return _title      ;} // get title
+ C Str& text       ()C {return _text       ;} // get text
+   Bool dismissable()C {return _dismissable;} // get if dismissable
+
+   void hide  (); // remove this notification from the status bar
+   void remove(); // remove this notification from the status bar and 'Notifications' container, after making this call you may no longer operate on this object as it will point to invalid memory
+
+#if !EE_PRIVATE // make constructors private to prevent from manually creating 'Notification' objects as they should be created only through 'Notifications.New'
+private:
+#endif
+   Bool _dismissable=false, _visible=false;
+   Str  _title, _text;
+
+  ~Notification();
+};
+extern Memx<Notification> Notifications; // list of active notifications
+#if EE_PRIVATE
+void HideNotifications();
+#endif
+/******************************************************************************/
 enum LANG_TYPE : Byte
 {
 #ifndef _WINNT_
@@ -677,30 +703,4 @@ LANG_TYPE OSLanguage        (              ); // get Operating System Language
 LANG_TYPE   LanguageCode    (   C Str &lang); // get language      from language code
 CChar8*     LanguageCode    (LANG_TYPE lang); // get language code from language
 Str         LanguageSpecific(LANG_TYPE lang); // get specific alphabet characters for the selected language
-/******************************************************************************/
-struct Notification
-{
-   Ptr user=null; // user data
-
-   void set(C Str &title, C Str &text, Bool dismissable=true); // set notification parameters, 'dismissable'=if user can dismiss this notification. If this notification already exists, then calling this method will update its properties.
-
- C Str& title      ()C {return _title      ;} // get title
- C Str& text       ()C {return _text       ;} // get text
-   Bool dismissable()C {return _dismissable;} // get if dismissable
-
-   void hide  (); // remove this notification from the status bar
-   void remove(); // remove this notification from the status bar and 'Notifications' container, after making this call you may no longer operate on this object as it will point to invalid memory
-
-#if !EE_PRIVATE // make constructors private to prevent from manually creating 'Notification' objects as they should be created only through 'Notifications.New'
-private:
-#endif
-   Bool _dismissable=false, _visible=false;
-   Str  _title, _text;
-
-  ~Notification();
-};
-extern Memx<Notification> Notifications; // list of active notifications
-#if EE_PRIVATE
-void HideNotifications();
-#endif
 /******************************************************************************/

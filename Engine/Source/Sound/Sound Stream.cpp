@@ -1028,8 +1028,8 @@ struct MP3
 };
 static Int mp3dec_skip_id3v2(const uint8_t *buf, UInt buf_size)
 {
-   if(buf_size>10 && !strncmp((char *)buf, "ID3", 3))
-        return (((buf[6] & 0x7f) << 21) | ((buf[7] & 0x7f) << 14) | ((buf[8] & 0x7f) << 7) | (buf[9] & 0x7f)) + 10;
+   if(buf_size>=10 && !strncmp((char *)buf, "ID3", 3))
+      return (((buf[6] & 0x7f) << 21) | ((buf[7] & 0x7f) << 14) | ((buf[8] & 0x7f) << 7) | (buf[9] & 0x7f)) + 10;
    return 0;
 }
 static MP3* LoadMP3Header(File &f, SoundStream::Params &params)
@@ -1040,10 +1040,15 @@ static MP3* LoadMP3Header(File &f, SoundStream::Params &params)
    Int  buf_size=Min(f.left(), SIZEI(temp));
    if(!f.getFast(temp, buf_size))return null;
 
-   Int id3v2size=mp3dec_skip_id3v2(temp, buf_size); if(id3v2size>buf_size)return null;
+   Int id3v2size=mp3dec_skip_id3v2(temp, buf_size);
 
    Byte *buf      =temp+id3v2size;
          buf_size-=     id3v2size;
+   if(   buf_size<0) // if negative then it means there's still some id3v2 left to skip
+   {
+      if(!f.skip(-buf_size))return null;
+      buf_size=0;
+   }
 
    mp3dec_t dec; mp3dec_init(&dec);
    Int        frame_samples;
@@ -1054,7 +1059,7 @@ static MP3* LoadMP3Header(File &f, SoundStream::Params &params)
    {
       if(buf_size<MAX_FRAME_SYNC_MATCHES*MAX_L3_FRAME_PAYLOAD_BYTES && !f.end()) // if not enough data left for N frames, but still have some data in the file
       {
-         CopyFast(temp, buf, buf_size); // copy leftover data to the start
+         MoveFast(temp, buf, buf_size); // copy leftover data to the start
          buf=temp; // we now have data at the start
          Int read=Min(f.left(), SIZEI(temp)-buf_size); // calculate how much we can read
          if(!f.getFast(buf+buf_size, read))return null; // read extra data

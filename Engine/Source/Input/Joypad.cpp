@@ -197,14 +197,12 @@ Joypad& Joypad::vibration(C Vec2 &force)
       }
 
       DIEFFECT eff; Zero(eff);
-      eff.dwSize=SIZE(DIEFFECT);
+      eff.dwSize=SIZE(eff);
       eff.dwFlags=DIEFF_CARTESIAN|DIEFF_OBJECTOFFSETS;
       eff.cAxes=_vibration_axes;
       eff.rglDirection=rglDirection;
-      eff.lpEnvelope=0;
-      eff. cbTypeSpecificParams=SIZE(DICONSTANTFORCE);
+      eff. cbTypeSpecificParams=SIZE(cf);
       eff.lpvTypeSpecificParams=&cf;
-      eff.dwStartDelay=0;
 
      _effect->SetParameters(&eff, DIEP_DIRECTION|DIEP_TYPESPECIFICPARAMS|DIEP_START);
    }
@@ -493,45 +491,39 @@ static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
 
             // disable auto centering ?
             DIPROPDWORD dipdw; Zero(dipdw);
-            dipdw.diph.dwSize      =SIZE(DIPROPDWORD );
+            dipdw.diph.dwSize      =SIZE(dipdw);
             dipdw.diph.dwHeaderSize=SIZE(DIPROPHEADER);
-            dipdw.diph.dwObj       =0;
             dipdw.diph.dwHow       =DIPH_DEVICE;
-            dipdw.dwData           =FALSE;
             OK(joypad._did->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph));
 
-            // enumerate ff axes
+            // enumerate ForceFeedback axes
                 joypad._did->EnumObjects(EnumAxes, &joypad, DIDFT_AXIS);
             MIN(joypad._vibration_axes, 2);
 
-            // create ff effect
+            // create ForceFeedback effect
             if(joypad._vibration_axes)
             {
                DWORD rgdwAxes    [2]={DIJOFS_X, DIJOFS_Y};
                LONG  rglDirection[2]={0, 0};
-               DICONSTANTFORCE cf   ={0};
+               DICONSTANTFORCE cf; Zero(cf);
 
                DIEFFECT eff; Zero(eff);
-               eff.dwSize=SIZE(DIEFFECT);
+               eff.dwSize=SIZE(eff);
                eff.dwFlags=DIEFF_CARTESIAN|DIEFF_OBJECTOFFSETS;
                eff.dwDuration=INFINITE;
-               eff.dwSamplePeriod=0;
                eff.dwGain=DI_FFNOMINALMAX;
                eff.dwTriggerButton=DIEB_NOTRIGGER;
-               eff.dwTriggerRepeatInterval=0;
                eff.cAxes=joypad._vibration_axes;
                eff.rgdwAxes=rgdwAxes;
                eff.rglDirection=rglDirection;
-               eff.lpEnvelope=0;
-               eff.cbTypeSpecificParams=SIZE(DICONSTANTFORCE);
+               eff. cbTypeSpecificParams=SIZE(cf);
                eff.lpvTypeSpecificParams=&cf;
-               eff.dwStartDelay=0;
 
                // Create the prepared effect
                joypad._did->CreateEffect(GUID_ConstantForce, &eff, &joypad._effect, null);
             }
          }
-         if(!joypad._did)Joypads.removeData(&joypad); // if failed to create it then remove it
+         if(!joypad._did)Joypads.removeData(&joypad, true); // if failed to create it then remove it
          RELEASE(did);
       }
    }
@@ -558,7 +550,7 @@ void ListJoypads()
       }
    }
    #if WINDOWS_OLD
-      if(InputDevices.DI)InputDevices.DI->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumJoypads, null, DIEDFL_ATTACHEDONLY/*|DIEDFL_FORCEFEEDBACK*/); // this would enumerate only devices with FF
+      if(InputDevices.DI)InputDevices.DI->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumJoypads, null, DIEDFL_ATTACHEDONLY/*|DIEDFL_FORCEFEEDBACK*/); // this would enumerate only devices with ForceFeedback
    #endif
 
    #if WINDOWS_NEW
@@ -567,7 +559,7 @@ void ListJoypads()
       //Windows::Gaming::Input::Gamepad::Vibration;
    #endif
 
-   REPA(Joypads)if(!Joypads[i]._connected)Joypads.remove(i); // remove disconnected joypads
+   REPA(Joypads)if(!Joypads[i]._connected)Joypads.remove(i, true); // remove disconnected joypads
    Joypads.sort(CompareJoypad); // sort remaining by their ID
 #elif MAC
 	if(HidManager=IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone))

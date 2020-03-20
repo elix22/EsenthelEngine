@@ -265,19 +265,19 @@ DIR_ENUM GetCubeDir(int face)
 }
 Str GetCubeFile(C Str &files, int face)
 {
-   Mems<Edit::FileParams> faces=Edit::FileParams::Decode(files);
+   Mems<FileParams> faces=FileParams::Decode(files);
    return (faces.elms()==1) ? files : InRange(face, faces) ? faces[face].encode() : S;
 }
 Str SetCubeFile(Str files, int face, C Str &file) // put 'file' into specified 'face' and return all files
 {
    if(InRange(face, 6))
    {
-      Mems<Edit::FileParams> faces=Edit::FileParams::Decode(files);
+      Mems<FileParams> faces=FileParams::Decode(files);
       if(faces.elms()==1){faces.setNum(6); REPAO(faces)=files;} // set all from original
       if(faces.elms()!=6)faces.clear(); // if invalid number then clear
       faces.setNum(6); // set 6 faces
       faces[face]=file; // set i-th face to target file
-      files=Edit::FileParams::Encode(faces); // get all faces
+      files=FileParams::Encode(faces); // get all faces
    }
    return files;
 }
@@ -873,7 +873,7 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
        || p.name=="inverseG"
        || p.name=="inverseRG"
        || p.name=="lerpRGB" && values>2
-       || p.name=="ilerpRGB" && values>2
+       || p.name=="iLerpRGB" && values>2
        || p.name=="mulRGB" && TextVecEx(p.value).anyDifferent()
        || p.name=="addRGB" && TextVecEx(p.value).anyDifferent()
        || p.name=="mulAddRGB" && values>2
@@ -892,6 +892,7 @@ bool NonMonoTransform   (C TextParam &p   ) // if can change a mono image to non
        || p.name=="lerpHueSat"
        || p.name=="rollHueSat"
        || p.name=="rollHueSatPhoto"
+       || p.name=="min" && TextVecEx(p.value).anyDifferent()
        || p.name=="max" && TextVecEx(p.value).anyDifferent()
        || p.name=="channel" && !ChannelMonoTransform(p.value)
        || p.name=="scaleXY" && TextVec2Ex(p.value).anyDifferent()
@@ -904,8 +905,8 @@ bool HighPrecTransform(C Str &name)
        || name=="mulRGBS" || name=="mulRGBH" || name=="mulRGBHS"
        || name=="normalize"
        || name=="scale" || name=="scaleXY"
-       || name=="lerpRGB" || name=="ilerpRGB"
-       || name=="blur"
+       || name=="lerpRGB" || name=="iLerpRGB"
+       || name=="blur" || name=="sharpen"
        || name=="bump"
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
        || name=="brightness" || name=="brightnessLum"
@@ -913,9 +914,9 @@ bool HighPrecTransform(C Str &name)
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
-       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
+       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="medContrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
-       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="contrastSat" || name=="contrastSatAlphaWeight"
+       || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="medContrastSat" || name=="contrastSatAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
        || name=="mulSatH" || name=="mulSatHS" || name=="mulSatHPhoto" || name=="mulSatHSPhoto"
        || name=="metalToReflect";
@@ -923,6 +924,7 @@ bool HighPrecTransform(C Str &name)
 bool SizeDependentTransform(C TextParam &p)
 {
    return p.name=="blur" // range depends on size
+       || p.name=="sharpen" // range depends on size
        || p.name=="bump" // range depends on size
        || p.name=="crop" // coordinates/size depend on size
        || p.name=="resizeNoStretch"
@@ -932,10 +934,10 @@ bool SizeDependentTransform(C TextParam &p)
 }
 bool ForcesMono(C Str &file)
 {
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
+   Mems<FileParams> files=FileParams::Decode(file);
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
@@ -948,10 +950,10 @@ bool ForcesMono(C Str &file)
 }
 Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (default)
 {
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(color_map);
+   Mems<FileParams> files=FileParams::Decode(color_map);
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
@@ -960,14 +962,14 @@ Str BumpFromColTransform(C Str &color_map, int blur) // 'blur'<0 = empty (defaul
       if(!file.is())files.remove(i, true); // if nothing left then remove it
    }
    SetTransform(files, "bump", (blur<0) ? S : S+blur);
-   return Edit::FileParams::Encode(files);
+   return FileParams::Encode(files);
 }
-bool ExtractResize(MemPtr<Edit::FileParams> files, TextParam &resize)
+bool ExtractResize(MemPtr<FileParams> files, TextParam &resize)
 {
    resize.del();
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPAD(pi, file.params) // go from end
       {
@@ -1030,6 +1032,27 @@ void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box)
       image.unlock();
    }
 }
+void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box)
+{
+   if(contrast!=1 && image.lock())
+   {
+      flt avg_hue=RgbToHsb(avg_col).x;
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=RgbToHsb(c.xyz);
+         flt d_hue=HueDelta(avg_hue, c.x);
+         d_hue*=contrast;
+         Clamp(d_hue, -0.5f, 0.5f); // clamp so we don't go back
+         c.x=d_hue+avg_hue;
+         c.xyz=HsbToRgb(c.xyz);
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }
+}
 void AddHue(Image &image, flt hue, C BoxI &box)
 {
    hue=Frac(hue);
@@ -1042,6 +1065,23 @@ void AddHue(Image &image, flt hue, C BoxI &box)
          Vec4 c=image.color3DF(x, y, z);
          c.xyz=RgbToHsb(c.xyz);
          c.x +=hue;
+         c.xyz=HsbToRgb(c.xyz);
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }
+}
+void ContrastSat(Image &image, flt contrast, flt avg_sat, C BoxI &box)
+{
+   if(contrast!=1 && image.lock())
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=RgbToHsb(c.xyz);
+         c.y=(c.y-avg_sat)*contrast+avg_sat;
          c.xyz=HsbToRgb(c.xyz);
          image.color3DF(x, y, z, c);
       }
@@ -1079,6 +1119,23 @@ void MulRGBHS(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, 
       c.xyz*=Lerp(1.0f, hue_mul, hsb.y);
       image.color3DF(x, y, z, c);
    }
+}
+void MulSat(Image &image, flt mul, C BoxI &box)
+{
+   if(mul!=1 && image.lock())
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=RgbToHsb(c.xyz);
+         c.y*=mul;
+         c.xyz=HsbToRgb(c.xyz);
+         image.color3DF(x, y, z, c);
+      }
+      image.unlock();
+   }   
 }
 void MulSatH(Image &image, flt red, flt yellow, flt green, flt cyan, flt blue, flt purple, bool sat, bool photo, C BoxI &box)
 {
@@ -1254,6 +1311,22 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, temp.color3DF(x, y, z));
       }
    }else
+   if(param.name=="sharpen")
+   {
+      Memc<Str> c; Split(c, param.value, ',');
+      if(c.elms()>=1 && c.elms()<=2)
+      {
+         flt power=TextFlt(c[0]);
+         flt range=((c.elms()>=2) ? TextFlt(c[1]) : 1);
+         if(box.min.allZero() && box.max==image.size3())image.sharpen(power, range, clamp);else
+         {
+            Image temp; image.copyTry(temp); temp.sharpen(power, range, clamp);
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, temp.color3DF(x, y, z));
+         }
+      }
+   }else
    if(param.name=="lerpRGB")
    {
       Memc<Str> c; Split(c, param.value, ',');
@@ -1263,7 +1336,7 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          case 6: {Vec2 ma[3]={LerpToMad(TextFlt(c[0]), TextFlt(c[3])), LerpToMad(TextFlt(c[1]), TextFlt(c[4])), LerpToMad(TextFlt(c[2]), TextFlt(c[5]))}; image.mulAdd(Vec4(ma[0].x, ma[1].x, ma[2].x, 1), Vec4(ma[0].y, ma[1].y, ma[2].y, 0), &box);} break;
       }
    }else
-   if(param.name=="ilerpRGB")
+   if(param.name=="iLerpRGB")
    {
       Memc<Str> c; Split(c, param.value, ',');
       switch(c.elms())
@@ -1444,48 +1517,21 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
-         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box) && image.lock())
-         {
-            flt avg_hue=RgbToHsb(avg.xyz).x;
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               flt d_hue=HueDelta(avg_hue, c.x);
-               d_hue*=contrast;
-               Clamp(d_hue, -0.5f, 0.5f); // clamp so we don't go back
-               c.x=d_hue+avg_hue;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-            image.unlock();
-         }
+         Vec4 avg; if(image.stats(null, null, &avg, null, null, null, &box))ContrastHue(image, contrast, avg.xyz, box);
+      }
+   }else
+   if(param.name=="medContrastHue")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         Vec4 med; if(image.stats(null, null, null, &med, null, null, &box))ContrastHue(image, contrast, med.xyz, box);
       }
    }else
    if(param.name=="contrastHueAlphaWeight")
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
-         Vec avg; if(image.stats(null, null, null, null, null, &avg, &box) && image.lock())
-         {
-            flt avg_hue=RgbToHsb(avg).x;
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               flt d_hue=HueDelta(avg_hue, c.x);
-               d_hue*=contrast;
-               Clamp(d_hue, -0.5f, 0.5f); // clamp so we don't go back
-               c.x=d_hue+avg_hue;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-            image.unlock();
-         }
+         Vec avg; if(image.stats(null, null, null, null, null, &avg, &box))ContrastHue(image, contrast, avg, box);
       }
    }else
    if(param.name=="contrastHuePow")
@@ -1516,58 +1562,21 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
-         flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box) && image.lock())
-         {
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               c.y=(c.y-avg)*contrast+avg;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-            image.unlock();
-         }
+         flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))ContrastSat(image, contrast, avg, box);
+      }
+   }else
+   if(param.name=="medContrastSat")
+   {
+      flt contrast=param.asFlt(); if(contrast!=1)
+      {
+         flt med; if(image.statsSat(null, null, null, &med, null, null, &box))ContrastSat(image, contrast, med, box);
       }
    }else
    if(param.name=="contrastSatAlphaWeight")
    {
       flt contrast=param.asFlt(); if(contrast!=1)
       {
-         flt avg; if(image.statsSat(null, null, null, null, null, &avg, &box) && image.lock())
-         {
-            for(int z=box.min.z; z<box.max.z; z++)
-            for(int y=box.min.y; y<box.max.y; y++)
-            for(int x=box.min.x; x<box.max.x; x++)
-            {
-               Vec4 c=image.color3DF(x, y, z);
-               c.xyz=RgbToHsb(c.xyz);
-               c.y=(c.y-avg)*contrast+avg;
-               c.xyz=HsbToRgb(c.xyz);
-               image.color3DF(x, y, z, c);
-            }
-            image.unlock();
-         }
-      }
-   }else
-   if(param.name=="avgSat")
-   {
-      flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))if(avg && image.lock())
-      {
-         flt mul=param.asFlt()/avg;
-         for(int z=box.min.z; z<box.max.z; z++)
-         for(int y=box.min.y; y<box.max.y; y++)
-         for(int x=box.min.x; x<box.max.x; x++)
-         {
-            Vec4 c=image.color3DF(x, y, z);
-            c.xyz=RgbToHsb(c.xyz);
-            c.y*=mul;
-            c.xyz=HsbToRgb(c.xyz);
-            image.color3DF(x, y, z, c);
-         }
-         image.unlock();
+         flt avg; if(image.statsSat(null, null, null, null, null, &avg, &box))ContrastSat(image, contrast, avg, box);
       }
    }else
    if(param.name=="avgLum")
@@ -1622,20 +1631,15 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(param.name=="mulSat")
    {
-      flt sat=param.asFlt(); if(sat!=1 && image.lock())
-      {
-         for(int z=box.min.z; z<box.max.z; z++)
-         for(int y=box.min.y; y<box.max.y; y++)
-         for(int x=box.min.x; x<box.max.x; x++)
-         {
-            Vec4 c=image.color3DF(x, y, z);
-            c.xyz=RgbToHsb(c.xyz);
-            c.y*=sat;
-            c.xyz=HsbToRgb(c.xyz);
-            image.color3DF(x, y, z, c);
-         }
-         image.unlock();
-      }
+      MulSat(image, param.asFlt(), box);
+   }else
+   if(param.name=="avgSat")
+   {
+      flt avg; if(image.statsSat(null, null, &avg, null, null, null, &box))if(avg)MulSat(image, param.asFlt()/avg, box);
+   }else
+   if(param.name=="medSat")
+   {
+      flt med; if(image.statsSat(null, null, null, &med, null, null, &box))if(med)MulSat(image, param.asFlt()/med, box);
    }else
    if(param.name=="mulSatPhoto")
    {
@@ -1893,6 +1897,18 @@ void TransformImage(Image &image, TextParam param, bool clamp)
             image.color3DF(x, y, z, c);
          }
          image.unlock();
+      }
+   }else
+   if(param.name=="min")
+   {
+      Vec min=TextVecEx(param.value);
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=Min(c.xyz, min);
+         image.color3DF(x, y, z, c);
       }
    }else
    if(param.name=="max")
@@ -2188,11 +2204,11 @@ Str8 ImageDownSizeSuffix(int size)
    return S;
 }
 /******************************************************************************/
-TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms
+TextParam* FindTransform(MemPtr<FileParams> files, C Str &name) // this ignores partial(non full size) transforms
 {
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPA(file.params) // go from end
       {
@@ -2201,11 +2217,11 @@ TextParam* FindTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ig
    }
    return null;
 }
-void DelTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores partial(non full size) transforms 
+void DelTransform(MemPtr<FileParams> files, C Str &name) // this ignores partial(non full size) transforms 
 {
    REPA(files) // go from end
    {
-      Edit::FileParams &file=files[i];
+      FileParams &file=files[i];
       if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
       REPAD(pi, file.params) // go from end
       {
@@ -2218,7 +2234,7 @@ void DelTransform(MemPtr<Edit::FileParams> files, C Str &name) // this ignores p
       }
    }
 }
-void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
+void SetTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
 {
    if(files.elms()) // set only if we have something (to ignore setting for completely empty)
    {
@@ -2226,7 +2242,7 @@ void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // 
       TextParam *p;
       REPA(files) // go from end
       {
-         Edit::FileParams &file=files[i];
+         FileParams &file=files[i];
          if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
          REPA(file.params) // go from end
          {
@@ -2238,7 +2254,7 @@ void SetTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // 
       p->setValue(value);
    }
 }
-void SetResizeTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
+void SetResizeTransform(MemPtr<FileParams> files, C Str &name, C Str &value) // this ignores partial(non full size) transforms 
 {
    if(files.elms()) // set only if we have something (to ignore setting for completely empty)
    {
@@ -2246,7 +2262,7 @@ void SetResizeTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &valu
       TextParam *p;
       REPA(files) // go from end
       {
-         Edit::FileParams &file=files[i];
+         FileParams &file=files[i];
          if(i && file.name.is())break; // stop on first file that has name (but allow the first which means there's only one file) so we don't process transforms for only 1 of multiple images
          REPA(file.params) // go from end
          {
@@ -2263,9 +2279,9 @@ void SetResizeTransform(MemPtr<Edit::FileParams> files, C Str &name, C Str &valu
 }
 void SetTransform(Str &file, C Str &name, C Str &value)
 {
-   Mems<Edit::FileParams> files=Edit::FileParams::Decode(file);
+   Mems<FileParams> files=FileParams::Decode(file);
    SetTransform(files, name, value);
-   file=Edit::FileParams::Encode(files);
+   file=FileParams::Encode(files);
 }
 /******************************************************************************/
 SOUND_CODEC TextSoundCodec(C Str &t)
@@ -2401,6 +2417,7 @@ void FixMesh(Mesh &mesh)
 }
 bool SamePartInAllLods(C Mesh &mesh, int part)
 {
+#if 0 // checks only 1 part
    if(InRange(part, mesh.parts))
    {
       cchar8 *name=mesh.parts[part].name;
@@ -2412,6 +2429,14 @@ bool SamePartInAllLods(C Mesh &mesh, int part)
       return true;
    }
    return false;
+#else // checks all parts
+   for(Int i=mesh.lods(); --i>=1; )
+   {
+    C MeshLod &lod=mesh.lod(i); if(lod.parts.elms()!=mesh.parts.elms())return false;
+      REPA(lod.parts)if(!Equal(lod.parts[i].name, mesh.parts[i].name))return false;
+   }
+   return true;
+#endif
 }
 void SetDrawGroup(Mesh &mesh, MeshLod &lod, int part, int group, Enum *draw_group_enum)
 {
@@ -2703,7 +2728,7 @@ UID AsID(C Elm *elm) {return elm ? elm->id : UIDZero;}
 /******************************************************************************/
 void SetPath(WindowIO &win_io, C Str &path, bool clear)
 {
-   Mems<Edit::FileParams> fps=Edit::FileParams::Decode(path); if(fps.elms()==1)
+   Mems<FileParams> fps=FileParams::Decode(path); if(fps.elms()==1)
    {
       Str first=FFirstUp(fps[0].name);
       if(FileInfoSystem(first).type==FSTD_FILE)first=GetPath(first);
@@ -2932,14 +2957,14 @@ Str GetStr(File &f)
 }
 void GetStr(File &f, Str &s) {s=GetStr(f);}
 
-Mems<Edit::FileParams> _DecodeFileParams(C Str &str)
+Mems<FileParams> _DecodeFileParams(C Str &str)
 {
-   Mems<Edit::FileParams> files; if(str.is())
+   Mems<FileParams> files; if(str.is())
    {
       Memc<Str> strs=Split(str, '|'); // get list of all files
       files.setNum(strs.elms()); FREPA(files)
       {
-         Edit::FileParams &file=files[i];
+         FileParams &file=files[i];
          Memc<Str> fp=Split(strs[i], '?'); // file_name?params
          file.name=(fp.elms() ? fp[0] : S);
          if(fp.elms()>=2)

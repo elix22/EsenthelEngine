@@ -142,20 +142,20 @@ struct TextData
 
    // io
    Bool save(C Str    &name, ENCODING encoding=UTF_8, INDENT indent=INDENT_TABS, const_mem_addr Cipher *cipher=null)C; // save to file, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   Bool save(FileText &f                                                                                           )C; // save to file, false on fail, 'f' file must be already opened for writing
+   Bool save(FileText &f                                                                                           )C; // save to file, false on fail, 'f' file should be already opened for writing
 
    Bool saveJSON(C Str    &name, ENCODING encoding=UTF_8, INDENT indent=INDENT_TABS, const_mem_addr Cipher *cipher=null)C; // save to file, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   Bool saveJSON(FileText &f                                                                                           )C; // save to file, false on fail, 'f' file must be already opened for writing
+   Bool saveJSON(FileText &f                                                                                           )C; // save to file, false on fail, 'f' file should be already opened for writing
 
    Bool load(C Str    &name, const_mem_addr Cipher *cipher=null); // load from file, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
    Bool load(C UID    &id  , const_mem_addr Cipher *cipher=null); // load from file, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   Bool load(FileText &f                                       ); // load from file, false on fail, 'f' file must be already opened for reading
+   Bool load(FileText &f                                       ); // load from file, false on fail, 'f' file should be already opened for reading
 
    Bool loadJSON(C Str    &name, const_mem_addr Cipher *cipher=null); // load from file in JSON format, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   Bool loadJSON(FileText &f                                       ); // load from file in JSON format, false on fail, 'f' file must be already opened for reading
+   Bool loadJSON(FileText &f                                       ); // load from file in JSON format, false on fail, 'f' file should be already opened for reading
 
    Bool loadYAML(C Str    &name, const_mem_addr Cipher *cipher=null); // load from file in YAML format, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   Bool loadYAML(FileText &f                                       ); // load from file in YAML format, false on fail, 'f' file must be already opened for reading
+   Bool loadYAML(FileText &f                                       ); // load from file in YAML format, false on fail, 'f' file should be already opened for reading
 
    TextData() {}
    TextData(C XmlData &xml); // create from 'XmlData'
@@ -208,11 +208,11 @@ struct XmlData // Xml Data
 
    // io
    Bool save(C Str    &name, Bool params_in_separate_lines=false, ENCODING encoding=UTF_8)C; // save to file, false on fail
-   Bool save(FileText &f   , Bool params_in_separate_lines=false                         )C; // save to file, false on fail, 'f' file must be already opened for writing
+   Bool save(FileText &f   , Bool params_in_separate_lines=false                         )C; // save to file, false on fail, 'f' file should be already opened for writing
 
    Bool load(C Str    &name); // load from file, false on fail
    Bool load(C UID    &id  ); // load from file, false on fail
-   Bool load(FileText &f   ); // load from file, false on fail, 'f' file must be already opened for reading
+   Bool load(FileText &f   ); // load from file, false on fail, 'f' file should be already opened for reading
 
    Bool loadAndroidBinary(File &f); // load from Android Binary XML file, false on fail
 
@@ -226,4 +226,26 @@ C TextNode* FindNodeC(C MemPtr<TextNode> &nodes, C Str &name, Int i=0); // find 
 
 XmlNode* FindNode(MemPtr<XmlNode> nodes, C Str &name, Int i=0); // find i-th node which name is equal to 'name', null on fail (if not found)
 XmlNode&  GetNode(MemPtr<XmlNode> nodes, C Str &name         ); // get       node which name is equal to 'name', New  on fail (if not found)
+/******************************************************************************/
+struct FileParams
+{
+   Str             name;
+   Mems<TextParam> params;
+
+   Bool is()C {return name.is() || params.elms();}
+
+   TextParam* findParam(C Str &name);
+ C TextParam* findParam(C Str &name)C;
+   TextParam&  getParam(C Str &name);
+
+   Str  encode(        )C; // encode into string
+   void decode(C Str &s) ; // decode from string
+
+   FileParams(        ) {}
+   FileParams(C Str &s) {decode(s);}
+
+   static Str              Encode(C MemPtr<FileParams> &file_params); // encode 'file_params' array into string
+   static Mems<FileParams> Decode(C Str                &str        ); // decode 'str' string into file params array
+   static Str              Merge (C Str                &a, C Str &b); // merge  'a' 'b' strings
+};
 /******************************************************************************/

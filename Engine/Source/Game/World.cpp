@@ -177,10 +177,24 @@ WorldManager& WorldManager::activeRange(Flt range)
    }
    return T;
 }
-WorldManager& WorldManager::_setObjType(ObjMap<Obj> &obj_map, Int obj_type, CPtr c_type)
+void WorldManager::ObjContainer::set(ObjMap<Obj> *map, CPtr type)
 {
-   SyncLocker locker(_lock);
-   if(obj_type>=0)T._obj_container(obj_type).set(obj_map, c_type);
+   if(T.map!=map) // if changing
+   {
+      if(T.map)T.map->clear(); // delete objects, use 'clear' in case there are any 'Reference' objects left pointing to memory adresses inside containers
+      T.map=map;
+   }
+   T.type=type;
+}
+
+WorldManager& WorldManager::_setObjType(ObjMap<Obj> *obj_map, Int obj_type, CPtr c_type)
+{
+   if(obj_type>=0)
+   {
+      SyncLocker locker(_lock);
+      if(obj_map || InRange(obj_type, _obj_container)) // want to set somethnig, or want to clear and index is in range
+        _obj_container(obj_type).set(obj_map, c_type);
+   }
    return T;
 }
 /******************************************************************************/

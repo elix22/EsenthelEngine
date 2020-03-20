@@ -441,7 +441,11 @@ class WorldView : Viewport4Region, WorldData
    void drawObjPoints()
    {
       const flt r=0.005;
-      if(cur.valid() && (mode()==OBJECT || mode()==WAYPOINT || mode()==WATER)){SetMatrix(); cur.pos().draw(Color(255, 255, 255, 112), r);}
+      if(cur.valid()
+      && show_cur_pos()
+    //&& (mode()==OBJECT || mode()==WAYPOINT || mode()==WATER)
+    //&& v4.sel()<0 // draw cursor only if multiple viewports visible
+      ){SetMatrix(); cur.pos().draw(Color(255, 255, 255, 112), r);}
       if(mode()==OBJECT)
       {
          SetMatrix();

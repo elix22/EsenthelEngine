@@ -102,14 +102,14 @@ class EditMaterial
       if( alpha_map=="<color>") alpha_map.clear();
       if(normal_map=="<bump>" )normal_map.clear();
    }
-   void expandMap(Str &map, C MemPtr<Edit.FileParams> &color, C MemPtr<Edit.FileParams> &smooth, C MemPtr<Edit.FileParams> &bump)
+   void expandMap(Str &map, C MemPtr<FileParams> &color, C MemPtr<FileParams> &smooth, C MemPtr<FileParams> &bump)
    {
       bool normal=(&map==&normal_map);
-      Mems<Edit.FileParams> files=Edit.FileParams.Decode(map);
+      Mems<FileParams> files=FileParams.Decode(map);
       REPA(files)
       {
-         Edit.FileParams &file=files[i];
-       C MemPtr<Edit.FileParams> *src;
+         FileParams &file=files[i];
+       C MemPtr<FileParams> *src;
          if(file.name=="<color>" )src=&color ;else
          if(file.name=="<smooth>")src=&smooth;else
          if(file.name=="<bump>"  )src=&bump  ;else
@@ -117,7 +117,7 @@ class EditMaterial
          if(src.elms()<=0)file.name.clear();else // if source is empty
          if(src.elms()==1) // if source has only one file
          {
-          C Edit.FileParams &first=(*src)[0];
+          C FileParams &first=(*src)[0];
             file.name=first.name; // replace name with original
             FREPA(first.params)file.params.NewAt(i)=first.params[i]; // insert original parameters at the start
                     if(normal){file.params.NewAt(first.params.elms()).set("bumpToNormal"); flip_normal_y=false;} // need to force conversion to normal map
@@ -130,13 +130,13 @@ class EditMaterial
             // !! here can't access 'file' anymore because its memory address could be invalid !!
          }
       }
-      map=Edit.FileParams.Encode(files);
+      map=FileParams.Encode(files);
    }
    void expandMaps()
    {
-      Mems<Edit.FileParams> color =Edit.FileParams.Decode( color_map);
-      Mems<Edit.FileParams> smooth=Edit.FileParams.Decode(smooth_map);
-      Mems<Edit.FileParams> bump  =Edit.FileParams.Decode(  bump_map);
+      Mems<FileParams> color =FileParams.Decode( color_map);
+      Mems<FileParams> smooth=FileParams.Decode(smooth_map);
+      Mems<FileParams> bump  =FileParams.Decode(  bump_map);
       expandMap(  color_map, color, smooth, bump);
       expandMap(  alpha_map, color, smooth, bump);
       expandMap(   bump_map, color, smooth, bump);
@@ -211,19 +211,19 @@ class EditMaterial
       dest.glow=glow;
       dest.normal=normal;
       dest.bump=bump;
-      dest.    color_map=Edit.FileParams.Decode(color_map);
-      dest.    alpha_map=Edit.FileParams.Decode(alpha_map);
-      dest.     bump_map=Edit.FileParams.Decode(bump_map);
-      dest.   normal_map=Edit.FileParams.Decode(normal_map);
-      dest.   smooth_map=Edit.FileParams.Decode(smooth_map);
-      dest.  reflect_map=Edit.FileParams.Decode(reflect_map);
-      dest.     glow_map=Edit.FileParams.Decode(glow_map);
-      dest.detail_color =Edit.FileParams.Decode(detail_color);
-      dest.detail_bump  =Edit.FileParams.Decode(detail_bump);
-      dest.detail_normal=Edit.FileParams.Decode(detail_normal);
-      dest.detail_smooth=Edit.FileParams.Decode(detail_smooth);
-      dest. macro_map   =Edit.FileParams.Decode(macro_map);
-      dest. light_map   =Edit.FileParams.Decode(light_map);
+      dest.    color_map=FileParams.Decode(color_map);
+      dest.    alpha_map=FileParams.Decode(alpha_map);
+      dest.     bump_map=FileParams.Decode(bump_map);
+      dest.   normal_map=FileParams.Decode(normal_map);
+      dest.   smooth_map=FileParams.Decode(smooth_map);
+      dest.  reflect_map=FileParams.Decode(reflect_map);
+      dest.     glow_map=FileParams.Decode(glow_map);
+      dest.detail_color =FileParams.Decode(detail_color);
+      dest.detail_bump  =FileParams.Decode(detail_bump);
+      dest.detail_normal=FileParams.Decode(detail_normal);
+      dest.detail_smooth=FileParams.Decode(detail_smooth);
+      dest. macro_map   =FileParams.Decode(macro_map);
+      dest. light_map   =FileParams.Decode(light_map);
    }
    enum
    {
@@ -253,19 +253,19 @@ class EditMaterial
       changed|=CHANGED_PARAM*SyncByValueEqual( normal_time, time,  normal, src. normal);
       changed|=CHANGED_PARAM*SyncByValueEqual(   bump_time, time,    bump, src.   bump);
 
-      changed|=CHANGED_BASE *SyncByValue(  color_map_time, time,   color_map  , Edit.FileParams.Encode(ConstCast(src.  color_map  )));
-      changed|=CHANGED_BASE *SyncByValue(  alpha_map_time, time,   alpha_map  , Edit.FileParams.Encode(ConstCast(src.  alpha_map  )));
-      changed|=CHANGED_BASE *SyncByValue(   bump_map_time, time,    bump_map  , Edit.FileParams.Encode(ConstCast(src.   bump_map  )));
-      changed|=CHANGED_BASE *SyncByValue( normal_map_time, time,  normal_map  , Edit.FileParams.Encode(ConstCast(src. normal_map  )));
-      changed|=CHANGED_BASE *SyncByValue( smooth_map_time, time,  smooth_map  , Edit.FileParams.Encode(ConstCast(src. smooth_map  )));
-      changed|=CHANGED_BASE *SyncByValue(reflect_map_time, time, reflect_map  , Edit.FileParams.Encode(ConstCast(src.reflect_map  )));
-      changed|=CHANGED_BASE *SyncByValue(   glow_map_time, time,    glow_map  , Edit.FileParams.Encode(ConstCast(src.   glow_map  )));
-      changed|=CHANGED_DET  *SyncByValue( detail_map_time, time, detail_color , Edit.FileParams.Encode(ConstCast(src.detail_color )));
-      changed|=CHANGED_DET  *SyncByValue( detail_map_time, time, detail_bump  , Edit.FileParams.Encode(ConstCast(src.detail_bump  )));
-      changed|=CHANGED_DET  *SyncByValue( detail_map_time, time, detail_normal, Edit.FileParams.Encode(ConstCast(src.detail_normal)));
-      changed|=CHANGED_DET  *SyncByValue( detail_map_time, time, detail_smooth, Edit.FileParams.Encode(ConstCast(src.detail_smooth)));
-      changed|=CHANGED_MACRO*SyncByValue(  macro_map_time, time,  macro_map   , Edit.FileParams.Encode(ConstCast(src.  macro_map  )));
-      changed|=CHANGED_LIGHT*SyncByValue(  light_map_time, time,  light_map   , Edit.FileParams.Encode(ConstCast(src.  light_map  )));
+      changed|=CHANGED_BASE *SyncByValue(  color_map_time, time,   color_map  , FileParams.Encode(ConstCast(src.  color_map  )));
+      changed|=CHANGED_BASE *SyncByValue(  alpha_map_time, time,   alpha_map  , FileParams.Encode(ConstCast(src.  alpha_map  )));
+      changed|=CHANGED_BASE *SyncByValue(   bump_map_time, time,    bump_map  , FileParams.Encode(ConstCast(src.   bump_map  )));
+      changed|=CHANGED_BASE *SyncByValue( normal_map_time, time,  normal_map  , FileParams.Encode(ConstCast(src. normal_map  )));
+      changed|=CHANGED_BASE *SyncByValue( smooth_map_time, time,  smooth_map  , FileParams.Encode(ConstCast(src. smooth_map  )));
+      changed|=CHANGED_BASE *SyncByValue(reflect_map_time, time, reflect_map  , FileParams.Encode(ConstCast(src.reflect_map  )));
+      changed|=CHANGED_BASE *SyncByValue(   glow_map_time, time,    glow_map  , FileParams.Encode(ConstCast(src.   glow_map  )));
+      changed|=CHANGED_DET  *SyncByValue( detail_map_time, time, detail_color , FileParams.Encode(ConstCast(src.detail_color )));
+      changed|=CHANGED_DET  *SyncByValue( detail_map_time, time, detail_bump  , FileParams.Encode(ConstCast(src.detail_bump  )));
+      changed|=CHANGED_DET  *SyncByValue( detail_map_time, time, detail_normal, FileParams.Encode(ConstCast(src.detail_normal)));
+      changed|=CHANGED_DET  *SyncByValue( detail_map_time, time, detail_smooth, FileParams.Encode(ConstCast(src.detail_smooth)));
+      changed|=CHANGED_MACRO*SyncByValue(  macro_map_time, time,  macro_map   , FileParams.Encode(ConstCast(src.  macro_map  )));
+      changed|=CHANGED_LIGHT*SyncByValue(  light_map_time, time,  light_map   , FileParams.Encode(ConstCast(src.  light_map  )));
 
       return changed;
    }

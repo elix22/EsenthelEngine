@@ -230,6 +230,7 @@ public:
    static void MtrlSetNormalCur        (ProjectEx &proj);
    static void MtrlSetSmoothCur        (ProjectEx &proj);
    static void MtrlSetReflectCur       (ProjectEx &proj);
+   static void MtrlSetGlowCur          (ProjectEx &proj);
    static void MtrlResetAlpha          (ProjectEx &proj);
    static void MtrlCullOn              (ProjectEx &proj);
    static void MtrlCullOff             (ProjectEx &proj);
@@ -240,6 +241,7 @@ public:
    static void MtrlSetNormalTexCur     (ProjectEx &proj);
    static void MtrlSetSmoothTexCur     (ProjectEx &proj);
    static void MtrlSetReflectTexCur    (ProjectEx &proj);
+   static void MtrlSetGlowTexCur       (ProjectEx &proj);
 
    static void MtrlMulTexCol           (ProjectEx &proj);
    static void MtrlMulTexNormal        (ProjectEx &proj);
@@ -363,9 +365,11 @@ public:
    bool mtrlSetNormal(C MemPtr<UID> &elm_ids, flt normal, bool mul=false);
    bool mtrlSetSmooth(C MemPtr<UID> &elm_ids, flt smooth, bool mul=false);
    bool mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect, bool mul=false);
+   bool mtrlSetGlow(C MemPtr<UID> &elm_ids, flt glow, bool mul=false);
    bool mtrlSetTexNormal(C MemPtr<UID> &elm_ids, C Str &normal_map);
    bool mtrlSetTexSmooth(C MemPtr<UID> &elm_ids, C Str &smooth_map);
    bool mtrlSetTexReflect(C MemPtr<UID> &elm_ids, C Str &reflect_map);
+   bool mtrlSetTexGlow(C MemPtr<UID> &elm_ids, C Str &glow_map);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);
    void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize, C UID &base_0=UIDZero, C UID &base_1=UIDZero, C UID &base_2=UIDZero);
@@ -387,7 +391,7 @@ public:
    {
       bool loaded=false;
       reflection.del();
-      Mems<Edit.FileParams> faces=Edit.FileParams.Decode(material.reflection_map);
+      Mems<FileParams> faces=FileParams.Decode(material.reflection_map);
       if(faces.elms()==6) // 6 images specified
       {
          Image images[6]; REPA(images)
