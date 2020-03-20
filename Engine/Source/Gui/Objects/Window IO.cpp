@@ -29,13 +29,16 @@ Memc<Str> WindowIOFavorites, WindowIORecents;
 /******************************************************************************/
 void WindowIORecent(Str path)
 {
-   if(path.is())REPA(WindowIORecents)if(EqualPath(WindowIORecents[i], path))
+   if(path.is())
    {
-      REPD(j, i)Swap(WindowIORecents[j], WindowIORecents[j+1]); // move to 1st position
-      return;
+      REPA(WindowIORecents)if(EqualPath(WindowIORecents[i], path))
+      {
+         REPD(j, i)Swap(WindowIORecents[j], WindowIORecents[j+1]); // move to 1st position
+         return;
+      }
+      WindowIORecents.NewAt(0)=path;
+      WindowIORecents.setNum(Min(QPS_MAX_RECENT, WindowIORecents.elms())); // limit amount of elements
    }
-   WindowIORecents.NewAt(0)=path;
-   WindowIORecents.setNum(Min(QPS_MAX_RECENT, WindowIORecents.elms())); // limit amount of elements
 }
 /******************************************************************************/
 static void ChangedText    (WindowIO &wio) {wio.setBar         ();}
@@ -292,25 +295,32 @@ WindowIO& WindowIO::modeDirOperate()
    }
    return T;
 }
-Str WindowIO::final(           )C {return final(textline());}
-Str WindowIO::final(C Str &name)C // this will always include 'path', or empty string on error
+Mems<FileParams> WindowIO::final(           )C {return final(textline());}
+Mems<FileParams> WindowIO::final(C Str &name)C // this will always include 'path', or be empty on error
 {
-   Str final=NormalizePath(FullPath(name) ? name : path()+subPath()+name);
-   return (!path().is() || StartsPath(final, path())) ? final : S;
+   auto fps=FileParams::Decode(name);
+   if(_mode==WIN_IO_DIR && !fps.elms())fps.New().name=path()+subPath();else
+   REPA(fps)
+   {
+      FileParams &fp=fps[i];
+      if(fp.name.is())fp.name=NormalizePath(FullPath(fp.name) ? fp.name : path()+subPath()+fp.name);
+      if(path().is() && !StartsPath(fp.name, path())){fps.clear(); break;} // if name doesn't start with 'path' then clear
+   }
+   return fps;
 }
 Bool WindowIO::goodExt(C Str &name)C
 {
-   if(!_dot_exts.elms())return true; // no extensions specified - support all of them
+   if(!_dot_exts.elms())return true; // no extensions specified -> support all of them
    FREPA(_dot_exts)if(Ends(name, _dot_exts[i]))return true;
    return false;
 }
 void WindowIO::Ok()
 {
-   Edit::FileParams fp=final(); if(fp.name.is())
+   auto fps=final(); if(fps.elms())
    {
       if(_mode==WIN_IO_DIR)
       {
-         if(_load)_load(fp.name, _func_user);
+         if(_load)_load(FileParams::Encode(fps), _func_user);
          hide(); // hide at the end, in case it will delete this object
          // !! don't perform any operations on this object afterwards !!
       }else
@@ -318,11 +328,11 @@ void WindowIO::Ok()
          // try entering the path if possible
          {
             FileInfo f;
-            if(f.getSystem(fp.name))
+            if(fps.elms()==1 && fps[0].name.is() && !fps[0].params.elms() && f.getSystem(fps[0].name))
                if(f.type==FSTD_DRIVE || f.type==FSTD_DIR)
-                  if(_dir_operate ? (f.type!=FSTD_DIR || !goodExt(fp.name)) : true)
+                  if(_dir_operate ? (f.type!=FSTD_DIR || !goodExt(fps[0].name)) : true)
             {
-               path(_path, SkipStartPath(fp.name, _path));
+               path(_path, SkipStartPath(fps[0].name, _path));
                getList();
                list.scrollTo(0, true);
                textline.clear();
@@ -332,15 +342,31 @@ void WindowIO::Ok()
 
          // perform operation on file
          {
-            Bool hide=true;
-
             if(ext_mode
-            && ((_mode==WIN_IO_SAVE) ? _dot_exts.elms()>=1 : _dot_exts.elms()==1) // for saving add if we have at least 1, for other mode add if we have only 1
-            && !goodExt(fp.name)
-            && (ext_mode==WIN_IO_EXT_ALWAYS || !GetExt(fp.name).is()))
-               fp.name+=_dot_exts[0];
-            if(_mode==WIN_IO_LOAD){WindowIORecent(GetPath(fp.name)); if(_load)_load(fp.encode(), _func_user);}
-            else                  {hide=!overwriteAsk(fp.name);}
+            && ((_mode==WIN_IO_SAVE) ? _dot_exts.elms()>=1 : _dot_exts.elms()==1)) // for saving add if we have at least 1, for other mode add if we have only 1
+               REPA(fps)
+            {
+               FileParams &fp=fps[i];
+               if(fp.name.is()
+               && !goodExt(fp.name)
+               && (ext_mode==WIN_IO_EXT_ALWAYS || !GetExt(fp.name).is()))
+                  fp.name+=_dot_exts[0];
+            }
+
+            Bool hide;
+            if(_mode==WIN_IO_LOAD)
+            {
+            #if 1 // add first path to recent paths
+               FREPA(fps)if(fps[i].name.is()){WindowIORecent(GetPath(fps[i].name)); break;}
+            #else // add all paths to recent paths
+               REPA(fps)WindowIORecent(GetPath(fps[i].name));
+            #endif
+               if(_load)_load(FileParams::Encode(fps), _func_user);
+               hide=true;
+            }else
+            {
+               hide=(fps.elms()==1 && fps[0].name.is() && !fps[0].params.elms() && !overwriteAsk(fps[0].name));
+            }
 
             if(hide)T.hide(); // hide at the end, in case it will delete this object
             // !! don't perform any operations on this object afterwards !!
@@ -350,15 +376,15 @@ void WindowIO::Ok()
 }
 void WindowIO::createDir()
 {
-   if(!textline().is())Gui.msgBox("Information", "Please first enter the folder name in the textline.");else
+   auto fps=final(); if(fps.elms()==1 && fps[0].name.is())
    {
-      Edit::FileParams fp=final(); if(fp.name.is() && FCreateDirs(fp.name))
+      if(FCreateDirs(fps[0].name))
       {
-         path(_path, SkipStartPath(fp.name, _path));
+         path(_path, SkipStartPath(fps[0].name, _path));
          getList();
          textline.clear();
-      }
-   }
+      }else Gui.msgBox("Error", "Failed to create folder.");
+   }else Gui.msgBox(S, "Please first enter the folder name in the textline.");
 }
 void WindowIO::renameDo()
 {
@@ -615,15 +641,15 @@ void WindowIO::update(C GuiPC &gpc)
 
    if(Gui.window()==&rename_window) // rename
    {
-      if((Kb.k(KB_ENTER) || Kb.k(KB_NPENTER)) && Kb.k.first() && rename_textline().is())
+      if((Kb.k(KB_ENTER) || Kb.k(KB_NPENTER)) && Kb.k.first())
       {
          Kb.eatKey();
-         if(FRename(_op_name, final(rename_textline())))
+         auto fps=final(rename_textline()); if(fps.elms()==1 && fps[0].name.is() && FRename(_op_name, fps[0].name))
          {
             getList();
             setFile(rename_textline());
+            rename_window.hide(); disabled(false); list.activate();
          }
-         rename_window.hide(); disabled(false); list.activate();
       }else
       if((Kb.k(KB_ESC) || Kb.k(KB_NAV_BACK)) && Kb.k.first() || Ms.bp(2)){Kb.eatKey(); Ms.eat(2); rename_window.hide(); disabled(false); list.activate();}
    }else

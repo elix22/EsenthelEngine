@@ -43,7 +43,7 @@ inline C XmlParam*  XmlNode::findParam(C Str &name, Int i                       
 inline C TextNode* TextNode::findNode (C Str &name, Int i                           )C {return          ConstCast(T    ).findNode (name, i);}
 inline C TextNode* TextData::findNode (C Str &name, Int i                           )C {return          ConstCast(T    ).findNode (name, i);}
 /******************************************************************************/
-inline C TextParam* Edit::FileParams::findParam(C Str &name)C {return ConstCast(T).findParam(name);}
+inline C TextParam* FileParams::findParam(C Str &name)C {return ConstCast(T).findParam(name);}
 /******************************************************************************/
 inline C SkelBone * Skeleton ::findBone (              BONE_TYPE type, Int type_index, Int type_sub)C {return ConstCast(T).findBone (      type, type_index, type_sub);}
 inline C SkelBone & Skeleton :: getBone (              BONE_TYPE type, Int type_index, Int type_sub)C {return ConstCast(T). getBone (      type, type_index, type_sub);}
@@ -578,9 +578,13 @@ T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedLast (     ) {return *(TYPE*)super:
 T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedNew  (     ) {return *(TYPE*)super::lockedNew  ( );}
 T1(TYPE)  TYPE&  MemcThreadSafe<TYPE>::lockedNewAt(Int i) {return *(TYPE*)super::lockedNewAt(i);}
 
-T1(TYPE)  TYPE  MemcThreadSafe<TYPE>::popFirst(       Bool keep_order) {lock(); TYPE temp=lockedFirst( ); remove    (0, keep_order); unlock(); return temp;}
-T1(TYPE)  TYPE  MemcThreadSafe<TYPE>::pop     (Int i, Bool keep_order) {lock(); TYPE temp=lockedElm  (i); remove    (i, keep_order); unlock(); return temp;}
-T1(TYPE)  TYPE  MemcThreadSafe<TYPE>::pop     (                      ) {lock(); TYPE temp=lockedLast ( ); removeLast(             ); unlock(); return temp;}
+T1(TYPE)  TYPE  MemcThreadSafe<TYPE>::lockedPopFirst(       Bool keep_order) {TYPE temp=lockedFirst( ); lockedRemove    (0, keep_order); return temp;}
+T1(TYPE)  TYPE  MemcThreadSafe<TYPE>::lockedPop     (Int i, Bool keep_order) {TYPE temp=lockedElm  (i); lockedRemove    (i, keep_order); return temp;}
+T1(TYPE)  TYPE  MemcThreadSafe<TYPE>::lockedPop     (                      ) {TYPE temp=lockedLast ( ); lockedRemoveLast(             ); return temp;}
+
+T1(TYPE)  void  MemcThreadSafe<TYPE>::lockedSwapPopFirst(TYPE &dest,        Bool keep_order) {Swap(dest, lockedFirst( )); lockedRemove    (0, keep_order);}
+T1(TYPE)  void  MemcThreadSafe<TYPE>::lockedSwapPop     (TYPE &dest, Int i, Bool keep_order) {Swap(dest, lockedElm  (i)); lockedRemove    (i, keep_order);}
+T1(TYPE)  void  MemcThreadSafe<TYPE>::lockedSwapPop     (TYPE &dest                        ) {Swap(dest, lockedLast ( )); lockedRemoveLast(             );}
 
 T1(TYPE)  C TYPE*  MemcThreadSafe<TYPE>::lockedData (     )C {return ConstCast(T).lockedData ( );}
 T1(TYPE)  C TYPE*  MemcThreadSafe<TYPE>::lockedAddr (Int i)C {return ConstCast(T).lockedAddr (i);}
@@ -588,29 +592,29 @@ T1(TYPE)  C TYPE&  MemcThreadSafe<TYPE>::lockedElm  (Int i)C {return ConstCast(T
 T1(TYPE)  C TYPE&  MemcThreadSafe<TYPE>::lockedFirst(     )C {return ConstCast(T).lockedFirst( );}
 T1(TYPE)  C TYPE&  MemcThreadSafe<TYPE>::lockedLast (     )C {return ConstCast(T).lockedLast ( );}
 
-T1(TYPE)  Int   MemcThreadSafe<TYPE>::index   (C TYPE *elm)C {return super::index   (elm);}
-T1(TYPE)  Bool  MemcThreadSafe<TYPE>::contains(C TYPE *elm)C {return super::contains(elm);}
+T1(TYPE)  Int   MemcThreadSafe<TYPE>::lockedIndex   (C TYPE *elm)C {return super::lockedIndex   (elm);}
+T1(TYPE)  Bool  MemcThreadSafe<TYPE>::lockedContains(C TYPE *elm)C {return super::lockedContains(elm);}
+T1(TYPE)  Bool  MemcThreadSafe<TYPE>::      contains(C TYPE *elm)C {return super::      contains(elm);}
 
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      removeLast(                            ) {super::      removeLast(               ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      remove    (  Int   i  , Bool keep_order) {super::      remove    (i  , keep_order); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedRemoveLast(                            ) {super::lockedRemoveLast(               ); return T;}
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedRemove    (  Int   i  , Bool keep_order) {super::lockedRemove    (i  , keep_order); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedRemoveData(C TYPE *elm, Bool keep_order) {super::lockedRemoveData(elm, keep_order); return T;}
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::      removeData(C TYPE *elm, Bool keep_order) {super::      removeData(elm, keep_order); return T;}
 
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::setNum    (Int num) {       super::setNum    (num); return T;}
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::setNumZero(Int num) {       super::setNumZero(num); return T;}
 T1(TYPE)  Int                    MemcThreadSafe<TYPE>::addNum    (Int num) {return super::addNum    (num);          }
 
-T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::      binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::      binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 T1(TYPE) T1(VALUE)  Bool  MemcThreadSafe<TYPE>::lockedBinarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return super::lockedBinarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::sort(           Int compare(C TYPE &a, C TYPE &b           )) {super::sort(      (Int(*)(CPtr, CPtr      ))compare); return T;}
 T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::sort(CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {super::sort(user, (Int(*)(CPtr, CPtr, CPtr))compare); return T;}
 
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::  reverseOrder(                      ) {super::  reverseOrder(              ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::randomizeOrder(                      ) {super::randomizeOrder(              ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::   rotateOrder(Int offset            ) {super::   rotateOrder(offset        ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     swapOrder(Int i  , Int j        ) {super::     swapOrder(i, j          ); return T;}
-T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::     moveElm  (Int elm, Int new_index) {super::     moveElm  (elm, new_index); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::   reverseOrder(                      ) {super::   reverseOrder(              ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>:: randomizeOrder(                      ) {super:: randomizeOrder(              ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::    rotateOrder(Int offset            ) {super::    rotateOrder(offset        ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedSwapOrder(Int i  , Int j        ) {super::lockedSwapOrder(i  , j        ); return T;}
+T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedMoveElm  (Int elm, Int new_index) {super::lockedMoveElm  (elm, new_index); return T;}
 
 T1(TYPE)  void  MemcThreadSafe<TYPE>::  lock()C {super::  lock();}
 T1(TYPE)  void  MemcThreadSafe<TYPE>::unlock()C {super::unlock();}

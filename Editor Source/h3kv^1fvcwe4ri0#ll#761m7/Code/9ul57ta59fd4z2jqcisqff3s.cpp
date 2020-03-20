@@ -9,6 +9,7 @@ bool        Initialized=false;
 Str         SettingsPath, RunAtExit;
 Environment DefaultEnvironment;
 Threads     WorkerThreads, BuilderThreads, BackgroundThreads;
+UID         MaterialTexIDDummy; // there can be an empty dummy texture created just so we can detect MaterialTextureLayout, see 'CreateBaseTextures'
 /******************************************************************************/
 void ScreenChanged(flt old_width=D.w(), flt old_height=D.h())
 {
@@ -100,6 +101,13 @@ Rect EditRect(bool modes=true)
    return r;
 }
 Environment& CurrentEnvironment() {if(Environment *env=EnvEdit.cur())return *env; return DefaultEnvironment;}
+void GetMaterialTexIDDummy()
+{
+   Image b[3], img, glow;
+   glow.createSoftTry(1, 1, 1, IMAGE_L8); glow.color(0, 0, WHITE);
+   CreateBaseTextures(b[0], b[1], b[2], img, img, img, img, img, img, glow); // this will force create a dummy Base2 tex, #MaterialTextureLayout
+   ImageProps(b[2], &MaterialTexIDDummy, null, MTRL_BASE_2);
+}
 /******************************************************************************/
 void InitPre()
 {
@@ -293,6 +301,7 @@ bool Init()
       VidOpt.create(); // !! after 'ApplySettings' !!
       SetKbExclusive();
       AssociateFileType(EsenthelProjectExt, App.exe(), "Esenthel.Editor", "Esenthel Project", App.exe());
+      GetMaterialTexIDDummy();
       Initialized=true;
    }
    ScreenChanged();

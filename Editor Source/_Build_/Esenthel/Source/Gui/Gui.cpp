@@ -730,7 +730,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
          if(Elm *elm=Proj.findElm(elms[0]))
       {
          // adjust its source path according to textline
-         Mems<Edit::FileParams> files=Edit::FileParams::Decode(path());
+         Mems<FileParams> files=FileParams::Decode(path());
          if(files.elms())
          {
             if(elm->type==ELM_ANIM)
@@ -746,7 +746,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
                files[0].getParam("name").value=name();
             }
          }
-         elm->setSrcFile(Edit::FileParams::Encode(files));
+         elm->setSrcFile(FileParams::Encode(files));
          Server.setElmShort(elm->id);
       }
 
@@ -768,7 +768,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
       path.clear();
       if(Elm *elm=Proj.findElm(elm_id))if(elm->type!=ELM_FOLDER && elm->type!=ELM_LIB && elm->type!=ELM_APP)
       {
-         Mems<Edit::FileParams> files=Edit::FileParams::Decode(elm->srcFile());
+         Mems<FileParams> files=FileParams::Decode(elm->srcFile());
          // check for which params we provide a dedicated gui, remove them from the param list because they're set in the gui, parameters without dedicated gui, keep in the name
          switch(elm->type)
          {
@@ -796,7 +796,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
                }
             }break;
          }
-         path.set(Edit::FileParams::Encode(files));
+         path.set(FileParams::Encode(files));
          super::activate();
       }
    }
@@ -1027,7 +1027,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
          file .set(EncodeFileName(elm.id));
          size .clear(); if(FExist(Proj.gamePath(elm.id)))size.set(FileSize(FSize(Proj.gamePath(elm.id))));
          Class.set(ElmTypeClass[elm.type]);
-         Mems<Edit::FileParams> files=Edit::FileParams::Decode(elm.srcFile());
+         Mems<FileParams> files=FileParams::Decode(elm.srcFile());
          Str src_text; FREPA(files)src_text.line()+=files[i].name; // ignore parameters
          src  .set(src_text);
          b_src.visible(src().is());

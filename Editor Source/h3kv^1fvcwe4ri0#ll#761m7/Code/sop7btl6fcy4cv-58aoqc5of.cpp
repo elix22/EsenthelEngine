@@ -138,7 +138,8 @@ class MeshParts : Window
    static void Remove()
    {
       ObjEdit.mesh_undos.set("remove");
-      REPA(ObjEdit.mesh_parts.list.sel)if(MeshPart *part=ObjEdit.getPart(ObjEdit.mesh_parts.list.sel[i]))FlagEnable(part.part_flag, MSHP_HIDDEN);
+      MeshLod &lod=ObjEdit.getLod();
+      REPA(ObjEdit.mesh_parts.list.sel)if(MeshPart *part=lod.parts.addr(ObjEdit.mesh_parts.list.sel[i]))FlagEnable(part.part_flag, MSHP_HIDDEN);
       if(!ObjEdit.mesh_parts.show_removed())ObjEdit.mesh_parts.list.sel.clear(); // if we won't see those parts (showing removed is not enabled) then deselect them
       ObjEdit.mesh.setBox();
       ObjEdit.setChangedMesh(true);
@@ -146,15 +147,17 @@ class MeshParts : Window
    static void Restore()
    {
       ObjEdit.mesh_undos.set("restore");
-      REPA(ObjEdit.mesh_parts.list.sel)if(MeshPart *part=ObjEdit.getPart(ObjEdit.mesh_parts.list.sel[i]))FlagDisable(part.part_flag, MSHP_HIDDEN);
+      MeshLod &lod=ObjEdit.getLod();
+      REPA(ObjEdit.mesh_parts.list.sel)if(MeshPart *part=lod.parts.addr(ObjEdit.mesh_parts.list.sel[i]))FlagDisable(part.part_flag, MSHP_HIDDEN);
       ObjEdit.mesh.setBox();
       ObjEdit.setChangedMesh(true);
    }
    static void Hide()
    {
       ObjEdit.mesh_undos.set("hide");
-      REPA(ObjEdit.mesh_parts.list.sel)if(MeshPart *part=ObjEdit.getPart(ObjEdit.mesh_parts.list.sel[i]))part.variations(Max(part.variations(), ObjEdit.selVariation()+1)) // make room for variation first
-                                                                                                             .variation (                       ObjEdit.selVariation(), null);
+      MeshLod &lod=ObjEdit.getLod();
+      REPA(ObjEdit.mesh_parts.list.sel)if(MeshPart *part=lod.parts.addr(ObjEdit.mesh_parts.list.sel[i]))part.variations(Max(part.variations(), ObjEdit.selVariation()+1)) // make room for variation first
+                                                                                                            .variation (                       ObjEdit.selVariation(), null);
       ObjEdit.setChangedMesh(true, false);
    }
    static void Focus() {ObjEdit.v4.moveTo(ObjEdit.selMeshCenter());}

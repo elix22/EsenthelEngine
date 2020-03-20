@@ -77,7 +77,7 @@ class SoundEditor : PropWin
    {
       if(editor.elm)
       {
-         Mems<Edit.FileParams> files=Edit.FileParams.Decode(editor.elm.srcFile());
+         Mems<FileParams> files=FileParams.Decode(editor.elm.srcFile());
          if(files.elms())
          {
             SOUND_CODEC codec=SOUND_NONE; if(C TextParam *param=files[0].findParam("codec"))codec=TextSoundCodec(param.value);

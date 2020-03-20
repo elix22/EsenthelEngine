@@ -97,8 +97,6 @@ const_mem_addr struct WindowIO : ClosableWindow // Gui Window Input Output !! mu
    void setFile        (C Str &name);
    void back           (           );
    void enter          (C Str &dir );
-   Str  final          (C Str &name)C;
-   Str  final          (           )C;
    void Ok             (           );
    void createDir      (           );
    void renameDo       (           );
@@ -111,6 +109,8 @@ const_mem_addr struct WindowIO : ClosableWindow // Gui Window Input Output !! mu
    void exploreDo      (           );
    Bool goodExt        (C Str &name)C;
    WindowIO& fullScreen(           ); // set full screen mode
+   Mems<FileParams> final(C Str &name)C;
+   Mems<FileParams> final(           )C;
 #endif
 
    virtual Rect      sizeLimit(             )C;                                           // set     allowed size limits for the Window rectangle, you can override this method and return custom values, they will be used by 'rect' method

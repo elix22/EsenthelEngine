@@ -44,6 +44,7 @@ protected:
    virtual Bool save(File &f, CChar *path=null)C;
    virtual Bool load(File &f, CChar *path=null) ;
 
+private:
    Str _text;
 #if !EE_PRIVATE
    Ptr _code; Int _codes;

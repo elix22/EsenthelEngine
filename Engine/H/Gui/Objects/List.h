@@ -302,10 +302,13 @@ private:
    void         (*_cur_changed)(Ptr user), (*_sel_changed)(Ptr user), (*_sel_changing)(Ptr user);
    GuiSkinPtr     _skin;
 
-protected:
+#if EE_PRIVATE
+private:
+#endif
   _List& _setData(Ptr data, Int elms, Int elm_size, C MemPtr<Bool> &visible=null, Bool keep_cur=false);
   _List& _setData(_Memx &node, Int children_offset, C MemPtr<Bool> &visible=null, Bool keep_cur=false);
 
+protected:
    virtual void parentClientRectChanged(C Rect *old_client, C Rect *new_client);
    virtual void        childRectChanged(C Rect *old_rect  , C Rect *new_rect  , GuiObj &child);
 

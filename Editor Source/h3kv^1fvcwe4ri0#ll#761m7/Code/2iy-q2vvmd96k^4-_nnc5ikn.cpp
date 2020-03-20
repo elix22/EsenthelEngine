@@ -944,7 +944,7 @@ class AnimEditor : Viewport4Region
       if(ElmAnim *d=data())if(d.fps>0)
       {
          frame=time*d.fps;
-         Edit.FileParams fps=d.src_file; if(C TextParam *p=fps.findParam("speed"))frame*=p.asFlt();
+         FileParams fps=d.src_file; if(C TextParam *p=fps.findParam("speed"))frame*=p.asFlt();
          return true;
       }
       frame=0; return false;
@@ -1753,13 +1753,13 @@ class AnimEditor : Viewport4Region
          undos.set("speed");
 
          // adjust speed file param
-         Mems<Edit.FileParams> file_params=Edit.FileParams.Decode(data.src_file);
+         Mems<FileParams> file_params=FileParams.Decode(data.src_file);
          if(file_params.elms()==1)
          {
             TextParam &speed=file_params[0].getParam("speed");
             flt set_speed=anim_speed; if(flt cur_speed=speed.asFlt())set_speed*=cur_speed;
             speed.setValue(set_speed);
-            data.setSrcFile(Edit.FileParams.Encode(file_params));
+            data.setSrcFile(FileParams.Encode(file_params));
          }
 
          anim.length(anim.length()/anim_speed, true);

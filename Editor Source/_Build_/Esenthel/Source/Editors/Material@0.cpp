@@ -92,7 +92,7 @@ MaterialTech mtrl_techs[]=
       }
       void MaterialRegion::Texture::setDesc()
       {
-         Mems<Edit::FileParams> files=Edit::FileParams::Decode(file); UID image_id; REPA(files)if(DecodeFileName(files[i].name, image_id))files[i].name=Proj.elmFullName(image_id);
+         Mems<FileParams> files=FileParams::Decode(file); UID image_id; REPA(files)if(DecodeFileName(files[i].name, image_id))files[i].name=Proj.elmFullName(image_id);
          Str desc=Replace(text, '\n', ' '); if(C ImagePtr &image=getImage())desc+=S+", "+image->w()+'x'+image->h();
          if(type==TEX_MACRO)desc.line()+="Can be set for heightmap materials to decrease repetitiveness of textures.\nBecomes visible at distance of around 100 meters.";
          FREPA(files){desc+='\n'; desc+=files[i].encode();}
@@ -102,12 +102,12 @@ MaterialTech mtrl_techs[]=
       void MaterialRegion::Texture::setFile(Str file)
       {
          // convert multiple lines into separate file params and handle <..> commands
-         Mems<Edit::FileParams> fps=Edit::FileParams::Decode(file); REPA(fps)
+         Mems<FileParams> fps=FileParams::Decode(file); REPA(fps)
          {
-            Edit::FileParams &fp=fps[i];
+            FileParams &fp=fps[i];
             if(Contains(fp.name, '<'))fp.name=GetBaseNoExt(fp.name); // we want to support things like "<bump>" but when entering that into 'WindowIO', it may append the path, so when this command is detected, remove the path (and possible extension too)
          }
-         file=Edit::FileParams::Encode(fps);
+         file=FileParams::Encode(fps);
 
          T.file=file; setDesc();
          if(mr)
@@ -132,7 +132,7 @@ MaterialTech mtrl_techs[]=
                {
                   Texture &tex=mr->texs[i]; if(tex.type>=TEX_BASE_BEGIN && tex.type<=TEX_BASE_END) // iterate all base textures
                   {
-                     Mems<Edit::FileParams> fps=Edit::FileParams::Decode(tex.md_file.asText(&mtrl)); // get file name of that texture
+                     Mems<FileParams> fps=FileParams::Decode(tex.md_file.asText(&mtrl)); // get file name of that texture
                      if(fps.elms()==1 && fps[0].name==name) // if that file is made from removed one
                      {
                         tex.md_time.as<TimeStamp>(&mtrl).now();
@@ -185,7 +185,7 @@ MaterialTech mtrl_techs[]=
                {
                   if(Kb.ctrlCmd()) // Ctrl+Click -> explore file path
                   {
-                     Mems<Edit::FileParams> fps=Edit::FileParams::Decode(file); if(fps.elms()>=1)
+                     Mems<FileParams> fps=FileParams::Decode(file); if(fps.elms()>=1)
                      {
                         UID id; if(id.fromFileName(fps[0].name))Proj.elmLocate(id, true);else Explore(FFirstUp(fps[0].name));
                      }
@@ -197,7 +197,7 @@ MaterialTech mtrl_techs[]=
                }else
                if(mr)
                {
-                  Mems<Edit::FileParams> fps=Edit::FileParams::Decode(mr->getEditMtrl().color_map);
+                  Mems<FileParams> fps=FileParams::Decode(mr->getEditMtrl().color_map);
                   Str  mtrl_path=Proj.elmSrcFileFirst(mr->elm); if(FileInfoSystem(mtrl_path).type==FSTD_FILE)mtrl_path=GetPath(mtrl_path);
                   Str color_path; if(fps.elms())color_path=FFirstUp(GetPath(fps[0].name));
                   SetPath(win_io, (mtrl_path.length()>color_path.length()) ? mtrl_path : color_path);
@@ -1027,8 +1027,8 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                if(tex.type==TEX_SMOOTH)images[0].params.New().set("inverseRGB"); // get smooth from roughness (inverse)
             }
          }
-         Str drop=Edit::FileParams::Encode(SCAST(Memc<Edit::FileParams>, images));
-         tex.setFile(append ? Edit::FileParams::Merge(tex.file, drop) : drop);
+         Str drop=FileParams::Encode(SCAST(Memc<FileParams>, images));
+         tex.setFile(append ? FileParams::Merge(tex.file, drop) : drop);
          break;
       }
    }

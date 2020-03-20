@@ -609,9 +609,9 @@ class TextureDownsize : Viewport4Region
                UID  base0_id   =mtrl_data.base_0_tex,
                     base1_id   =mtrl_data.base_1_tex,
                     base2_id   =mtrl_data.base_2_tex;
-               bool base0_valid=base0_id.valid(),
-                    base1_valid=base1_id.valid(),
-                    base2_valid=base2_id.valid();
+               bool base0_valid= base0_id.valid(),
+                    base1_valid= base1_id.valid(),
+                    base2_valid=(base2_id.valid() && base2_id!=MaterialTexIDDummy);
 
                // get materials using these textures
                Memt<UID> mtrls;

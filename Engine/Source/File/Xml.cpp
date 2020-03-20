@@ -1457,5 +1457,69 @@ Bool XmlData::loadAndroidBinary(File &f)
    return false;
 }
 /******************************************************************************/
+// FILE PARAMS
+/******************************************************************************/
+TextParam& FileParams:: getParam(C Str &name) {if(TextParam *par=findParam(name))return *par; return params.New().setName(name);}
+TextParam* FileParams::findParam(C Str &name)
+{
+   Int i=0;
+   if(InRange(i, params))FREPAD(j, params) // process in order
+   {
+      XmlParam &param=params[j]; if(param.name==name)
+      {
+         if(i==0)return &param; i--;
+      }
+   }
+   return null;
+}
+/******************************************************************************/
+Str FileParams::encode()C
+{
+   Str s=name; FREPA(params)
+   {
+    C TextParam &param=params[i]; s+='?'; s+=param.name; if(param.value.is()){s+='='; s+=param.value;}
+   }
+   return s;
+}
+void FileParams::decode(C Str &s)
+{
+   Memt<Str> strs; Split(strs, s, '?');
+   name=(strs.elms() ? strs[0] : S);
+   params.setNum(strs.elms()-1); FREPA(params)
+   {
+      TextParam &param=params[i];
+      Str       &str  =strs[i+1]; FREPA(str)if(str()[i]=='=') // find first '=' occurrence
+      {
+         param.value=str()+i+1;
+         param.name =str.clip(i);
+         goto param_set;
+      }
+      param.set(str);
+   param_set:;
+   }
+}
+/******************************************************************************/
+Str FileParams::Encode(C MemPtr<FileParams> &file_params)
+{
+   Str s; FREPA(file_params)
+   {
+      if(i)s+='\n'; s+=file_params[i].encode();
+   }
+   return s;
+}
+Mems<FileParams> FileParams::Decode(C Str &str)
+{
+   Mems<FileParams> files; if(str.is())
+   {
+      Memt<Str> strs; Split(strs, str, '\n'); // get list of all files
+      files.setNum(strs.elms()); FREPAO(files).decode(strs[i]);
+   }
+   return files;
+}
+Str FileParams::Merge(C Str &a, C Str &b)
+{
+   return a.is() ? b.is() ? a+'\n'+b : a : b;
+}
+/******************************************************************************/
 }
 /******************************************************************************/

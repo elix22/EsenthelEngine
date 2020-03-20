@@ -3,6 +3,7 @@ extern bool        Initialized;
 extern Str         SettingsPath, RunAtExit;
 extern Environment DefaultEnvironment;
 extern Threads     WorkerThreads, BuilderThreads, BackgroundThreads;
+extern UID         MaterialTexIDDummy;
 /******************************************************************************/
 void ScreenChanged(flt old_width=D.w(), flt old_height=D.h());
 void SetShader();
@@ -17,6 +18,7 @@ void SetKbExclusive();
 void SetProjectState();
 Rect EditRect(bool modes=true);
 Environment& CurrentEnvironment();
+void GetMaterialTexIDDummy();
 void InitPre();
 bool Init();
 void Shut();

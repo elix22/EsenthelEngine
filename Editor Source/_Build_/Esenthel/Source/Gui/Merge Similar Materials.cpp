@@ -173,7 +173,7 @@ void DrawIDReplace()
       {
          if(Elm *elm=Proj.findElm(elm_id))name=elm->name;
          T.elm_id=elm_id;
-         color_name=GetBase(Edit::FileParams(m.color_map).name);
+         color_name=GetBase(FileParams(m.color_map).name);
          base_0_tex=m.base_0_tex;
          base_1_tex=m.base_1_tex;
          base_2_tex=m.base_2_tex;

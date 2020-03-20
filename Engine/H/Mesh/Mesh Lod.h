@@ -45,6 +45,8 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    Bool hasDrawGroup    ( Int draw_group_index)C; // check if at least one MeshPart has specified draw group enum index
    Bool hasDrawGroupMask(UInt draw_group_mask )C; // check if at least one MeshPart has specified draw group enum mask
 
+   Int partsAfterJoinAll(Bool test_material, Bool test_draw_group, Bool test_name, UInt test_vtx_flag=0, Bool skip_hidden=true)C; // calculate how many parts this mesh will have after 'joinAll' would be called with specified parameters, 'test_material'=join only those MeshParts which have the same material, 'test_draw_group'=join only those MeshParts which have the same draw group, 'test_name'=join only those MeshParts which have the same name, 'test_vtx_flag'=join only those MeshParts which have same vertex flag, 'skip_hidden'=if skip calculating hidden parts
+
    // set
 #if EE_PRIVATE
    MeshLod& setEdgeNormals(Bool flag=false); // recalculate edge 2D normals, 'flag'=if include ETQ_FLAG behavior

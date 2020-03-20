@@ -409,7 +409,7 @@ class Project
    {
       if(src.is())
       {
-         Mems<Edit.FileParams> files=Edit.FileParams.Decode(src); REPA(files)
+         Mems<FileParams> files=FileParams.Decode(src); REPA(files)
          {
           C Str &name=files[i].name; if(name.is())
             {
@@ -434,7 +434,7 @@ class Project
    {
       if(src.is())
       {
-         Mems<Edit.FileParams> files=Edit.FileParams.Decode(src); REPA(files)
+         Mems<FileParams> files=FileParams.Decode(src); REPA(files)
          {
           C Str &name=files[i].name; if(name.is())
             {
@@ -618,7 +618,7 @@ class Project
          FCreateDirs(gamePath(mini_map_id));
    }
 
-   bool loadImage(Image &image, TextParam *image_resize, C Edit.FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C
+   bool loadImage(Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C
    {
       if(image_resize)image_resize.del();
       if(!fp.name.is()){image.del(); return true;}
@@ -671,14 +671,14 @@ class Project
    bool loadImages(Image &image, TextParam *image_resize, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C
    {
       image.del(); if(image_resize)image_resize.del(); if(!src.is())return true;
-      Mems<Edit.FileParams> files=Edit.FileParams.Decode(src);
-      bool                  ok=true, hp=false; // assume 'ok'=true
-      Image                 layer;
-      TextParam             layer_resize, image_resize_final; ExtractResize(files, image_resize_final); // get what this image wants to be resized to at the end
-      TextParam            *layer_resize_ptr=null; // if null then apply resize to source images (such as 'color_resize' for 'color' etc.)
+      Mems<FileParams> files=FileParams.Decode(src);
+      bool             ok=true, hp=false; // assume 'ok'=true
+      Image            layer;
+      TextParam        layer_resize, image_resize_final; ExtractResize(files, image_resize_final); // get what this image wants to be resized to at the end
+      TextParam       *layer_resize_ptr=null; // if null then apply resize to source images (such as 'color_resize' for 'color' etc.)
       REPA(files) // go from end
       {
-         Edit.FileParams &file=files[i];
+         FileParams &file=files[i];
          if(i && file.name.is())goto force_src_resize; // force resize if there's more than one file name specified
          REPA(file.params)if(SizeDependentTransform(file.params[i]))goto force_src_resize; // if there's at least one size dependent transform anywhere then always apply
       }
@@ -688,7 +688,7 @@ class Project
        REPA(files)if(C TextParam *p=files[i].findParam("mode"))if(p.value!="set"){hp=true; break;} // if there's at least one apply mode that's not "set" then use high precision
       FREPA(files)if(loadImage(layer, layer_resize_ptr, files[i], srgb, clamp, color, color_resize, smooth, smooth_resize, bump, bump_resize)) // process in order
       {
-         Edit.FileParams &file=files[i];
+         FileParams &file=files[i];
          if(layer_resize.name.is() && !image_resize_final.name.is())Swap(layer_resize, image_resize_final); // if have info about source resize and final resize was not specified, then use source resize as final
          VecI2 pos  =0; {C TextParam *p=file.findParam("position"); if(!p)p=file.findParam("pos"  ); if(p)pos=p.asVecI2();}
          flt   alpha=1; {C TextParam *p=file.findParam("opacity" ); if(!p)p=file.findParam("alpha"); if(p)alpha=p.asFlt();}
@@ -1106,10 +1106,10 @@ class Project
          {
             Elm &elm=elms[i]; if(elm.data)
             {
-               Mems<Edit.FileParams> files=_DecodeFileParams(elm.srcFile());
+               Mems<FileParams> files=_DecodeFileParams(elm.srcFile());
                if(elm.type==ELM_ANIM || elm.type==ELM_MTRL)FREPA(files)
                {
-                  Edit.FileParams &file=files[i];
+                  FileParams &file=files[i];
                   file.name.tailSlash(false); // DAE has empty animation names, so this could have been "file.dae/"
                   Str path=GetPath(file.name);
                   if(ExtType(GetExt(path))==EXT_MESH) // if file was stored as "file.ext/inner_name", for example "Character.fbx/run" run animation inside fbx file
@@ -1118,7 +1118,7 @@ class Project
                      file.name=path;
                   }
                }
-               elm.data.src_file=Edit.FileParams.Encode(files);
+               elm.data.src_file=FileParams.Encode(files);
             }
          }
       }
@@ -1392,7 +1392,7 @@ class Project
             Animation anim; if(!anim.load(gamePath(elms[i])))Exit("anim load");
             if(anim.keys.orns.elms())
             {
-               Edit.FileParams ei=elms[i].srcFile(); if(FExistSystem(ei.name))
+               FileParams ei=elms[i].srcFile(); if(FExistSystem(ei.name))
                {
                   elms[i].importing(true);
                }
@@ -3013,7 +3013,7 @@ class ProjectHierarchy : Project
       {
        C Elm &elm=elms[i]; if(elm.srcFile().is())
          {
-            Mems<Edit.FileParams> files=Edit.FileParams.Decode(elm.srcFile());
+            Mems<FileParams> files=FileParams.Decode(elm.srcFile());
             FREPA(files)
             {
                Str path=FFirstUp(files[i].name); if(path.is())return path;

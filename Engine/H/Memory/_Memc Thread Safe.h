@@ -17,28 +17,28 @@ struct _MemcThreadSafe // Thread-Safe Continuous Memory Based Container Base - D
    Ptr lockedNew  (     )  {return _memc.New  ( );}
    Ptr lockedNewAt(Int i)  {return _memc.NewAt(i);}
 
-   Int  index   (CPtr elm)C;
-   Bool contains(CPtr elm)C {return index(elm)>=0;}
+   Int  lockedIndex   (CPtr elm)C {return _memc.index   (elm);}
+   Bool lockedContains(CPtr elm)C {return _memc.contains(elm);}
+   Bool       contains(CPtr elm)C;
 
-   void       removeLast();
-   void       remove    (Int  i  , Bool keep_order=false);
-   void lockedRemove    (Int  i  , Bool keep_order=false) {_memc.remove(i, keep_order);}
+   void lockedRemoveLast(                               ) {_memc.removeLast();}
+   void lockedRemove    (Int  i  , Bool keep_order=false) {_memc.remove    (i  , keep_order);}
+   void lockedRemoveData(CPtr elm, Bool keep_order=false) {_memc.removeData(elm, keep_order);}
    void       removeData(CPtr elm, Bool keep_order=false);
 
    void setNum    (Int num);
    void setNumZero(Int num);
    Int  addNum    (Int num);
 
-   Bool       binarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C;
    Bool lockedBinarySearch(CPtr value, Int &index, Int compare(CPtr a, CPtr b))C {return _memc.binarySearch(value, index, compare);}
 
-   void           sort(           Int compare(CPtr a, CPtr b           ));
-   void           sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
-   void   reverseOrder();
-   void randomizeOrder();
-   void    rotateOrder(Int offset);
-   void      swapOrder(Int i  , Int j);
-   void      moveElm  (Int elm, Int new_index);
+   void            sort(           Int compare(CPtr a, CPtr b           ));
+   void            sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
+   void    reverseOrder();
+   void  randomizeOrder();
+   void     rotateOrder(Int offset);
+   void lockedSwapOrder(Int i  , Int j        ) {_memc.swapOrder(i  , j        );}
+   void lockedMoveElm  (Int elm, Int new_index) {_memc.moveElm  (elm, new_index);}
 
    // operations
    void   lock()C {_lock.on ();}

@@ -1429,6 +1429,23 @@ static Bool CScaleFactorR(CalcValue &x)
    x.type=CVAL_REAL; return true;
 }
 /******************************************************************************/
+static Bool CLinearToSRGB(CalcValue &x)
+{
+   if(x.type==CVAL_INT ){x.r =LinearToSRGB(Flt (x.i )); x.type=CVAL_REAL;}else
+   if(x.type==CVAL_REAL) x.r =LinearToSRGB(     x.r  );else
+   if(x.type==CVAL_VEC ) x.v =LinearToSRGB(Vec (x.v ));else
+   if(x.type==CVAL_VEC4) x.v4=LinearToSRGB(Vec4(x.v4));else return false;
+   return true;
+}
+static Bool CSRGBToLinear(CalcValue &x)
+{
+   if(x.type==CVAL_INT ){x.r =SRGBToLinear(Flt (x.i )); x.type=CVAL_REAL;}else
+   if(x.type==CVAL_REAL) x.r =SRGBToLinear(     x.r  );else
+   if(x.type==CVAL_VEC ) x.v =SRGBToLinear(Vec (x.v ));else
+   if(x.type==CVAL_VEC4) x.v4=SRGBToLinear(Vec4(x.v4));else return false;
+   return true;
+}
+/******************************************************************************/
 static struct CalcOpInfo
 {
    Byte    priority, args;
@@ -1566,6 +1583,8 @@ static struct CalcFuncInfo
    {1, "ScaleFactorR"    , (Ptr)CScaleFactorR    },
    {2, "Rol"             , (Ptr)CRol             },
    {2, "Ror"             , (Ptr)CRor             },
+   {1, "LinearToSRGB"    , (Ptr)CLinearToSRGB    },
+   {1, "SRGBToLinear"    , (Ptr)CSRGBToLinear    },
 };
 struct CalcFunc
 {

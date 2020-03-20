@@ -44,13 +44,13 @@ class ImporterClass
          }
          void check(C Str &path, Str &tex)
          {
-            Mems<Edit.FileParams> texs=Edit.FileParams.Decode(tex);
+            Mems<FileParams> texs=FileParams.Decode(tex);
             FREPA(texs)if(!FExistSystem(texs[i].name))
             {
                Str test=path; test.tailSlash(true)+=GetBaseNoExt(texs[i].name); test+=".webp";
                if(FExistSystem(test))texs[i].name=test;
             }
-            tex=Edit.FileParams.Encode(texs);
+            tex=FileParams.Encode(texs);
          }
          void process(C Str &path)
          {
@@ -78,7 +78,7 @@ class ImporterClass
                macro .load(m ); ImageProps(macro , & macro_id, null, MTRL_MACRO );
                light .load(l ); ImageProps(light , & light_id, null, MTRL_LIGHT );
 
-               Edit.FileParams fp; 
+               FileParams fp; 
                fp=b0; if(fp.name.is())fp.getParam("channel").setValue("rgb");  color_map=fp.encode();
                fp=b1; if(fp.name.is())fp.getParam("channel").setValue("xy" ); normal_map=fp.encode();
                fp=d ; if(fp.name.is())
@@ -180,7 +180,7 @@ class ImporterClass
 
             case ELM_IMAGE: // check for skybox
             {
-               Mems<Edit.FileParams> files=Edit.FileParams.Decode(T.file);
+               Mems<FileParams> files=FileParams.Decode(T.file);
                if(files.elms()==6)
                {
                   // load helper data from the project
@@ -224,7 +224,7 @@ class ImporterClass
 
       bool import() // !! this is called on a secondary thread !!
       {
-         Mems<Edit.FileParams> files=Edit.FileParams.Decode(T.file);
+         Mems<FileParams> files=FileParams.Decode(T.file);
          Str file; if(files.elms())file=files[0].name;
          bool all_nodes_as_bones=(type==ELM_ANIM || mode==ANIM); // when importing animations we have to treat all nodes as potential bones, because it's possible that asset developer used helper/dummies to animate nodes which in the base object mesh model got imported as bones due to mesh skinning, however animations don't need the mesh and without the mesh and thus skinning, the nodes would not get detected as bones, to workaround this we force all nodes as bones, and later we just remove them depending if they're present in the already existing object mesh skeleton from before, removing happens in 'removeExtraBones' which is called in processing the animation later.
 
@@ -421,7 +421,7 @@ class ImporterClass
                         if(flt speed=p.asFlt())
                            anim.anim.length(anim.anim.length()/speed, true);
                   }
-                  T.file=Edit.FileParams.Encode(files); // 'files' could have changed, so adjust the name so the 'elm.srcFile' is set properly
+                  T.file=FileParams.Encode(files); // 'files' could have changed, so adjust the name so the 'elm.srcFile' is set properly
                   anim.anim.clip(0, anim.anim.length()); // remove any keyframes outside of anim range
                   return true;
                }
@@ -843,7 +843,7 @@ class ImporterClass
          {
             case ELM_MTRL: if(import.mtrls.elms())
             {
-               Edit.FileParams fp=import.file; fp.getParam("name").value=import.mtrls[0].name;
+               FileParams fp=import.file; fp.getParam("name").value=import.mtrls[0].name;
                Proj.setMtrl(*elm, import.mtrls[0], fp.encode());
                Server.setElmLong(elm.id);
             }break;
@@ -882,7 +882,7 @@ class ImporterClass
                if(import.anims.elms())
                if(ElmAnim *anim_data=elm.animData())
                {
-                  Mems<Edit.FileParams> file_params=Edit.FileParams.Decode(import.file);
+                  Mems<FileParams> file_params=FileParams.Decode(import.file);
                   XAnimation &xanim=import.anims[0];
                    Animation & anim=xanim.anim;
                   anim_data.newVer();
@@ -996,7 +996,7 @@ class ImporterClass
                if(Elm *mesh_elm=Proj.findElm(obj_data.mesh_id))
                   if(ElmMesh *mesh_data=mesh_elm.meshData())
                {
-                  Edit.FileParams fp=import.file; // !! watch out because this has param 'name' changed throughout the codes !!
+                  FileParams fp=import.file; // !! watch out because this has param 'name' changed throughout the codes !!
 
                               Proj.elmChanging(*     elm);
                   if(mesh_elm)Proj.elmChanging(*mesh_elm);
@@ -1258,7 +1258,7 @@ class ImporterClass
       if(  ElmSkel  *skel_data=skel_elm.skelData())
       if(C Skeleton *skel=Skeletons(Proj.gamePath(skel_elm.id)))
       {
-         Edit.FileParams fp=import.file;
+         FileParams fp=import.file;
          EditSkeleton edit_skel; edit_skel.load(Proj.editPath(skel_elm.id)); // 'edit_skel' is always in identity matrix
          Matrix m=skel_data.transform();
 
@@ -1327,7 +1327,7 @@ class ImporterClass
             }
 
             // create element
-            Elm        &anim=Proj.Project.newElm(import.force_name.is() ? import.force_name : xanim.name.is() ? xanim.name : GetBaseNoExt(Edit.FileParams(import.file).name), import.parent_id, ELM_ANIM);
+            Elm        &anim=Proj.Project.newElm(import.force_name.is() ? import.force_name : xanim.name.is() ? xanim.name : GetBaseNoExt(FileParams(import.file).name), import.parent_id, ELM_ANIM);
             if(ElmAnim *anim_data=anim.animData())
             {
                fp.getParam("name").value=xanim.name;
@@ -1357,7 +1357,7 @@ class ImporterClass
             {
                Proj.setListCurSel();
                obj_data.newVer();
-               obj_data.setSrcFile(Edit.FileParams.Merge(obj_data.src_file, import.file)); // add to file list
+               obj_data.setSrcFile(FileParams.Merge(obj_data.src_file, import.file)); // add to file list
 
                if(import.mesh.is())Proj.getObjMeshElm(elm.id, false, false); // need to have mesh     element to insert mesh
                if(import.skel.is())Proj.getObjSkelElm(elm.id, false, false); // need to have skeleton element to insert skeleton
@@ -1374,7 +1374,7 @@ class ImporterClass
                   if(skel_elm)Proj.elmChanging(*skel_elm);
 
                   // first setup materials
-                  Edit.FileParams fp=import.file;
+                  FileParams fp=import.file;
                   Memt<UID> mtrls;
                   FREPA(import.mtrls)
                   {
@@ -1408,7 +1408,7 @@ class ImporterClass
 
                   // update mesh
                   mesh_data.newVer();
-                  mesh_data.setSrcFile(Edit.FileParams.Merge(mesh_data.src_file, import.file)); // add to file list
+                  mesh_data.setSrcFile(FileParams.Merge(mesh_data.src_file, import.file)); // add to file list
                   mesh_data.file_time.getUTC();
                   int pmi=0; FREPD(l, import.mesh.lods()) // set materials
                   {

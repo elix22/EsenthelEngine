@@ -343,7 +343,7 @@ public:
    void set(C MaterialPtr &mtrl);    
    void set(Memt<MaterialPtr> mtrls);
    void drag(Memc<UID> &elms, GuiObj *focus_obj, C Vec2 &screen_pos);
-   class ImageSource : Edit::FileParams
+   class ImageSource : FileParams
    {
       int i, order;
 

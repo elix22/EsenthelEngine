@@ -164,7 +164,7 @@ class Project
    void createWorldPaths(C UID &world_id);
    void createMiniMapPaths(C UID &mini_map_id);
 
-   bool loadImage(Image &image, TextParam *image_resize, C Edit::FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C;
+   bool loadImage(Image &image, TextParam *image_resize, C FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C TextParam *color_resize=null, C Image *smooth=null, C TextParam *smooth_resize=null, C Image *bump=null, C TextParam *bump_resize=null)C;
    enum APPLY_MODE
    {
       APPLY_SET,

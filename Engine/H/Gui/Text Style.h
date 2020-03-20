@@ -138,7 +138,7 @@ struct TextStyleParams // Text Style Params
    // draw
 #if EE_PRIVATE
    void drawMain    (              Flt x, Flt y, TextInput ti, Int max_length=-1, C TextCodeData *code=null, Int codes=0, Int offset=0)C;
-   void drawMainSoft(Image &image, Flt x, Flt y, TextInput ti, Int max_length=-1, C TextCodeData *code=null, Int codes=0, Int offset=0)C; // 'image' must be already locked for writing
+   void drawMainSoft(Image &image, Flt x, Flt y, TextInput ti, Int max_length=-1, C TextCodeData *code=null, Int codes=0, Int offset=0)C; // 'image' should be already locked for writing
 
    void drawSplit(C Rect &rect, Memc<TextLineSplit8 > &tls, C TextCodeData *code=null, Int codes=0)C;
    void drawSplit(C Rect &rect, Memc<TextLineSplit16> &tls, C TextCodeData *code=null, Int codes=0)C;
@@ -149,11 +149,11 @@ struct TextStyleParams // Text Style Params
    void drawSplitSoft(Image &image, C Rect &rect, Memt<TextLineSplit8 > &tls, C TextCodeData *code=null, Int codes=0)C;
    void drawSplitSoft(Image &image, C Rect &rect, Memt<TextLineSplit16> &tls, C TextCodeData *code=null, Int codes=0)C;
 #endif
-   void drawSoft(Image &image, Flt x, Flt y, CChar  *t)C; // draw text in software mode to 'image', 'image' must be already locked for writing
-   void drawSoft(Image &image, Flt x, Flt y, CChar8 *t)C; // draw text in software mode to 'image', 'image' must be already locked for writing
+   void drawSoft(Image &image, Flt x, Flt y, CChar  *t)C; // draw text in software mode to 'image', 'image' should be already locked for writing
+   void drawSoft(Image &image, Flt x, Flt y, CChar8 *t)C; // draw text in software mode to 'image', 'image' should be already locked for writing
 
-   void drawSoft(Image &image, C Rect &rect, CChar  *t, AUTO_LINE_MODE auto_line)C; // draw text in software mode to 'image', 'image' must be already locked for writing
-   void drawSoft(Image &image, C Rect &rect, CChar8 *t, AUTO_LINE_MODE auto_line)C; // draw text in software mode to 'image', 'image' must be already locked for writing
+   void drawSoft(Image &image, C Rect &rect, CChar  *t, AUTO_LINE_MODE auto_line)C; // draw text in software mode to 'image', 'image' should be already locked for writing
+   void drawSoft(Image &image, C Rect &rect, CChar8 *t, AUTO_LINE_MODE auto_line)C; // draw text in software mode to 'image', 'image' should be already locked for writing
 
    explicit TextStyleParams(                     Bool gui=false) {reset(gui);}
             TextStyleParams(TextStyleParams *ts, Bool gui      ) {if(ts)T=*ts;else reset(gui);}

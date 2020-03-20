@@ -5,6 +5,8 @@ namespace EE{
 #define CONNECTION_CC4     CC4('E','E','N','C') // Esenthel Engine Network Connection
 #define CONNECTION_VERSION 0
 
+#define CONNECTION_BUF_SIZE (4*1024)
+
 #define MSG_SIZE_KNOWN 0xFF
 
 #define SEND_WAIT_TIME (15*1000)
@@ -72,10 +74,9 @@ UInt Connection::life()C
    return (_state!=CONNECT_INVALID) ? Time.curTimeMs()-_birth : 0; // this code was tested OK for UInt overflow
 }
 /******************************************************************************/
-Bool Connection::greet()
-{
-  _out .writeMem(4*1024);
-   data.writeMem(4*1024);
+void Connection::reinitData() {data.writeMem(CONNECTION_BUF_SIZE);}
+Bool Connection::greet     () {_out.writeMem(CONNECTION_BUF_SIZE);
+   reinitData();
 
   _cipher.randomizeKey();
 

@@ -148,20 +148,20 @@ ConvertToDeAtlasClass ConvertToDeAtlas;
    {
       if(name.is() && (crop || resize)) // don't add params to an empty file name
       {
-         Mems<Edit::FileParams> files=Edit::FileParams::Decode(name); if(files.elms())
+         Mems<FileParams> files=FileParams::Decode(name); if(files.elms())
          {
             TextParam src_resize; ExtractResize(files, src_resize); // first remove source resize
             if(files.elms()>1)files.New(); // if there's more than 1 file, then add crop/resize parameters globally
             if(crop) // crop first
             {
-               Image image; if(Proj.loadImages(image, null, Edit::FileParams::Encode(files))) // load image at current state to extract its size
+               Image image; if(Proj.loadImages(image, null, FileParams::Encode(files))) // load image at current state to extract its size
                {
                   RectI r=Round((*crop)*(Vec2)image.size());
                   files.last().params.New().set("crop", S+r.min.x+','+r.min.y+','+r.w()+','+r.h());
                }
             }
             if(resize)files.last().params.New().set("resizeClamp", VecI2AsText(*resize)); // then resize
-            return Edit::FileParams::Encode(files);
+            return FileParams::Encode(files);
          }
       }
       return name;

@@ -83,10 +83,11 @@ void ObjView::meshWeldPos()
       if(!sel_vtx.elms())Gui.msgBox(S, "No vertexes selected");else
       {
          mesh_undos.set("weldPos");
+         MeshLod &lod=getLod();
          Memt<Vec> poss; Vec center=0;
          REPA(sel_vtx)
          {
-          C VecI2 &v=sel_vtx[i]; if(C MeshPart *part=getPart(v.x))if(InRange(v.y, part->base.vtx))
+          C VecI2 &v=sel_vtx[i]; if(C MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part->base.vtx))
             {
              C Vec &pos=part->base.vtx.pos(v.y); REPA(poss)if(Equal(pos, poss[i]))goto has; poss.add(pos); center+=pos; has:;
             }
@@ -96,9 +97,9 @@ void ObjView::meshWeldPos()
             center/=poss.elms();
             REPA(sel_vtx)
             {
-             C VecI2 &v=sel_vtx[i]; if(MeshPart *part=getPart(v.x))if(InRange(v.y, part->base.vtx))part->base.vtx.pos(v.y)=center;
+             C VecI2 &v=sel_vtx[i]; if(MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part->base.vtx))part->base.vtx.pos(v.y)=center;
             }
-            getLod().setRender();
+            lod.setRender();
             mesh.setBox();
             setChangedMesh(true);
          }
@@ -112,7 +113,7 @@ void ObjView::meshWeldPos(flt pos_eps)
    flt remove_degenerate_faces_eps=EPS*posScale();
    mesh_undos.set("weldPos");
    MeshLod &lod=getLod();
-   REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+   REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
            part->base.weldVtxValues(VTX_POS, pos_eps, -1, remove_degenerate_faces_eps); // only weld vtx positions, but keep as separate vtx's, use -1 for 'nrm_cos' to ignore vtx normal tests
       if(1)part->base.weldVtx      (VTX_ALL, pos_eps, EPS_COL_COS, -1); // weld vtxs as one, don't remove degen faces because we've already done it above
@@ -125,17 +126,20 @@ void ObjView::meshSetPos()
 {
    if(!sel_vtx.elms() || !mesh_parts.edit_selected())Gui.msgBox(S, "No vertexes selected");else
    if(lit_vtx<0)Gui.msgBox(S, "No highlighted vertex");else
-   if(C MeshPart *part=getPart(lit_vf_part))if(InRange(lit_vtx, part->base.vtx))
    {
-      Vec center=part->base.vtx.pos(lit_vtx);
-      mesh_undos.set("setPos");
-      REPA(sel_vtx)
+      MeshLod &lod=getLod();
+      if(C MeshPart *part=lod.parts.addr(lit_vf_part))if(InRange(lit_vtx, part->base.vtx))
       {
-       C VecI2 &v=sel_vtx[i]; if(MeshPart *part=getPart(v.x))if(InRange(v.y, part->base.vtx))part->base.vtx.pos(v.y)=center;
+         Vec center=part->base.vtx.pos(lit_vtx);
+         mesh_undos.set("setPos");
+         REPA(sel_vtx)
+         {
+          C VecI2 &v=sel_vtx[i]; if(MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part->base.vtx))part->base.vtx.pos(v.y)=center;
+         }
+         lod.setRender();
+         mesh.setBox();
+         setChangedMesh(true);
       }
-      getLod().setRender();
-      mesh.setBox();
-      setChangedMesh(true);
    }
 }
 void ObjView::meshReverse()
@@ -170,7 +174,7 @@ void ObjView::meshReverse()
    }else
    {
       mesh_undos.set("reverse");
-      REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+      REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
       {
          part->base.reverse();
          part->setRender();
@@ -190,7 +194,7 @@ void ObjView::meshReverseNrm()
       Memt<VecI2> vtxs; getSelectedVtxs(vtxs);
       REPA(vtxs)
       {
-         C VecI2 &v=vtxs[i]; if(MeshPart *part=getPart(v.x))
+         C VecI2 &v=vtxs[i]; if(MeshPart *part=lod.parts.addr(v.x))
          {
             changed_parts.binaryInclude(v.x);
             MeshBase &base=part->base; if(InRange(v.y, base.vtx))
@@ -207,7 +211,7 @@ void ObjView::meshReverseNrm()
       }
    }else
    {
-      REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+      REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
       {
          Chs(part->base.vtx.nrm(), part->base.vtxs());
          /*part.base.setTanBin(); not affected by normals*/ part->setRender();
@@ -237,7 +241,7 @@ void ObjView::meshSetNrm(uint vtx_test)
          {
           C VecI2 &v=vtxs[i];
             if(C MeshPart *src =temp.parts.addr(v.x))if(InRange(v.y,  src->base.vtx) && src->base.vtx.nrm())
-            if(  MeshPart *dest=  getPart      (v.x))if(InRange(v.y, dest->base.vtx))
+            if(  MeshPart *dest= lod.parts.addr(v.x))if(InRange(v.y, dest->base.vtx))
             {
                if(!dest->base.vtx.nrm()){dest->base.include(VTX_NRM); CopyN(dest->base.vtx.nrm(), src->base.vtx.nrm(), dest->base.vtxs());}
                dest->base.vtx.nrm(v.y)=src->base.vtx.nrm(v.y);
@@ -248,7 +252,7 @@ void ObjView::meshSetNrm(uint vtx_test)
       }
    }else
    {
-      REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+      REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
       {
          MeshBase &base=part->base, temp; if(avg)temp.create(base);
          if(vtx_test)base.setVtxDup(vtx_test, pos_eps);else base.exclude(VTX_DUP);
@@ -271,9 +275,9 @@ void ObjView::meshSetNrmH()
    {
    }else
    {
-      if(C MeshPart *part_lit=getPart(lit_part))
+      if(C MeshPart *part_lit=lod.parts.addr(lit_part))
       {
-       C MeshBase &lit=part_lit->base; if(lit.vtx.pos() && lit.vtx.nrm())REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+       C MeshBase &lit=part_lit->base; if(lit.vtx.pos() && lit.vtx.nrm())REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
          {
             MeshBase &base=part->base; if(base.vtx.pos() && base.vtx.nrm())
             {
@@ -327,7 +331,7 @@ void ObjView::meshNrmY()
          REPA(vtxs)
          {
           C VecI2 &v=vtxs[i];
-            if(MeshPart *part=getPart(v.x))
+            if(MeshPart *part=lod.parts.addr(v.x))
             if(InRange(v.y, part->base.vtx) && part->base.vtx.nrm())
             {
                AlignVtxNormal(part->base.vtx.nrm(v.y), dest);
@@ -338,7 +342,7 @@ void ObjView::meshNrmY()
       }
    }else
    {
-      REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+      REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
       {
          MeshBase &base=part->base; if(base.vtx.nrm())
          {
@@ -466,12 +470,13 @@ void ObjView::meshRotQuads()
 {
    bool changed=false;
    mesh_undos.set("meshRotQuad");
+   MeshLod &lod=getLod();
    REPA(sel_face)
    {
     C VecI2 &sf=sel_face[i]; if(sf.y&SIGN_BIT) // only quads
       {
          int q=sf.y^SIGN_BIT;
-         if(MeshPart *part=getPart(sf.x))if(InRange(q, part->base.quad))
+         if(MeshPart *part=lod.parts.addr(sf.x))if(InRange(q, part->base.quad))
          {
             part->base.quad.ind(q).rotateOrder();
             changed=true;
@@ -480,7 +485,7 @@ void ObjView::meshRotQuads()
    }
    if(changed)
    {
-      mesh.setRender();
+      lod.setRender();
       setChangedMesh(true, false);
    }
 }
@@ -498,17 +503,17 @@ void ObjView::meshQuadToTri()
        C VecI2 &sf=sel_face[i]; if(sf.y&SIGN_BIT) // only quads
          {
             int q=sf.y^SIGN_BIT;
-            if(MeshPart *part=getPart(sf.x))if(InRange(q, part->base.quad))part_quads(sf.x).add(q);
+            if(MeshPart *part=lod.parts.addr(sf.x))if(InRange(q, part->base.quad))part_quads(sf.x).add(q);
          }
       }
       if(part_quads.elms())
       {
-         REPA(part_quads)if(MeshPart *part=getPart(i)){part->base.quadToTri(part_quads[i]); part->setRender();}
+         REPA(part_quads)if(MeshPart *part=lod.parts.addr(i)){part->base.quadToTri(part_quads[i]); part->setRender();}
          changed=true;
       }
    }else
    {
-      REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i)){part->base.quadToTri(); part->setRender(); changed=true;}
+      REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i)){part->base.quadToTri(); part->setRender(); changed=true;}
    }
    if(changed)
    {
@@ -522,7 +527,7 @@ void ObjView::meshSubdivide()
    bool changed=false;
    MeshLod &lod=getLod();
    mesh_undos.set("meshSub");
-   REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+   REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
       MeshBase &base=part->base;
       base.setVtxDup();
@@ -542,7 +547,7 @@ void ObjView::meshTesselate()
    bool changed=false;
    MeshLod &lod=getLod();
    mesh_undos.set("meshTess");
-   REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+   REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
       MeshBase &base=part->base;
     //base.setVtxDup();
@@ -568,7 +573,7 @@ void ObjView::meshColorBrght()
       {
          REPA(sel_vtx)
          {
-          C VecI2 &v=sel_vtx[i]; if(MeshPart *part=getPart(v.x))if(InRange(v.y, part->base.vtx) && part->base.vtx.color())
+          C VecI2 &v=sel_vtx[i]; if(MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part->base.vtx) && part->base.vtx.color())
             {
                Color &c=part->base.vtx.color(v.y);
                c=Lerp(c, WHITE, 0.1f);
@@ -578,7 +583,7 @@ void ObjView::meshColorBrght()
          if(changed)lod.setRender();
       }
    }else
-   REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+   REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
       MeshBase &base=part->base; if(base.vtx.color())
       {
@@ -596,7 +601,7 @@ void ObjView::meshDelDblSide()
    mesh_undos.set("delDblSide");
    litSelVFClear();
    flt pos_eps=vtxDupPosEps();
-   REPA(lod)if(partOp(i))if(MeshPart *part=getPart(i))
+   REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
       MeshBase &base=part->base, temp; temp.create(base).triToQuad();
       int faces =temp.faces(); temp.setVtxDup(0, pos_eps).removeDoubleSideFaces().exclude(VTX_DUP);
@@ -755,7 +760,7 @@ void ObjView::meshSkinFull()
    bool changed=false;
    MeshLod &lod=getLod();
    mesh_undos.set("skinFull");
-   REPA(lod)if(mesh_parts.partOp(i))if(MeshPart *part=getPart(i))
+   REPA(lod)if(mesh_parts.partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
       MeshBase &base=part->base;
       base.include(VTX_SKIN); // for "!bone" case we could "exclude(VTX_SKIN)" however in order to reduce draw calls we keep consistency for all mesh parts (to have the same draw call settings)
@@ -775,7 +780,7 @@ void ObjView::meshSkinFullP()
    bool changed=false;
    MeshLod &lod=getLod();
    mesh_undos.set("skinFull");
-   REPA(lod)if(mesh_parts.partOp(i))if(MeshPart *part=getPart(i))
+   REPA(lod)if(mesh_parts.partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
       MeshBase &base=part->base;
       base.include(VTX_SKIN); // for "!bone" case we could "exclude(VTX_SKIN)" however in order to reduce draw calls we keep consistency for all mesh parts (to have the same draw call settings)
@@ -795,7 +800,7 @@ void ObjView::meshSkinFullU()
    bool changed=false;
    MeshLod &lod=getLod();
    mesh_undos.set("skinFullU");
-   REPA(lod)if(mesh_parts.partOp(i))if(MeshPart *part=getPart(i))
+   REPA(lod)if(mesh_parts.partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
       MeshBase &base=part->base;
       bool part_changed=false;
@@ -828,7 +833,7 @@ void ObjView::meshSkinAuto()
    bool changed=false;
    MeshLod &lod=getLod();
    mesh_undos.set("skinAuto");
-   if(mesh_skel)REPA(lod)if(mesh_parts.partOp(i))if(MeshPart *part=getPart(i))
+   if(mesh_skel)REPA(lod)if(mesh_parts.partOp(i))if(MeshPart *part=lod.parts.addr(i))
    {
       MeshBase &base=part->base;
       bool part_changed=false;

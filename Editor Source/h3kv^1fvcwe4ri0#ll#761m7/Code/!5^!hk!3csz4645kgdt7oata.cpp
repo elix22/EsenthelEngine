@@ -354,16 +354,16 @@ class ConvertToAtlasClass : PropWin
       if(src.is() || force)
       {
          bool added=false;
-         Mems<Edit.FileParams> fps_dest=Edit.FileParams.Decode(dest);
-         Mems<Edit.FileParams> fps_src =Edit.FileParams.Decode(src );
+         Mems<FileParams> fps_dest=FileParams.Decode(dest);
+         Mems<FileParams> fps_src =FileParams.Decode(src );
          TextParam src_resize; for(; ExtractResize(fps_src, src_resize); ){} // remove any resizes if present, we replace it with a custome one below
          if(fps_src.elms()==1 && fps_src[0].name.is()) // Warning: TODO: only 1 elements are supported because other params/transforms may affect all images (not just this one)
          {
-            Edit.FileParams &fp=fps_src[0]; // edit first one in source
+            FileParams &fp=fps_src[0]; // edit first one in source
             VecI2 size=mtrl.packed_rect.size();
             if(mtrl.edit.flip_normal_y && normal) fp.params.New().set("inverseG"); // !! this needs to be done before 'swapRG' !!
             if(mtrl.rotated                     ){fp.params.New().set("swapXY"); if(normal)fp.params.New().set("swapRG");} // !! this needs to be done before 'resizeClamp' !!
-            if(!mul_1                           ) fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul));
+            if(!mul_1                           ) fp.params.New().set(normal ? "scale" : "mulRGB", TextVecEx(mul));
                                                   fp.params.New().set("resizeClamp", VecI2AsText(size));
             if(mtrl.packed_rect.min.any()       ) fp.params.New().set("position"   , S+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y);
             Swap(fps_dest.New(), fp); // move it to dest
@@ -371,13 +371,13 @@ class ConvertToAtlasClass : PropWin
          }else
          if(force)
          {
-            Edit.FileParams &fp=fps_dest.New();
-            fp.params.New().set(normal ? "scaleXY" : "mulRGB", TextVecEx(mul)+'@'+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y+','+mtrl.packed_rect.w()+','+mtrl.packed_rect.h());
+            FileParams &fp=fps_dest.New();
+            fp.params.New().set(normal ? "scale" : "mulRGB", TextVecEx(mul)+'@'+mtrl.packed_rect.min.x+','+mtrl.packed_rect.min.y+','+mtrl.packed_rect.w()+','+mtrl.packed_rect.h());
             added=true; forced=true;
          }
          if(added)
          {
-            dest=Edit.FileParams.Encode(fps_dest);
+            dest=FileParams.Encode(fps_dest);
             return true;
          }
       }
@@ -387,10 +387,10 @@ class ConvertToAtlasClass : PropWin
    {
       if(dest.is() && !filled) // if there's at least one texture, but it doesn't fill the target fully, then we need to force the size
       {
-         Mems<Edit.FileParams> fps=Edit.FileParams.Decode(dest);
-         Edit.FileParams &fp=fps.NewAt(0); // insert a dummy empty source !! this needs to be at the start, to pre-allocate entire size so any transforms can work (for example 'force'd transforms where source texture doesn't exist) !!
+         Mems<FileParams> fps=FileParams.Decode(dest);
+         FileParams &fp=fps.NewAt(0); // insert a dummy empty source !! this needs to be at the start, to pre-allocate entire size so any transforms can work (for example 'force'd transforms where source texture doesn't exist) !!
          fp.params.New().set("position", S+tex_size.x+','+tex_size.y); // with only position specified to force the entire texture size
-         dest=Edit.FileParams.Encode(fps);
+         dest=FileParams.Encode(fps);
       }
    }
    void convertPerform()

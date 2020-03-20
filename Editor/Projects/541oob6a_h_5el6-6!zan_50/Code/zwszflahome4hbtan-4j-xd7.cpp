@@ -26,6 +26,7 @@ void Draw()
    {
       D.text(0, 0.9, Joypads[0].name());
       Str buttons; FREP(32)buttons+=Joypads[0].b(i); D.text(Rect_C(0, 0.7, 0, 0), S+"Buttons:\n"+buttons);
+      D.text(0, 0.5, S+"Triggers: "+Joypads[0].trigger[0]+' '+Joypads[0].trigger[1]);
       Rect_C( 0  , 0, 0.5, 0.5).draw(BLACK, false); (Joypads[0].dir     *0.25              ).draw(RED);
       Rect_C( 0.6, 0, 0.5, 0.5).draw(BLACK, false); (Joypads[0].dir_a[0]*0.25+Vec2(-0.6, 0)).draw(RED);
       Rect_C(-0.6, 0, 0.5, 0.5).draw(BLACK, false); (Joypads[0].dir_a[1]*0.25+Vec2( 0.6, 0)).draw(RED);

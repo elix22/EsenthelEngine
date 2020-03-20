@@ -185,7 +185,7 @@ private:
 /******************************************************************************/
 struct SndRawEncoder // Raw Encoder into Esenthel SND file format
 {
-   Bool create(File &f, Int frequency, Int channels, Long samples=-1); // initialize the encoder, 'f'=file to write to (it must be already opened for writing), 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'samples'=number of samples in audio (if you don't know it yet, then set -1), returns false on fail
+   Bool create(File &f, Int frequency, Int channels, Long samples=-1); // initialize the encoder, 'f'=file to write to (it should be already opened for writing), 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'samples'=number of samples in audio (if you don't know it yet, then set -1), returns false on fail
    Bool encode(CPtr data, Int size); // feed the encoder with additional portion of data, 'data'=array of 16-bit samples (this should contain data for all channels specified in 'create' method, stereo should have per-channel data interleaved), 'size'=total raw length of 'data' in bytes, returns false on fail
    Bool finish(); // you can optionally call this once after entire sound data has been passed to 'encode' calls to verify that last portion of data was compressed successfully, you don't need to call this as it is always called in 'del' method, returns false on fail
 
@@ -206,7 +206,7 @@ private:
 /******************************************************************************/
 struct WavEncoder // Raw Encoder into WAV file format
 {
-   Bool create(File &f, Int bits, Int frequency, Int channels, Long samples=-1); // initialize the encoder, 'f'=file to write to (it must be already opened for writing), 'bits'=number of bits per sample (use 8 for 8-bit samples or 16 for 16-bit samples), 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'samples'=number of samples in audio (if you don't know it yet, then set -1), returns false on fail
+   Bool create(File &f, Int bits, Int frequency, Int channels, Long samples=-1); // initialize the encoder, 'f'=file to write to (it should be already opened for writing), 'bits'=number of bits per sample (use 8 for 8-bit samples or 16 for 16-bit samples), 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'samples'=number of samples in audio (if you don't know it yet, then set -1), returns false on fail
    Bool encode(CPtr data, Int size); // feed the encoder with additional portion of data, 'data'=array of 16-bit samples (this should contain data for all channels specified in 'create' method, stereo should have per-channel data interleaved), 'size'=total raw length of 'data' in bytes, returns false on fail
    Bool finish(); // you can optionally call this once after entire sound data has been passed to 'encode' calls to verify that last portion of data was compressed successfully, you don't need to call this as it is always called in 'del' method, returns false on fail
 
@@ -227,7 +227,7 @@ private:
 #if EE_PRIVATE
 struct SndVorbisEncoder // Vorbis Encoder into Esenthel SND file format
 {
-   Bool create(File &f, Long samples, Int frequency=44100, Int channels=2, Flt quality=0.2f); // initialize the encoder, 'f'=file to write to (it must be already opened for writing), 'samples'=number of samples in audio, 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'quality'=sound quality (-0.1 .. 1.0), for 44100Hz stereo, following quality results in Kbit/s bit rate: -0.1->45, 0.0->64, 0.1->80, 0.2->96, 0.3->112, 0.4->128, 0.5->160, 0.6->192, 0.7->224, 0.8->256, 0.9->320, 1.0->500, returns false on fail
+   Bool create(File &f, Long samples, Int frequency=44100, Int channels=2, Flt quality=0.2f); // initialize the encoder, 'f'=file to write to (it should be already opened for writing), 'samples'=number of samples in audio, 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'quality'=sound quality (-0.1 .. 1.0), for 44100Hz stereo, following quality results in Kbit/s bit rate: -0.1->45, 0.0->64, 0.1->80, 0.2->96, 0.3->112, 0.4->128, 0.5->160, 0.6->192, 0.7->224, 0.8->256, 0.9->320, 1.0->500, returns false on fail
    Bool encode(CPtr data, Int size); // feed the encoder with additional portion of data, 'data'=array of 16-bit samples (this should contain data for all channels specified in 'create' method, stereo should have per-channel data interleaved), 'size'=total raw length of 'data' in bytes, returns false on fail
    Bool finish(); // you can optionally call this once after entire sound data has been passed to 'encode' calls to verify that last portion of data was compressed successfully, you don't need to call this as it is always called in 'del' method, returns false on fail
 
@@ -244,7 +244,7 @@ private:
 /******************************************************************************/
 struct OggVorbisEncoder // Vorbis Encoder into OGG file format
 {
-   Bool create(File &f, Int frequency=44100, Int channels=2, Flt quality=0.2f); // initialize the encoder, 'f'=file to write to (it must be already opened for writing), 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'quality'=sound quality (-0.1 .. 1.0), for 44100Hz stereo, following quality results in Kbit/s bit rate: -0.1->45, 0.0->64, 0.1->80, 0.2->96, 0.3->112, 0.4->128, 0.5->160, 0.6->192, 0.7->224, 0.8->256, 0.9->320, 1.0->500, returns false on fail
+   Bool create(File &f, Int frequency=44100, Int channels=2, Flt quality=0.2f); // initialize the encoder, 'f'=file to write to (it should be already opened for writing), 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'quality'=sound quality (-0.1 .. 1.0), for 44100Hz stereo, following quality results in Kbit/s bit rate: -0.1->45, 0.0->64, 0.1->80, 0.2->96, 0.3->112, 0.4->128, 0.5->160, 0.6->192, 0.7->224, 0.8->256, 0.9->320, 1.0->500, returns false on fail
    Bool encode(CPtr data, Int size); // feed the encoder with additional portion of data, 'data'=array of 16-bit samples (this should contain data for all channels specified in 'create' method, stereo should have per-channel data interleaved), 'size'=total raw length of 'data' in bytes, returns false on fail
    Bool finish(); // you can optionally call this once after entire sound data has been passed to 'encode' calls to verify that last portion of data was compressed successfully, you don't need to call this as it is always called in 'del' method, returns false on fail
 
@@ -260,7 +260,7 @@ private:
 /******************************************************************************/
 struct SndOpusEncoder // Opus Encoder into Esenthel SND file format
 {
-   Bool create(File &f, Long samples, Int frequency, Int channels, Int bit_rate, Bool vbr=true); // initialize the encoder, 'f'=file to write to (it must be already opened for writing), 'samples'=number of samples in audio, 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'bit_rate'=encoding bit-rate in bits per second (500 .. 512,000 range supported), 'vbr'=variable bit-rate, returns false on fail
+   Bool create(File &f, Long samples, Int frequency, Int channels, Int bit_rate, Bool vbr=true); // initialize the encoder, 'f'=file to write to (it should be already opened for writing), 'samples'=number of samples in audio, 'frequency'=sample rate per second, 'channels'=number of channels (1=mono, 2=stereo), 'bit_rate'=encoding bit-rate in bits per second (500 .. 512,000 range supported), 'vbr'=variable bit-rate, returns false on fail
    Bool encode(CPtr data, Int size); // feed the encoder with additional portion of data, 'data'=array of 16-bit samples (this should contain data for all channels specified in 'create' method, stereo should have per-channel data interleaved), 'size'=total raw length of 'data' in bytes, returns false on fail
    Bool finish(); // you can optionally call this once after entire sound data has been passed to 'encode' calls to verify that last portion of data was compressed successfully, you don't need to call this as it is always called in 'del' method, returns false on fail
 
@@ -293,7 +293,7 @@ private:
 /******************************************************************************/
 struct OggOpusEncoder // Opus Encoder into OGG file format
 {
-   Bool create(File &f, Int channels, Int bit_rate, Bool vbr=true); // initialize the encoder, 'f'=file to write to (it must be already opened for writing), 'channels'=number of channels (1=mono, 2=stereo), 'bit_rate'=encoding bit-rate in bits per second (500 .. 512,000 range supported), 'vbr'=variable bit-rate, returns false on fail. There is no option to specify custom frequency, as Opus inside Ogg is always encoded at 48kHZ (therefore input to this class must be already in 48kHz)
+   Bool create(File &f, Int channels, Int bit_rate, Bool vbr=true); // initialize the encoder, 'f'=file to write to (it should be already opened for writing), 'channels'=number of channels (1=mono, 2=stereo), 'bit_rate'=encoding bit-rate in bits per second (500 .. 512,000 range supported), 'vbr'=variable bit-rate, returns false on fail. There is no option to specify custom frequency, as Opus inside Ogg is always encoded at 48kHZ (therefore input to this class must be already in 48kHz)
    Bool encode(CPtr data, Int size); // feed the encoder with additional portion of data, 'data'=array of 16-bit samples (this should contain data for all channels specified in 'create' method, stereo should have per-channel data interleaved), 'size'=total raw length of 'data' in bytes, returns false on fail
    Bool finish(); // you can optionally call this once after entire sound data has been passed to 'encode' calls to verify that last portion of data was compressed successfully, you don't need to call this as it is always called in 'del' method, returns false on fail
 

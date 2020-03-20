@@ -45,7 +45,7 @@ class EditMaterial
    void separateNormalMap(C TimeStamp &time=TimeStamp().getUTC());
    void separateAlphaMap(C Project &proj, C TimeStamp &time=TimeStamp().getUTC());
    void cleanupMaps();
-   void expandMap(Str &map, C MemPtr<Edit::FileParams> &color, C MemPtr<Edit::FileParams> &smooth, C MemPtr<Edit::FileParams> &bump);
+   void expandMap(Str &map, C MemPtr<FileParams> &color, C MemPtr<FileParams> &smooth, C MemPtr<FileParams> &bump);
    void expandMaps();
 
    void newData();

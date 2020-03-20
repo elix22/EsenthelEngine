@@ -889,7 +889,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
 
   _diffuse_mode=(MOBILE ? DIFFUSE_LAMBERT : DIFFUSE_BURLEY);
 
-  _bump_mode=(MOBILE ? BUMP_FLAT : BUMP_PARALLAX);
+  _bump_mode=(MOBILE ? BUMP_FLAT : BUMP_RELIEF);
 
   _mtn_mode  =MOTION_NONE;
   _mtn_dilate=DILATE_ORTHO2;
@@ -2285,16 +2285,16 @@ void Display::adjustWindow(Bool set)
 #if WINDOWS_OLD
    if(D.full()) // fullscreen
    {
-      SetWindowLongPtr(App.Hwnd(), GWL_STYLE, App._style_full);
-      SetWindowPos    (App.Hwnd(), (App.backgroundFull() && !exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
+      SetWindowLong(App.Hwnd(), GWL_STYLE, App._style_full);
+      SetWindowPos (App.Hwnd(), (App.backgroundFull() && !exclusiveFull()) ? HWND_NOTOPMOST : HWND_TOPMOST, full.min.x, full.min.y, resW(), resH(), 0);
    }else
    if(resW()>=maximized_win_client_size.x && resH()>=maximized_win_client_size.y) // maximized
    {
-      SetWindowLongPtr(App.Hwnd(), GWL_STYLE, App._style_window_maximized);
+      SetWindowLong(App.Hwnd(), GWL_STYLE, App._style_window_maximized);
    #if 0 // this doesn't work as expected
-      SetWindowPos    (App.Hwnd(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.w(), resH()+App._bound_maximized.h(), SWP_NOACTIVATE); 
+      SetWindowPos (App.Hwnd(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.w(), resH()+App._bound_maximized.h(), SWP_NOACTIVATE); 
    #else
-      SetWindowPos    (App.Hwnd(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.max.x, resH()-App._bound_maximized.min.y, SWP_NOACTIVATE);
+      SetWindowPos (App.Hwnd(), HWND_TOP , work.min.x+App._bound_maximized.min.x, work.min.y-App._bound_maximized.max.y, resW()+App._bound_maximized.max.x, resH()-App._bound_maximized.min.y, SWP_NOACTIVATE);
    #endif
    }else // normal window
    {
@@ -2321,8 +2321,8 @@ void Display::adjustWindow(Bool set)
       if(App._window_pos.x+b>work.max.x)App._window_pos.x=Max(work.min.x, work.max.x-b);else{Int p=App._window_pos.x+w; if(p-r<work.min.x)App._window_pos.x=Min(work.min.x+r, work.max.x)-w;}
       if(App._window_pos.y+b>work.max.y)App._window_pos.y=Max(work.min.y, work.max.y-b);else{Int p=App._window_pos.y+h; if(p-b<work.min.y)App._window_pos.y=Min(work.min.y+b, work.max.y)-h;}
 
-      SetWindowLongPtr(App.Hwnd(), GWL_STYLE     , App._style_window);
-      SetWindowPos    (App.Hwnd(), HWND_NOTOPMOST, App._window_pos.x, App._window_pos.y, w, h, SWP_NOACTIVATE);
+      SetWindowLong(App.Hwnd(), GWL_STYLE     , App._style_window);
+      SetWindowPos (App.Hwnd(), HWND_NOTOPMOST, App._window_pos.x, App._window_pos.y, w, h, SWP_NOACTIVATE);
    }
 #elif MAC
    if(!D.full()) // on Mac don't adjust the window size/pos when in fullscreen because it's not needed, additionally it will cancel out original window position when later restoring
