@@ -76,7 +76,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text(0, 0.4, S+"Clients: "       +Server.clients.elms());
    D.text(0, 0.2, S+"Local Address: " +Server. localAddress().asText());
  //D.text(0, 0.0, S+"Global Address: "+Server.globalAddress().asText());

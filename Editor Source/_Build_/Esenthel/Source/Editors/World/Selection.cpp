@@ -177,13 +177,13 @@ bool OnWorld(GuiObj *go)
          }
       }
    }
-   void   SelectionClass::select(Obj &obj) {if(!obj.selected){obj.selected=true ; objs.add    (&obj); sel_changed=true;}}
-   void SelectionClass::deselect(Obj &obj) {if( obj.selected){obj.selected=false; objs.exclude(&obj); sel_changed=true;}}
+   void   SelectionClass::select(Obj &obj) {if(!obj.selected){WorldEdit.obj_pos.apply(); obj.selected=true ; objs.add    (&obj); sel_changed=true;}}
+   void SelectionClass::deselect(Obj &obj) {if( obj.selected){WorldEdit.obj_pos.apply(); obj.selected=false; objs.exclude(&obj); sel_changed=true;}}
    void   SelectionClass::selectToggle(Obj &obj) {if( obj.selected)deselect(obj);else select(obj);}
    void   SelectionClass::highlight(Obj &obj) {if(!obj.highlighted){obj.highlighted=true ; highlighted.add    (&obj);}}
    void SelectionClass::unhighlight(Obj &obj) {if( obj.highlighted){obj.highlighted=false; highlighted.exclude(&obj);}}
-   SelectionClass& SelectionClass::clearSelect() {if(objs.elms())sel_changed=true; REPAO(objs       )->selected   =false; objs       .clear(); return T;}
-   SelectionClass& SelectionClass::clearHighlight() {                                 REPAO(highlighted)->highlighted=false; highlighted.clear(); return T;}
+   SelectionClass& SelectionClass::clearSelect() {if(objs.elms()){WorldEdit.obj_pos.apply(); sel_changed=true; REPAO(objs       )->selected   =false; objs       .clear();} return T;}
+   SelectionClass& SelectionClass::clearHighlight() {                                                             REPAO(highlighted)->highlighted=false; highlighted.clear();  return T;}
    void SelectionClass::highlightScreenObjs(Obj &base)
    {
       REPA(WorldEdit.obj_visible)
@@ -260,7 +260,6 @@ bool OnWorld(GuiObj *go)
       // process selection
       if(sel_scope)
       {
-         WorldEdit.obj_pos.apply();
          SEL_MODE sel=((Kb.ctrlCmd() && Kb.shift()) ? SM_KEEP : Kb.ctrlCmd() ? SM_TOGGLE : Kb.shift() ? SM_INCLUDE : Kb.alt() ? SM_EXCLUDE : tsm.selMode());
          switch(sel_scope)
          {

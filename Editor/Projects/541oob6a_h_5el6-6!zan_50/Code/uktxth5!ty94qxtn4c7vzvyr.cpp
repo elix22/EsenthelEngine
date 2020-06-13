@@ -51,7 +51,7 @@ bool UpdateGame()
 }
 void DrawGame()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text (0, 0, "Game");
 }
 State StateGame(UpdateGame, DrawGame, InitGame, ShutGame);

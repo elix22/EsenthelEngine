@@ -37,7 +37,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D  .clear(TURQ);
+   D  .clear(AZURE);
    D  .text(0, 0.9, "Press F2/F3 to save/load");
    Gui.draw();
 }

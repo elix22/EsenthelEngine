@@ -37,7 +37,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    flt y=D.h()-0.1;
    D.text(0, y, Server.localAddress().asText()); y-=0.1;
    D.text(0, y, S+"Clients: "+Server.clients.elms()); y-=0.1;

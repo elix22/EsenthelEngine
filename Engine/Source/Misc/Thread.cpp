@@ -699,7 +699,7 @@ void InitPre() {App.flag|=APP_WORK_IN_BACKGROUND; DataPath("../Data");}
 bool Init   () {for(int p=-PR; p<=PR; p++)REP(2)threads.New().create(Func, null, p, true); FREPAO(threads).resume(); return true;}
 void Shut   () {threads.del();}
 bool Update () {if(Kb.bp(KB_ESC))return false; return true;}
-void Draw   () {D.clear(TURQ); Str s; int max=0; REPA(v)MAX(max, v[i]); FREPA(v){if(i)s+=", "; s+=Flt(v[i])/max;} D.text(0, 0, s);}
+void Draw   () {D.clear(AZURE); Str s; int max=0; REPA(v)MAX(max, v[i]); FREPA(v){if(i)s+=", "; s+=Flt(v[i])/max;} D.text(0, 0, s);}
 */
 #endif
 void Thread::priority(Int priority)

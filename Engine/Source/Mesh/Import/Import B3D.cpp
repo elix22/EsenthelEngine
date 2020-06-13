@@ -398,7 +398,7 @@ static void CreateAnimation(C Memc<MESH_BONE> &mesh_bone, Skeleton &skeleton, XA
    }
 
    // process
-   anim.setTangents().removeUnused().setRootMatrix();
+   anim.removeUnused().setTangents().setRootMatrix();
 }
 /******************************************************************************/
 static Bool CreateSkeleton(C Memx<NODE> &nodes, Skeleton &skeleton, XAnimation *animation)

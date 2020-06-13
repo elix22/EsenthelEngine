@@ -410,7 +410,7 @@ using namespace EE;
 // DECLARATIONS FOR USER PROVIDED MAIN FUNCTIONS
 /******************************************************************************/
 Bool Preload(); // this method is called only on Web platform, it is called before InitPre, it will be called continuously as long as you're returning 'true' inside it. You should use this method to optionally download necessary files, like "Engine.pak". Once you've finished downloading files, return 'false' so that the application can continue, and proceed to 'InitPre'. After that, 'Preload' will never be called again.
-void InitPre(); // init before engine, in this function you can modify things like: applications settings (App), Display options (D), Renderer options (Renderer), camera parameters (Cam), file path settings (DataPath), loading data paks (Paks.add), etc. In this stage the engine is not yet fully initialized, so creating GPU (Images, Meshes, ..) and Sound data will fail, this data should be processed later, for example in Init().
+void InitPre(); // init before engine, in this function you can modify things like: 'App' applications settings, 'Display' options, 'Renderer' options, 'Cam' camera parameters, 'DataPath' file path settings, loading data paks 'Paks.add', etc. In this stage the engine is not yet fully initialized, so creating GPU (Images, Meshes, ..) and Sound data will fail, this data should be processed later, for example in Init().
 Bool Init   (); // init after  engine
 void Shut   (); // shut at exit
 Bool Update (); // update

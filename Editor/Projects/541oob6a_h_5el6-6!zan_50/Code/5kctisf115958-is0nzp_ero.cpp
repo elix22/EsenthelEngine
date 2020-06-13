@@ -144,7 +144,7 @@ Bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    // draw all strings from 'Repeated Data' chunks on the screen
    FREPA(strings)D.text(0, 0.9-i*0.1, strings[i]);

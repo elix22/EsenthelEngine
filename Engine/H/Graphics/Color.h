@@ -62,7 +62,7 @@ const Color
    CYAN  (  0, 255, 255),
    PURPLE(255,   0, 255),
    ORANGE(255, 128,   0),
-   TURQ  (  0, 128, 255),
+   AZURE (  0, 128, 255),
    PINK  (255, 128, 255),
    BROWN (128,  64,   0),
    TRANSPARENT(0, 0, 0, 0);

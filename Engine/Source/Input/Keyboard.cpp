@@ -61,7 +61,7 @@ static InputText InputTextData;
 static SyncLock  InputTextLock;
        Byte      KeySource;
 #endif
-Keyboard Kb;
+KeyboardClass Kb;
 /******************************************************************************/
 #if ANDROID
 static void SetKeyboardVisible(Bool visible)
@@ -178,9 +178,9 @@ inline static void Set(KB_KEY key, Char c, Char qwerty_shift, CChar8 *name)
    Kb._key_char[key]=c;
    Kb._key_name[key]=name;
 }
-Keyboard::Keyboard()
+KeyboardClass::KeyboardClass()
 {
-#if 0 // there's only one 'Keyboard' global 'Kb' and it doesn't need clearing members to zero
+#if 0 // there's only one 'KeyboardClass' global 'Kb' and it doesn't need clearing members to zero
   _exclusive=_text_input=_refresh_visible=_visible=false;
 #endif
   _last_key_scan_code=-1;
@@ -332,7 +332,7 @@ Keyboard::Keyboard()
 #if MAC
 static void KeyboardChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef user_info) {Kb.setLayout();}
 #endif
-void Keyboard::init() // Linux requires XDisplay to be created, so we can't do this in the constructor
+void KeyboardClass::init() // Linux requires XDisplay to be created, so we can't do this in the constructor
 {
    setLayout();
 #if MAC
@@ -341,7 +341,7 @@ void Keyboard::init() // Linux requires XDisplay to be created, so we can't do t
 #endif
 }
 /******************************************************************************/
-void Keyboard::del()
+void KeyboardClass::del()
 {
 #if WINDOWS_OLD
 #if KB_RAW_INPUT
@@ -358,7 +358,7 @@ void Keyboard::del()
 #endif
 #endif
 }
-void Keyboard::create()
+void KeyboardClass::create()
 {
    if(LogInit)LogN("Keyboard.create");
 #if WINDOWS_OLD
@@ -399,8 +399,8 @@ ok:;
 #endif
 }
 /******************************************************************************/
- Char   Keyboard::keyChar(KB_KEY k)C {ASSERT(1<<(8*SIZE(k))==ELMS(_key_char)); return _key_char[k];}
-CChar8* Keyboard::keyName(KB_KEY k)C {ASSERT(1<<(8*SIZE(k))==ELMS(_key_name)); return _key_name[k];}
+ Char   KeyboardClass::keyChar(KB_KEY k)C {ASSERT(1<<(8*SIZE(k))==ELMS(_key_char)); return _key_char[k];}
+CChar8* KeyboardClass::keyName(KB_KEY k)C {ASSERT(1<<(8*SIZE(k))==ELMS(_key_name)); return _key_name[k];}
 /******************************************************************************/
 #if WINDOWS_OLD
 #define KB_F13 KB_NONE
@@ -752,7 +752,7 @@ struct KeyData
 
    void add(Char c) {T.c[cs++]=CaseUp(c);} // add CaseUp so later when checking for characters we can just do >='A' && <='Z', use Up instead of Down because KB_A is 'A'
 };
-void Keyboard::setLayout()
+void KeyboardClass::setLayout()
 {
    REPAO(_qwerty)=KB_KEY(i);
 #if WINDOWS
@@ -1061,10 +1061,10 @@ void Keyboard::setLayout()
    REPAO(_qwerty)=KB_KEY(i); REPA(ScanCodeToKey)if(KB_KEY qwerty_key=ScanCodeToQwertyKey[i])if(KB_KEY key=ScanCodeToKey[i])_qwerty[qwerty_key]=key;
 #endif
 }
-void Keyboard::swappedCtrlCmd  (Bool swapped) {T._swapped_ctrl_cmd=swapped;}
-void Keyboard::requestTextInput(            ) {T._text_input      =true   ;}
-void Keyboard::refreshTextInput(            ) {T._refresh_visible =true   ;}
-void Keyboard::    setTextInput(C Str &text, Int start, Int end, Bool password)
+void KeyboardClass::swappedCtrlCmd  (Bool swapped) {T._swapped_ctrl_cmd=swapped;}
+void KeyboardClass::requestTextInput(            ) {T._text_input      =true   ;}
+void KeyboardClass::refreshTextInput(            ) {T._refresh_visible =true   ;}
+void KeyboardClass::    setTextInput(C Str &text, Int start, Int end, Bool password)
 {
 #if ANDROID
    if(Jni && ActivityClass && Activity)
@@ -1075,10 +1075,10 @@ void Keyboard::    setTextInput(C Str &text, Int start, Int end, Bool password)
 }
 /******************************************************************************/
 #if WINDOWS_OLD
-Bool Keyboard::imm      (           )C {                     HIMC imc=ImmGetContext      (App.Hwnd()); if(imc)ImmReleaseContext(App.Hwnd(), imc); return imc!=null;}
-void Keyboard::imm      (Bool enable)  {if(_imm!=enable){_imm=enable; ImmAssociateContext(App.Hwnd(), enable ? _imc : null);}}
-Bool Keyboard::immNative(           )C {return ImmGetOpenStatus(_imc)!=0;}
-void Keyboard::immNative(Bool native)
+Bool KeyboardClass::imm      (           )C {                     HIMC imc=ImmGetContext      (App.Hwnd()); if(imc)ImmReleaseContext(App.Hwnd(), imc); return imc!=null;}
+void KeyboardClass::imm      (Bool enable)  {if(_imm!=enable){_imm=enable; ImmAssociateContext(App.Hwnd(), enable ? _imc : null);}}
+Bool KeyboardClass::immNative(           )C {return ImmGetOpenStatus(_imc)!=0;}
+void KeyboardClass::immNative(Bool native)
 {
    ImmSetOpenStatus(_imc, native);
    if(native)
@@ -1093,54 +1093,54 @@ void Keyboard::immNative(Bool native)
    }
 }
 #else
-Bool Keyboard::immNative(           )C {return false;}
-void Keyboard::immNative(Bool native)  {}
+Bool KeyboardClass::immNative(           )C {return false;}
+void KeyboardClass::immNative(Bool native)  {}
 #endif
 /******************************************************************************/
-void Keyboard::clear()
+void KeyboardClass::clear()
 {
    k.clear();
   _last_key_scan_code=-1;
    REPAO(_button)&=~BS_NOT_ON;
 }
 /******************************************************************************/
-INLINE static void AddModifiers(Keyboard::Key &k)
+INLINE static void AddModifiers(KeyboardKey &k)
 {
-   if(Kb.anyCtrl ())k.flags|=Keyboard::Key::CTRL;
-   if(Kb.anyShift())k.flags|=Keyboard::Key::SHIFT;
-   if(Kb.anyAlt  ())k.flags|=Keyboard::Key::ALT;
-   if(Kb.anyWin  ())k.flags|=Keyboard::Key::WIN;
-   if(Kb.b(KB_LALT))k.flags|=Keyboard::Key::LALT;
+   if(Kb.anyCtrl ())k.flags|=KeyboardKey::CTRL;
+   if(Kb.anyShift())k.flags|=KeyboardKey::SHIFT;
+   if(Kb.anyAlt  ())k.flags|=KeyboardKey::ALT;
+   if(Kb.anyWin  ())k.flags|=KeyboardKey::WIN;
+   if(Kb.b(KB_LALT))k.flags|=KeyboardKey::LALT;
 }
-void Keyboard::queue(Char chr, Int scan_code)
+void KeyboardClass::queue(Char chr, Int scan_code)
 {
    if(Unsigned(chr)>=32)
    {
       if(_last_key_scan_code==scan_code && scan_code>=0 && _key_buffer_len)
       {
-         Key &last_key=_key_buffer[(_key_buffer_pos+_key_buffer_len-1)&0xFF];
-         if( !last_key.c){last_key.c=chr; return;}
+         KeyboardKey &last_key=_key_buffer[(_key_buffer_pos+_key_buffer_len-1)&0xFF];
+         if(!last_key.c){last_key.c=chr; return;}
       }
-      Key k;
+      KeyboardKey k;
       k.c=chr;
       k.k=KB_NONE;
-      k.flags=Key::FIRST;
+      k.flags=KeyboardKey::FIRST;
       AddModifiers(k);
       queue(k); _last_key_scan_code=scan_code;
    }
 }
-void Keyboard::push(KB_KEY key, Int scan_code)
+void KeyboardClass::push(KB_KEY key, Int scan_code)
 {
    if(key)
    {
-      Key k;
+      KeyboardKey k;
       if(_button[key]&BS_ON) // repeated press
       {
          k.flags=0;
         _button[key]|=BS_REPEAT;
       }else // first press
       {
-         k.flags=Key::FIRST;
+         k.flags=KeyboardKey::FIRST;
         _cur         =key;
         _button[key]|=BS_PUSHED|BS_ON;
          if(_last==key && Time.appTime()-_last_t<=DoubleClickTime+Time.ad())
@@ -1161,7 +1161,7 @@ void Keyboard::push(KB_KEY key, Int scan_code)
       queue(k); _last_key_scan_code=scan_code;
    }
 }
-void Keyboard::release(KB_KEY key)
+void KeyboardClass::release(KB_KEY key)
 {
    if(_button[key]&BS_ON)
    {
@@ -1171,14 +1171,14 @@ void Keyboard::release(KB_KEY key)
    }
 }
 /******************************************************************************/
-void Keyboard::setModifiers()
+void KeyboardClass::setModifiers()
 {
   _ctrl =FlagTest(_button[KB_LCTRL ]|_button[KB_RCTRL ], BS_ON|BS_PUSHED);
   _shift=FlagTest(_button[KB_LSHIFT]|_button[KB_RSHIFT], BS_ON|BS_PUSHED);
   _alt  =FlagTest(_button[KB_LALT  ]|_button[KB_RALT  ], BS_ON|BS_PUSHED);
   _win  =FlagTest(_button[KB_LWIN  ]|_button[KB_RWIN  ], BS_ON|BS_PUSHED);
 }
-void Keyboard::update()
+void KeyboardClass::update()
 {
 #if WINDOWS_OLD
    imm(visibleWanted());
@@ -1331,7 +1331,7 @@ void Keyboard::update()
    disable button flags (such as push), this is needed so when calling this method, it will prevent other Keyboard Shortcuts being triggered (those that are detected based on button flags)
 
 /******************************************************************************/
-void Keyboard::Key::eat()C
+void KeyboardKey::eat()C
 {
    if(c==Kb.k.c)Kb.k.c='\0';
    if(k==Kb.k.k)
@@ -1340,8 +1340,8 @@ void Keyboard::Key::eat()C
       Kb.k.k=KB_NONE;
    }
 }
-void Keyboard::eat(Char8 c) {eat(Char8To16Fast(c));}
-void Keyboard::eat(Char  c)
+void KeyboardClass::eat(Char8 c) {eat(Char8To16Fast(c));}
+void KeyboardClass::eat(Char  c)
 {
    if(T.k(c) && c)
    {
@@ -1349,23 +1349,23 @@ void Keyboard::eat(Char  c)
       k.clear();
    }
 }
-void Keyboard::eat(KB_KEY key)
+void KeyboardClass::eat(KB_KEY key)
 {
    FlagDisable(_button[key&0xFF], BS_NOT_ON); // always disable even if "T.k!=key"
    if(T.k(key) && key)k.clear();
 }
-void Keyboard::eatKey()
+void KeyboardClass::eatKey()
 {
    FlagDisable(_button[k.k], BS_NOT_ON); // do this first, while 'k' is still available
    k.clear();
 }
-void Keyboard::eat()
+void KeyboardClass::eat()
 {
    REPA(_button)FlagDisable(_button[i], BS_NOT_ON);
    k.clear();
 }
 /******************************************************************************/
-void Keyboard::nextInQueue()
+void KeyboardClass::nextInQueue()
 {
    if(!_key_buffer_len)k.clear();else
    {
@@ -1373,17 +1373,17 @@ void Keyboard::nextInQueue()
                     _key_buffer_len-- ;
    }
 }
-Keyboard::Key* Keyboard::nextKeyPtr()
+KeyboardKey* KeyboardClass::nextKeyPtr()
 {
    return _key_buffer_len ? &_key_buffer[_key_buffer_pos] : null;
 }
-void Keyboard::nextKey()
+void KeyboardClass::nextKey()
 {
    //eatKey(); instead of calling this, just disable button state, because 'k' will be modified in 'nextInQueue'
    FlagDisable(_button[k.k], BS_NOT_ON); // do this first, while 'k' is still available
    nextInQueue();
 }
-void Keyboard::queue(C Key &key) // !! Warning: this doesn't check for 'key.k' and 'key.c' being invalid !!
+void KeyboardClass::queue(C KeyboardKey &key) // !! Warning: this doesn't check for 'key.k' and 'key.c' being invalid !!
 {
    if(_key_buffer_len<255)
    {
@@ -1393,7 +1393,7 @@ void Keyboard::queue(C Key &key) // !! Warning: this doesn't check for 'key.k' a
    }
 }
 /******************************************************************************/
-void Keyboard::acquire(Bool on)
+void KeyboardClass::acquire(Bool on)
 {
 #if WINDOWS_OLD
 #if !KB_RAW_INPUT
@@ -1422,7 +1422,7 @@ void Keyboard::acquire(Bool on)
    if(!on)REP(256)release(KB_KEY(i)); // need to manually release because Windows 'WM_*KEYUP', 'KeyUp' and Linux 'KeyRelease' aren't processed when app lost focus
 #endif
 }
-void Keyboard::exclusive(Bool on)
+void KeyboardClass::exclusive(Bool on)
 {
 #if WINDOWS_OLD
    if(_exclusive!=on)
@@ -1456,7 +1456,7 @@ void Keyboard::exclusive(Bool on)
 #endif
 }
 /******************************************************************************/
-Bool Keyboard::hwAvailable()
+Bool KeyboardClass::hwAvailable()
 {
 #if WINDOWS_NEW
    return Windows::Devices::Input::KeyboardCapabilities().KeyboardPresent>0;
@@ -1470,7 +1470,7 @@ Bool Keyboard::hwAvailable()
    return false;
 #endif
 }
-Bool Keyboard::softCoverage(Rect &rect)
+Bool KeyboardClass::softCoverage(Rect &rect)
 {
    if(_visible && !hwAvailable())
    {
@@ -1479,8 +1479,8 @@ Bool Keyboard::softCoverage(Rect &rect)
    }
    return false;
 }
-KB_KEY Keyboard::qwerty(KB_KEY qwerty)C {ASSERT(1<<(8*SIZE(qwerty))==ELMS(_qwerty)); return _qwerty[qwerty];}
-Bool Keyboard::visibleWanted()C {return Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX) || _text_input;}
+KB_KEY KeyboardClass::qwerty(KB_KEY qwerty)C {ASSERT(1<<(8*SIZE(qwerty))==ELMS(_qwerty)); return _qwerty[qwerty];}
+Bool   KeyboardClass::visibleWanted()C {return Gui.kb() && (Gui.kb()->type()==GO_TEXTLINE || Gui.kb()->type()==GO_TEXTBOX) || _text_input;}
 /******************************************************************************/
 // KEYBOARD SHORTCUT
 /******************************************************************************/

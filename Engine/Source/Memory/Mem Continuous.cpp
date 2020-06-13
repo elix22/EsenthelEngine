@@ -249,6 +249,9 @@ void _MemcThreadSafe::sort(CPtr user, Int compare(CPtr a, CPtr b, CPtr user)) {S
 void _MemcThreadSafe::  reverseOrder(          ) {SyncLocker locker(_lock); _memc.  reverseOrder(      );}
 void _MemcThreadSafe::randomizeOrder(          ) {SyncLocker locker(_lock); _memc.randomizeOrder(      );}
 void _MemcThreadSafe::   rotateOrder(Int offset) {SyncLocker locker(_lock); _memc.   rotateOrder(offset);}
+
+Bool _MemcThreadSafe::saveRaw(File &f)C {SyncLocker locker(_lock); return _memc.saveRaw(f);}
+Bool _MemcThreadSafe::loadRaw(File &f)  {SyncLocker locker(_lock); return _memc.loadRaw(f);}
 /******************************************************************************/
 }
 /******************************************************************************/

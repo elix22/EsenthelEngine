@@ -1,6 +1,6 @@
 /******************************************************************************
 
-   Use 'Ms' to access Mouse input.
+   Use 'Mouse' to access Mouse input.
 
 /******************************************************************************/
 struct MouseCursorHW // Hardware Mouse Cursor
@@ -46,7 +46,7 @@ private:
    VecI2         _hot_spot;
 };
 /******************************************************************************/
-struct Mouse // Mouse Input
+struct MouseClass // Mouse Input
 {
  C Vec2&      pos()C {return _pos      ;}   void pos(C Vec2 &pos); // get/set cursor position                      (in Screen Coordinates)
  C Vec2& startPos()C {return _start_pos;}                          // get     cursor position of first button push (in Screen Coordinates), this     is equal to the most recent cursor position at the moment of first button push - "bp(0)"
@@ -92,22 +92,22 @@ struct Mouse // Mouse Input
    Bool test(C Rect &rect)C {return Cuts(pos(), rect);}
 
    // cursor movement clipping
-   Mouse& clip  (C Rect *rect=null, Int window=-1); // clip mouse cursor to given rectangle, 'window'=if additionally clip to the application window client rectangle (-1=don't change, 0=off, 1=on)
-   Mouse& freeze(                                ); // call this in each frame when you want to freeze the mouse cursor position
+   MouseClass& clip  (C Rect *rect=null, Int window=-1); // clip mouse cursor to given rectangle, 'window'=if additionally clip to the application window client rectangle (-1=don't change, 0=off, 1=on)
+   MouseClass& freeze(                                ); // call this in each frame when you want to freeze the mouse cursor position
 
    // cursor visuals
 #if EE_PRIVATE
    void resetCursor();
 #endif
-   Bool   visible(            )C {return  _visible          ;} // if     cursor is visible
-   Bool   hidden (            )C {return !_visible          ;} // if     cursor is hidden
-   Mouse& visible(Bool visible);                               // set    cursor visibility
-   Mouse& toggle (            )  {return visible(!visible());} // toggle cursor visibility
-   Mouse& show   (            )  {return visible(true      );} // show   cursor
-   Mouse& hide   (            )  {return visible(false     );} // hide   cursor
+   Bool        visible(            )C {return  _visible          ;} // if     cursor is visible
+   Bool        hidden (            )C {return !_visible          ;} // if     cursor is hidden
+   MouseClass& visible(Bool visible);                               // set    cursor visibility
+   MouseClass& toggle (            )  {return visible(!visible());} // toggle cursor visibility
+   MouseClass& show   (            )  {return visible(true      );} // show   cursor
+   MouseClass& hide   (            )  {return visible(false     );} // hide   cursor
    
-   Mouse& cursor(C ImagePtr &image, C VecI2 &hot_spot=VecI2(0, 0), Bool hardware=true, Bool reset=false); // set cursor image, 'hot_spot'=focus position in image coordinates, 'hardware'=if use hardware cursor (this allows to draw the mouse cursor with full display speed, regardless of the game speed), 'reset'=if reset cursor even if the parameters are same as before (for example if image data has changed). If you change cursors frequently, it's recommended to instead use 'MouseCursor' to avoid overhead. This method has extra overhead however doesn't require to manually create 'MouseCursor' objects.
-   Mouse& cursor(const_mem_addr C MouseCursor *cursor                                                  ); // set cursor from an already created cursor, which will avoid some overhead each time a cursor is changed, 'cursor' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
+   MouseClass& cursor(C ImagePtr &image, C VecI2 &hot_spot=VecI2(0, 0), Bool hardware=true, Bool reset=false); // set cursor image, 'hot_spot'=focus position in image coordinates, 'hardware'=if use hardware cursor (this allows to draw the mouse cursor with full display speed, regardless of the game speed), 'reset'=if reset cursor even if the parameters are same as before (for example if image data has changed). If you change cursors frequently, it's recommended to instead use 'MouseCursor' to avoid overhead. This method has extra overhead however doesn't require to manually create 'MouseCursor' objects.
+   MouseClass& cursor(const_mem_addr C MouseCursor *cursor                                                  ); // set cursor from an already created cursor, which will avoid some overhead each time a cursor is changed, 'cursor' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
 
    // operations
    void eat     (          ); // eat any button  input from this frame so it will not be processed by the remaining codes in frame
@@ -155,10 +155,11 @@ private:
    Ptr              _did;
 #endif
 
-   Mouse();
-   NO_COPY_CONSTRUCTOR(Mouse);
+   MouseClass();
+   NO_COPY_CONSTRUCTOR(MouseClass);
 }extern
    Ms;
+inline MouseClass &Mouse=Ms; // 'Mouse' alias ('Mouse' can be used the same way as 'Ms')
 /******************************************************************************/
 #define MOUSE_IMAGE_SIZE 0.05f
 

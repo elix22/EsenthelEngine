@@ -40,7 +40,7 @@ const bool   MiscOnTop=false,
              ImportRemovedElms=false, 
              RenameAnimBonesOnSkelChange=true; // See also: FIND_ANIM_BY_NAME_ONLY in the Engine
                                      // min size of mesh box (in meters) to split it
-                                      // this is because of "Leaf" shader which works differently depending on existence of these components
+                                      // this is because of "Leaf" shader which works differently depending on existence of these components, testing for color/skin is not needed because parts that don't have them will have default values set (WHITE color, 0-bone/matrix)
 
 const Edit::Material::TEX_QUALITY MinMtrlTexQualityBase0 =Edit::Material::LOW   , // minimum texture compression quality for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
                                 MinMtrlTexQualityBase1 =Edit::Material::HIGH  , // minimum texture compression quality for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)

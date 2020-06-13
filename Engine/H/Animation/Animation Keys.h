@@ -8,11 +8,10 @@
 
 /******************************************************************************/
 #if EE_PRIVATE
-
-#define HAS_ANIM_TANGENT 0
-#define HAS_ANIM_ROT     0
-#define HAS_ANIM_COLOR   0
-
+   #define HAS_ANIM_TANGENT 0
+   #define HAS_ANIM_ROT     0
+   #define HAS_ANIM_COLOR   0
+#endif
 struct AnimParams
 {
    Bool loop  ,
@@ -33,7 +32,7 @@ struct AnimParams
    AnimParams(Bool loop, Bool linear, Flt length, Flt time) {set(loop, linear, length, time);}
    AnimParams(C Animation &animation, Flt time            ) {set(animation           , time);}
 };
-#endif
+/******************************************************************************/
 typedef AnimationKeys AnimKeys;
 struct  AnimationKeys // Animation Keys - set of animation keyframes for a single bone
 {
@@ -73,6 +72,10 @@ struct  AnimationKeys // Animation Keys - set of animation keyframes for a singl
    // get
    Bool is()C {return orns.elms() || poss.elms() || scales.elms();} // if has any keys
 
+   Bool orn  (Orient &orn  , C AnimParams &params)C; // get  orientation at specified time, false on fail (if there are no keyframes)
+   Bool pos  (Vec    &pos  , C AnimParams &params)C; // get     position at specified time, false on fail (if there are no keyframes)
+   Bool scale(Vec    &scale, C AnimParams &params)C; // get scale factor at specified time, false on fail (if there are no keyframes)
+
    // transform
    AnimKeys& mirrorX(); // mirror keyframes in x axis
 
@@ -91,11 +94,8 @@ struct  AnimationKeys // Animation Keys - set of animation keyframes for a singl
    // get
    Bool timeRange(Flt &min, Flt &max)C; // get min/max time value out of all keyframes, false on fail (if there are no keyframes)
 
-   Bool orn  (Orient   &orn  , C AnimParams &params)C; // get  orientation at specified time, false on fail (if there are no keyframes)
-   Bool rot  (AxisRoll &rot  , C AnimParams &params)C; // get     rotation at specified time, false on fail (if there are no keyframes)
-   Bool pos  (Vec      &pos  , C AnimParams &params)C; // get     position at specified time, false on fail (if there are no keyframes)
-   Bool scale(Vec      &scale, C AnimParams &params)C; // get scale factor at specified time, false on fail (if there are no keyframes)
-   Bool color(Vec4     &color, C AnimParams &params)C; // get        color at specified time, false on fail (if there are no keyframes)
+   Bool rot  (AxisRoll &rot  , C AnimParams &params)C; // get rotation at specified time, false on fail (if there are no keyframes)
+   Bool color(Vec4     &color, C AnimParams &params)C; // get    color at specified time, false on fail (if there are no keyframes)
 
    // transform
    AnimKeys& transform(C Matrix3 &matrix); // transform keyframes by 'matrix', 'matrix' must be normalized

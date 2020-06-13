@@ -382,8 +382,8 @@ ImporterClass Importer;
                         if(flt speed=p->asFlt())
                            anim.anim.length(anim.anim.length()/speed, true);
                   }
-                  T.file=FileParams::Encode(files); // 'files' could have changed, so adjust the name so the 'elm.srcFile' is set properly
                   anim.anim.clip(0, anim.anim.length()); // remove any keyframes outside of anim range
+                  T.file=FileParams::Encode(files); // 'files' could have changed, so adjust the name so the 'elm.srcFile' is set properly
                   return true;
                }
             }break;
@@ -546,7 +546,7 @@ ImporterClass Importer;
          n.New().create("Import and add to object"       , ImportAdd    , T).desc("This will import mesh and add it to current object.");
          Gui+=import_menu.create(n);
       }
-      threads.create(true, Max(1, Cpu.threads()-1)); // leave 1 thread for the main thread
+      threads.create(true, Max(1, Cpu.threads()-1), 0, "Editor.Import"); // leave 1 thread for the main thread
    }
    void ImporterClass::stop()
    {
@@ -892,9 +892,13 @@ ImporterClass Importer;
                         if(file_params.elms())if(C TextParam *optimize=file_params[0].findParam("optimize")){flt o=optimize->asFlt(); angle_eps*=o; pos_eps*=o; scale_eps*=o;}
                         anim.optimize(angle_eps, pos_eps, scale_eps);
                      }
-                     // mirror
+                     if(file_params.elms())
                      {
-                        if(file_params.elms())if(C TextParam *mirror=file_params[0].findParam("mirror"))if(mirror->asBool1())anim.mirror(*skel);
+                        // mirror
+                        if(C TextParam *mirror=file_params[0].findParam("mirror"))if(mirror->asBool1())anim.mirror(*skel);
+
+                        // delete keys at the end !! after clipping and root !!
+                        if(C TextParam *p=file_params[0].findParam("delEndKeys"))DelEndKeys(anim);
                      }
                   }
 

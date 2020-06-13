@@ -34,7 +34,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    Str state; switch(AdMob.bannerState())
    {

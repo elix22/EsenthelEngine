@@ -85,7 +85,7 @@ static void disp(Memc<MC_EDGE> &medge)
       Csg2D.sec.rect.draw(0xFF660066);
       Flt fx=Csg2D.sec.rect.min.x; REP(Csg2D.sec.cells.x+1){D.line(0xFF880088, fx, Csg2D.sec.rect.min.y, fx, Csg2D.sec.rect.max.y    ); fx+=Csg2D.sec.size.x;}
       Flt fy=Csg2D.sec.rect.min.y; REP(Csg2D.sec.cells.y+1){D.line(0xFF880088,     Csg2D.sec.rect.min.x, fy, Csg2D.sec.rect.max.x, fy); fy+=Csg2D.sec.size.y;}
-      REPA(medge)draw_edge(TURQ, medge[i]);
+      REPA(medge)draw_edge(AZURE, medge[i]);
       D.text(0, 0, StrF("xs:%d ys:%d", Csg2D.sec.cells.x, Csg2D.sec.cells.y));
       if(s>0)
       {

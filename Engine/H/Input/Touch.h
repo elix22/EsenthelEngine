@@ -118,6 +118,7 @@ struct MouseTouch // Mouse and Touch input combined into one class
    static Int elms() {return Touches.elms()+Ms.detected();} // all touches + mouse
 }extern
    MT;
+inline MouseTouch &MouseTouches=MT; // 'MouseTouches' alias ('MouseTouches' can be used the same way as 'MT')
 
 inline Int Elms(C MouseTouch &mt) {return mt.elms();}
 /******************************************************************************/

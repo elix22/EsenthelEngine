@@ -17,7 +17,7 @@ namespace EE{
 /******************************************************************************/
 // SETTINGS
 /******************************************************************************/
-void Display::ViewportSettings::get()
+void DisplayClass::ViewportSettings::get()
 {
    from    =D.viewFrom   ();
    range   =D.viewRange  ();
@@ -25,14 +25,14 @@ void Display::ViewportSettings::get()
    fov_mode=D.viewFovMode();
    rect    =D.viewRect   ();
 }
-void Display::ViewportSettings::set()C
+void DisplayClass::ViewportSettings::set()C
 {
    D.view(rect, from, range, fov, fov_mode);
 }
 /******************************************************************************/
 // VIEWPORT
 /******************************************************************************/
-Display::Viewport& Display::Viewport::set3DFrom(C Viewport &src)
+DisplayClass::Viewport& DisplayClass::Viewport::set3DFrom(C Viewport &src)
 {
    from    =src.from;
    range   =src.range;
@@ -44,7 +44,7 @@ Display::Viewport& Display::Viewport::set3DFrom(C Viewport &src)
    return T;
 }
 /******************************************************************************/
-Display::Viewport& Display::Viewport::setRect(C RectI &recti)
+DisplayClass::Viewport& DisplayClass::Viewport::setRect(C RectI &recti)
 {
    T.recti=recti;
 
@@ -56,10 +56,10 @@ Display::Viewport& Display::Viewport::setRect(C RectI &recti)
    return T;
 }
 /******************************************************************************/
-Display::Viewport& Display::Viewport::setFrom (Flt from ) {T.from =from ; return T;}
-Display::Viewport& Display::Viewport::setRange(Flt range) {T.range=range; return T;}
+DisplayClass::Viewport& DisplayClass::Viewport::setFrom (Flt from ) {T.from =from ; return T;}
+DisplayClass::Viewport& DisplayClass::Viewport::setRange(Flt range) {T.range=range; return T;}
 /******************************************************************************/
-Display::Viewport& Display::Viewport::setFov()
+DisplayClass::Viewport& DisplayClass::Viewport::setFov()
 {
    Flt aspect=(D._view_square_pixel ? 1 : D._pixel_aspect)*recti.aspect();
    if(FovPerspective(fov_mode))
@@ -107,13 +107,13 @@ Display::Viewport& Display::Viewport::setFov()
    }
    return T;
 }
-Display::Viewport& Display::Viewport::setFov(C Vec2 &fov, FOV_MODE fov_mode)
+DisplayClass::Viewport& DisplayClass::Viewport::setFov(C Vec2 &fov, FOV_MODE fov_mode)
 {
    T.fov     =fov;
    T.fov_mode=fov_mode;
    return setFov();
 }
-Display::Viewport& Display::Viewport::set(C RectI &recti, Flt from, Flt range, C Vec2 &fov, FOV_MODE fov_mode)
+DisplayClass::Viewport& DisplayClass::Viewport::set(C RectI &recti, Flt from, Flt range, C Vec2 &fov, FOV_MODE fov_mode)
 {
    return setRect(recti).setFrom(from).setRange(range).setFov(fov, fov_mode);
 }
@@ -143,7 +143,7 @@ inline Vec2 ProjectedPosToUV(Vec4 pos)
    return (pos.xy/pos.w) * Viewport.ProjectedPosToUV.xy   + Viewport.ProjectedPosToUV.zw                  ;
 }
 /******************************************************************************/
-Display::Viewport& Display::Viewport::setViewport()
+DisplayClass::Viewport& DisplayClass::Viewport::setViewport()
 {
 #if DX11
    D.viewport(recti);
@@ -164,7 +164,7 @@ struct GpuViewport
    Vec2 FracToPosXY[2], UVToPosXY[2], ProjectedPosToUV[2]; // helpers
 };
 #pragma pack(pop)
-Display::Viewport& Display::Viewport::setShader(Flt *offset)
+DisplayClass::Viewport& DisplayClass::Viewport::setShader(Flt *offset)
 {
    // helpers
    Vec2 size =Renderer.res(),
@@ -252,7 +252,7 @@ Flt DepthError(Dbl from, Dbl range, Dbl z, Bool perspective, Int bits)
       z1=  LinearizeDepth(w1, mp_z_z, mp_w_z, perspective);
    return Abs(z1-z);
 }
-Display::Viewport& Display::Viewport::setProjMatrix() // !! must be the same as "Flt DepthError" !!
+DisplayClass::Viewport& DisplayClass::Viewport::setProjMatrix() // !! must be the same as "Flt DepthError" !!
 {
    Dbl z, from, range=T.range; // use 'Dbl' to perform computations in best precision because we need 'ProjMatrix' to be as precise as possible
    if(FovPerspective(fov_mode)) // in perspective we have viewport depth ranges from "from .. range"

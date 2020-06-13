@@ -78,8 +78,8 @@ void Viewport::draw(C GuiPC &gpc)
       Rect r=rect()+gpc.offset;
       if(draw_func && (r&Rect(gpc.clip).extend(-D.pixelToScreenSize().x, -D.pixelToScreenSize().y)).valid())
       {
-         Display::ViewportSettings temp_view; temp_view.get();
-         Camera                    temp_cam=ActiveCam;
+         DisplayClass::ViewportSettings temp_view; temp_view.get();
+         Camera                         temp_cam=ActiveCam;
          D.view(r, from, range, fov, fov_mode).clip(gpc.clip); draw_func(T);
          temp_view.set(); temp_cam.set();
       }

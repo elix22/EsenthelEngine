@@ -49,7 +49,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D  .clear(TURQ);
+   D  .clear(AZURE);
    Gui.draw ();
 
    // draw a black cross on the screen center

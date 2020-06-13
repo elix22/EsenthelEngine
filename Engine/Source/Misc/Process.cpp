@@ -471,7 +471,7 @@ start:
 #if !WINDOWS
 static void ProcessZombies()
 {
-      ZombiePIDs.  lock(); REPA(ZombiePIDs){int status; pid_t pid=waitpid(ZombiePIDs.lockedElm(i), &status, WNOHANG); Bool active=(pid==0); if(!active)ZombiePIDs.remove(i);}
+      ZombiePIDs.  lock(); REPA(ZombiePIDs){int status; pid_t pid=waitpid(ZombiePIDs.lockedElm(i), &status, WNOHANG); Bool active=(pid==0); if(!active)ZombiePIDs.lockedRemove(i);}
       ZombiePIDs.unlock();
    if(ZombiePIDs.elms())App._callbacks.include(ProcessZombies); // queue again if we still have some zombies
 }

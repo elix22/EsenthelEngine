@@ -36,7 +36,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D  .clear(TURQ);
+   D  .clear(AZURE);
    Gui.draw ();
 
    D.text(0, 0.6, S+"value = "     +value     ); // draw 'value' on screen

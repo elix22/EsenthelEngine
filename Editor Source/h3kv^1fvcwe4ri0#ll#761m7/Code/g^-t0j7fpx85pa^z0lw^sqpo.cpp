@@ -655,11 +655,17 @@ class Project
       APPLY_BLEND_PREMUL,
       APPLY_MUL,
       APPLY_MUL_RGB,
+      APPLY_MUL_RGB_SAT,
+      APPLY_MUL_RGB_LIN,
       APPLY_MUL_A,
+      APPLY_MUL_SAT,
+      APPLY_MUL_SAT_PHOTO,
       APPLY_DIV,
       APPLY_ADD,
       APPLY_ADD_RGB,
       APPLY_SUB,
+      APPLY_BRIGHTNESS,
+      APPLY_BRIGHTNESS_LUM,
       APPLY_AVG,
       APPLY_MIN,
       APPLY_MAX,
@@ -698,11 +704,17 @@ class Project
             if(p.value=="blendPremultiplied" || p.value=="premultipliedBlend")mode=APPLY_BLEND_PREMUL;else
             if(p.value=="mul"                                                )mode=APPLY_MUL;else
             if(p.value=="mulRGB"                                             )mode=APPLY_MUL_RGB;else
+            if(p.value=="mulRGBS"                                            )mode=APPLY_MUL_RGB_SAT;else
+            if(p.value=="mulRGBLin"                                          )mode=APPLY_MUL_RGB_LIN;else
             if(p.value=="mulA"                                               )mode=APPLY_MUL_A;else
+            if(p.value=="mulSat"                                             )mode=APPLY_MUL_SAT;else
+            if(p.value=="mulSatPhoto"                                        )mode=APPLY_MUL_SAT_PHOTO;else
             if(p.value=="div"                                                )mode=APPLY_DIV;else
             if(p.value=="add"                                                )mode=APPLY_ADD;else
             if(p.value=="addRGB"                                             )mode=APPLY_ADD_RGB;else
             if(p.value=="sub"                                                )mode=APPLY_SUB;else
+            if(p.value=="brightness"                                         )mode=APPLY_BRIGHTNESS;else
+            if(p.value=="brightnessLum"                                      )mode=APPLY_BRIGHTNESS_LUM;else
             if(p.value=="avg" || p.value=="average"                          )mode=APPLY_AVG;else
             if(p.value=="min"                                                )mode=APPLY_MIN;else
             if(p.value=="max"                                                )mode=APPLY_MAX;else
@@ -754,20 +766,31 @@ class Project
                      Vec4 base=image.colorF(x+pos.x, y+pos.y), c;
                      switch(mode)
                      {
-                        default                : c =l; break; // APPLY_SET
-                        case APPLY_BLEND       : c =             Blend(base, l); break;
-                        case APPLY_BLEND_PREMUL: c =PremultipliedBlend(base, l); break;
-                        case APPLY_MUL         : c=base*l; break;
-                        case APPLY_MUL_RGB     : c.set(base.xyz*l.xyz, base.w); break;
-                        case APPLY_MUL_A       : c.set(base.xyz, base.w*l.w); break;
-                        case APPLY_DIV         : c=base/l; break;
-                        case APPLY_ADD         : c=base+l; break;
-                        case APPLY_ADD_RGB     : c.set(base.xyz+l.xyz, base.w); break;
-                        case APPLY_SUB         : c=base-l; break;
-                        case APPLY_AVG         : c=Avg(base, l); break;
-                        case APPLY_MIN         : c=Min(base, l); break;
-                        case APPLY_MAX         : c=Max(base, l); break;
-                        case APPLY_METAL       : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
+                        default                  : c =l; break; // APPLY_SET
+                        case APPLY_BLEND         : c =             Blend(base, l); break;
+                        case APPLY_BLEND_PREMUL  : c =PremultipliedBlend(base, l); break;
+                        case APPLY_MUL           : c=base*l; break;
+                        case APPLY_MUL_RGB       : c.set(base.xyz*l.xyz, base.w); break;
+                        case APPLY_MUL_RGB_LIN   : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear
+                        case APPLY_MUL_A         : c.set(base.xyz, base.w*l.w); break;
+                        case APPLY_MUL_SAT       : c.xyz=RgbToHsb(base.xyz); c.y*=l.xyz.max(); c.set(HsbToRgb(c.xyz), base.w); break;
+                        case APPLY_DIV           : c=base/l; break;
+                        case APPLY_ADD           : c=base+l; break;
+                        case APPLY_ADD_RGB       : c.set(base.xyz+l.xyz, base.w); break;
+                        case APPLY_SUB           : c=base-l; break;
+                        case APPLY_AVG           : c=Avg(base, l); break;
+                        case APPLY_MIN           : c=Min(base, l); break;
+                        case APPLY_MAX           : c=Max(base, l); break;
+                        case APPLY_METAL         : {flt metal=l.xyz.max(); c.set(Lerp(base.xyz, l.xyz, metal), base.w);} break; // this applies metal map onto diffuse map (by lerping from diffuse to metal based on metal intensity)
+
+                        case APPLY_MUL_RGB_SAT:
+                        {
+                           flt sat=RgbToHsb(base.xyz).y;
+                           c.x=Lerp(base.x, base.x*l.x, sat); // red
+                           c.y=Lerp(base.y, base.y*l.y, sat); // green
+                           c.z=Lerp(base.z, base.z*l.z, sat); // blue
+                           c.w=base.w;
+                        }break;
 
                         case APPLY_MASK_ADD:
                         {
@@ -785,6 +808,47 @@ class Project
                            c.xyz*=Lerp(VecOne, mask[1], l.y);
                            c.xyz*=Lerp(VecOne, mask[2], l.z);
                            c.xyz*=Lerp(VecOne, mask[3], l.w);
+                        }break;
+
+                        case APPLY_MUL_SAT_PHOTO: 
+                        {
+                           flt lin_lum=LinearLumOfSRGBColor(base.xyz);
+
+                           c.xyz=RgbToHsb(base.xyz);
+                           c.w=base.w;
+                           c.y*=l.xyz.max();
+                           c.xyz=HsbToRgb(c.xyz);
+
+                           c.xyz=SRGBToLinear(c.xyz);
+                           if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum;
+                           c.xyz=LinearToSRGB(c.xyz);
+                        }break;
+
+                        case APPLY_BRIGHTNESS:
+                        {
+                           c=base;
+                           Vec &bright=l.xyz; if(bright.any())
+                           {
+                              c.xyz=Sqr(c.xyz);
+                              if(bright.x<0){bright.x=SigmoidSqrt(bright.x); c.x=SigmoidSqrtInv(c.x*bright.x)/SigmoidSqrtInv(bright.x);}else c.x=SigmoidSqrt(c.x*bright.x)/SigmoidSqrt(bright.x);
+                              if(bright.y<0){bright.y=SigmoidSqrt(bright.y); c.y=SigmoidSqrtInv(c.y*bright.y)/SigmoidSqrtInv(bright.y);}else c.y=SigmoidSqrt(c.y*bright.y)/SigmoidSqrt(bright.y);
+                              if(bright.z<0){bright.z=SigmoidSqrt(bright.z); c.z=SigmoidSqrtInv(c.z*bright.z)/SigmoidSqrtInv(bright.z);}else c.z=SigmoidSqrt(c.z*bright.z)/SigmoidSqrt(bright.z);
+                              c.xyz=Sqrt(c.xyz);
+                           }
+                        }break;
+
+                        case APPLY_BRIGHTNESS_LUM:
+                        {
+                           c=base;
+                           if(flt bright=l.xyz.max())if(flt old_lum=c.xyz.max())
+                           {
+                              flt mul; flt (*f)(flt);
+                              if(bright<0){bright=SigmoidSqrt(bright); mul=1/SigmoidSqrtInv(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
+                              flt new_lum=Sqr(old_lum);
+                              new_lum=f(new_lum*bright)*mul;
+                              new_lum=Sqrt(new_lum);
+                              c.xyz*=new_lum/old_lum;
+                           }
                         }break;
                      }
                      image.colorF(x+pos.x, y+pos.y, alpha_1 ? c : Lerp(base, c, alpha));

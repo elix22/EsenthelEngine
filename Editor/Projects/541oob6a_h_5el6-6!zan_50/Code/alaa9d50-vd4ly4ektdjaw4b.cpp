@@ -28,7 +28,7 @@ void Draw() // main drawing
 {
    // here you have to tell engine what to draw on the screen
 
-   D.clear(TURQ); // clear screen to turquoise color
+   D.clear(AZURE); // clear screen to azure color
    D.text (0, 0, "Hello to Esenthel Engine !"); // display text at (0, 0) screen coordinates
 }
 /******************************************************************************/

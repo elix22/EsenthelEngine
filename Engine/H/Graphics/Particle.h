@@ -76,7 +76,7 @@ struct Particles // Set of Particles
 
    ImagePtr palette_image; // if specified, then particle colors will be multiplied by this image, x coordinate of the image is based on particle life, y coordinate of the image is taken from 'Particle.palette_y', the mode of this image must be equal to IMAGE_SOFT (to avoid unnecessary locking)
 
-   Flt hard_depth_offset; // 0..1, default=0, this value is used when particles are not drawn with softing (D.particlesSoft is false or not supported), in that case each particle will be offsetted towards the camera by its radius multiplied by this factor, decreasing the chance of particles being occluded
+   Flt hard_depth_offset; // 0..1, default=0, this value is used when particles are not drawn with softing ('D.particlesSoft' is false or not supported), in that case each particle will be offsetted towards the camera by its radius multiplied by this factor, decreasing the chance of particles being occluded
 
    Flt (*opacity_func)(Flt life_frac); // pointer to a custom function (may be null) used to calculate opacity of a single particle, based on its life, if this is null then a default function is used based on 'smooth_fade', this member is not saved in 'save/load' methods, default=null
 

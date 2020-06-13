@@ -43,11 +43,11 @@ PanelImageEditor PanelImageEdit;
 
          case 1:
          {
-            have_image=true; image_rect=rect; image_rect.min.y=rect.centerY(); image_rect=panel_image.image.fit(image_rect); panel_image.image.draw(image_rect); image_rect.draw(TURQ, false); if(draw_depth())drawDepth(image_rect); if(draw_lines())panel_image.drawBaseLines(PURPLE, image_rect);
+            have_image=true; image_rect=rect; image_rect.min.y=rect.centerY(); image_rect=panel_image.image.fit(image_rect); panel_image.image.draw(image_rect); image_rect.draw(AZURE, false); if(draw_depth())drawDepth(image_rect); if(draw_lines())panel_image.drawBaseLines(PURPLE, image_rect);
             Vec2 center=rect.lerp(0.5f, 0.25f);
             flt  h=rect.h()*0.25f, w=h*params.width/params.height, max_w=rect.w()*0.9f; if(w>max_w){h*=max_w/w; w=max_w;}
             Rect_C rc(center, w, h);
-            panel_image.draw(rc); if(draw_lines()){panel_image.drawScaledLines(RED, rc); panel_image.drawInnerPadding(GREEN, rc); rc.draw(TURQ, false);}
+            panel_image.draw(rc); if(draw_lines()){panel_image.drawScaledLines(RED, rc); panel_image.drawInnerPadding(GREEN, rc); rc.draw(AZURE, false);}
          }break;
 
          case 2: DrawPanelImage(panel_image, rect, draw_lines()); break;

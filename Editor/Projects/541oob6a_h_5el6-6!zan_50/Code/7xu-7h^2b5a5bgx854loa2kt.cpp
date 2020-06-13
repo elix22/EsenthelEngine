@@ -149,7 +149,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text(Rect(Vec2(0, -0.5)), S+cs.file+"\nLength: "+Round(cs.stream.length())+"s, BitRate: "+cs.stream.bitRate()+", Frequency: "+cs.stream.frequency()+", Channels: "+cs.stream.channels()+", Codec: "+cs.stream.codecName());
    Gui.draw();
 }

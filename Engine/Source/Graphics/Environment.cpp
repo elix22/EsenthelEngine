@@ -50,7 +50,7 @@ void Environment::Bloom::get()
 }
 void Environment::Bloom::reset()
 {
-   on=true; half=true; maximum=false; blurs=1; original=1.0f; scale=0.5f; cut=0.3f;
+   on=true; half=true; maximum=false; blurs=1; original=1.0f; scale=0.4f; cut=0.3f;
 }
 
 Bool Environment::Bloom::save(File &f, CChar *path)C
@@ -205,8 +205,8 @@ void Environment::Sky::reset()
    skybox=null;
    atmospheric_density_exponent=1;
    atmospheric_horizon_exponent=3.5f;
-   atmospheric_horizon_color_s.set(0.32f, 0.46f, 0.58f, 1.0f);
-   atmospheric_sky_color_s    .set(0.16f, 0.36f, 0.54f, 1.0f);
+   atmospheric_horizon_color_s=LinearToSRGB(Vec4(SRGBToLinear(Vec(0.32f, 0.46f, 0.58f))*1.05f, 1.0f));
+   atmospheric_sky_color_s    =LinearToSRGB(Vec4(SRGBToLinear(Vec(0.16f, 0.36f, 0.54f))*1.05f, 1.0f));
    atmospheric_stars            =null;
    atmospheric_stars_orientation.identity();
 }

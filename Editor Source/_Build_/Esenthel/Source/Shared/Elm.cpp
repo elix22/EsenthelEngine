@@ -970,14 +970,15 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    uint ElmAnim::rootFlags(           )C
    {
       uint f=0;
-      if(flag&ROOT_DEL_POS_X)f|=::ROOT_DEL_POSITION_X;
-      if(flag&ROOT_DEL_POS_Y)f|=::ROOT_DEL_POSITION_Y;
-      if(flag&ROOT_DEL_POS_Z)f|=::ROOT_DEL_POSITION_Z;
-      if(flag&ROOT_DEL_ROT_X)f|=::ROOT_DEL_ROTATION_X;
-      if(flag&ROOT_DEL_ROT_Y)f|=::ROOT_DEL_ROTATION_Y;
-      if(flag&ROOT_DEL_ROT_Z)f|=::ROOT_DEL_ROTATION_Z;
-      if(flag&ROOT_SMOOTH   )f|=::ROOT_SMOOTH;
-      if(flag&ROOT_FROM_BODY)f|=::ROOT_BONE_POSITION|::ROOT_START_IDENTITY;
+      if(flag&ROOT_DEL_POS_X )f|=::ROOT_DEL_POSITION_X;
+      if(flag&ROOT_DEL_POS_Y )f|=::ROOT_DEL_POSITION_Y;
+      if(flag&ROOT_DEL_POS_Z )f|=::ROOT_DEL_POSITION_Z;
+      if(flag&ROOT_DEL_ROT_X )f|=::ROOT_DEL_ROTATION_X;
+      if(flag&ROOT_DEL_ROT_Y )f|=::ROOT_DEL_ROTATION_Y;
+      if(flag&ROOT_DEL_ROT_Z )f|=::ROOT_DEL_ROTATION_Z;
+      if(flag&ROOT_FROM_BODY )f|=::ROOT_BONE_POSITION|::ROOT_START_IDENTITY;
+      if(flag&ROOT_SMOOTH_ROT)f|=::ROOT_SMOOTH_ROT;
+      if(flag&ROOT_SMOOTH_POS)f|=::ROOT_SMOOTH_POS;
       return f;
    }
    void ElmAnim::setRoot(Animation &anim) {SetRootMoveRot(anim, rootMove() ? &(root_move*transform.scale) : null, rootRot() ? &root_rot : null);}
@@ -1023,6 +1024,21 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(equal(src))ver=src.ver;else if(changed)newVer();
       return true;
    }
+   uint ElmAnim::OldFlag1(ushort old)
+   {
+      uint f=0;
+      if(old&(1<<0))f|=LOOP;
+      if(old&(1<<1))f|=LINEAR;
+      if(old&(1<<2))f|=ROOT_DEL_POS_X;
+      if(old&(1<<3))f|=ROOT_DEL_POS_Y;
+      if(old&(1<<4))f|=ROOT_DEL_POS_Z;
+      if(old&(1<<5))f|=ROOT_DEL_ROT_X;
+      if(old&(1<<6))f|=ROOT_DEL_ROT_Y;
+      if(old&(1<<7))f|=ROOT_DEL_ROT_Z;
+      if(old&(1<<8))f|=ROOT_SMOOTH_ROT_POS;
+      if(old&(1<<9))f|=ROOT_FROM_BODY;
+      return f;
+   }
    uint ElmAnim::OldFlag(byte old)
    {
       uint f=0;
@@ -1032,14 +1048,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(old&(1<<3))f|=ROOT_DEL_POS_Y;
       if(old&(1<<4))f|=ROOT_DEL_POS_Z;
       if(old&(1<<5))f|=ROOT_DEL_ROT;
-      if(old&(1<<6))f|=ROOT_SMOOTH;
+      if(old&(1<<6))f|=ROOT_SMOOTH_ROT_POS;
       if(old&(1<<7))f|=ROOT_FROM_BODY;
       return f;
    }
    bool ElmAnim::save(File &f)C 
 {
       super::save(f);
-      f.cmpUIntV(4);
+      f.cmpUIntV(5);
       f<<skel_id<<transform<<root_move<<root_rot<<fps<<flag<<loop_time<<linear_time<<skel_time<<file_time;
       return f.ok();
    }
@@ -1047,15 +1063,21 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
 {
       if(super::load(f))switch(f.decUIntV())
       {
-         case 4:
+         case 5:
          {
             f>>skel_id>>transform>>root_move>>root_rot>>fps>>flag>>loop_time>>linear_time>>skel_time>>file_time;
             if(f.ok())return true;
          }break;
 
+         case 4:
+         {
+            f>>skel_id>>transform>>root_move>>root_rot>>fps; flag=OldFlag1(f.getUShort()); f>>loop_time>>linear_time>>skel_time>>file_time;
+            if(f.ok())return true;
+         }break;
+
          case 3:
          {
-            f>>skel_id>>transform>>root_move>>root_rot>>flag>>loop_time>>linear_time>>skel_time>>file_time; fps=0;
+            f>>skel_id>>transform>>root_move>>root_rot; flag=OldFlag1(f.getUShort()); f>>loop_time>>linear_time>>skel_time>>file_time; fps=0;
             if(f.ok())return true;
          }break;
 
@@ -1082,20 +1104,21 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    void ElmAnim::save(MemPtr<TextNode> nodes)C 
 {
       super::save(nodes);
-      if(skel_id.valid())nodes.New().setFN ("Skeleton"    , skel_id);
-                         nodes.New().setRaw("Pose"        , transform);
-                         nodes.New().set   ("Loop"        , loop());
-                         nodes.New().set   ("Linear"      , linear());
-    if(rootMove()       )nodes.New().setRaw("RootMove"    , root_move);
-    if(rootRot ()       )nodes.New().setRaw("RootRot"     , root_rot );
-    if(flag&ROOT_DEL_POS)nodes.New().set   ("RootDelPos"  , FlagAll(flag, ROOT_DEL_POS) ? S : S+(FlagTest(flag, ROOT_DEL_POS_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Z) ? 'Z' : '\0'));
-    if(flag&ROOT_DEL_ROT)nodes.New().set   ("RootDelRot"  , FlagAll(flag, ROOT_DEL_ROT) ? S : S+(FlagTest(flag, ROOT_DEL_ROT_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Z) ? 'Z' : '\0'));
-    if(flag&ROOT_SMOOTH )nodes.New().set   ("RootSmooth"  );
-    if(fps>0            )nodes.New().set   ("FPS"         , fps);
-                         nodes.New().set   ("LoopTime"    ,   loop_time.text());
-                         nodes.New().set   ("LinearTime"  , linear_time.text());
-                         nodes.New().set   ("SkeletonTime",   skel_time.text());
-                         nodes.New().set   ("FileTime"    ,   file_time.text());
+      if(skel_id.valid()     )nodes.New().setFN ("Skeleton"     , skel_id);
+                              nodes.New().setRaw("Pose"         , transform);
+                              nodes.New().set   ("Loop"         , loop());
+                              nodes.New().set   ("Linear"       , linear());
+      if(rootMove()          )nodes.New().setRaw("RootMove"     , root_move);
+      if(rootRot ()          )nodes.New().setRaw("RootRot"      , root_rot );
+      if(flag&ROOT_DEL_POS   )nodes.New().set   ("RootDelPos"   , FlagAll(flag, ROOT_DEL_POS) ? S : S+(FlagTest(flag, ROOT_DEL_POS_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Z) ? 'Z' : '\0'));
+      if(flag&ROOT_DEL_ROT   )nodes.New().set   ("RootDelRot"   , FlagAll(flag, ROOT_DEL_ROT) ? S : S+(FlagTest(flag, ROOT_DEL_ROT_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Z) ? 'Z' : '\0'));
+      if(flag&ROOT_SMOOTH_ROT)nodes.New().set   ("RootSmoothRot");
+      if(flag&ROOT_SMOOTH_POS)nodes.New().set   ("RootSmoothPos");
+      if(fps>0               )nodes.New().set   ("FPS"          , fps);
+                              nodes.New().set   ("LoopTime"     ,   loop_time.text());
+                              nodes.New().set   ("LinearTime"   , linear_time.text());
+                              nodes.New().set   ("SkeletonTime" ,   skel_time.text());
+                              nodes.New().set   ("FileTime"     ,   file_time.text());
    }
    void ElmAnim::load(C MemPtr<TextNode> &nodes)
 {
@@ -1103,19 +1126,20 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
-         if(n.name=="Skeleton"    )n.getValue   (skel_id);else
-         if(n.name=="Pose"        )n.getValueRaw(transform);else
-         if(n.name=="RootMove"    )n.getValueRaw(root_move);else
-         if(n.name=="RootRot"     )n.getValueRaw(root_rot);else
-         if(n.name=="Loop"        )loop  (n.asBool1());else
-         if(n.name=="Linear"      )linear(n.asBool1());else
-         if(n.name=="RootSmooth"  )FlagSet(flag, ROOT_SMOOTH, n.asBool1());else
-         if(n.name=="FPS"         )        fps=n.asFlt ();else
-         if(n.name=="LoopTime"    )  loop_time=n.asText();else
-         if(n.name=="LinearTime"  )linear_time=n.asText();else
-         if(n.name=="SkeletonTime")  skel_time=n.asText();else
-         if(n.name=="FileTime"    )  file_time=n.asText();else
-         if(n.name=="RootDelPos"  )
+         if(n.name=="Skeleton"     )n.getValue   (skel_id);else
+         if(n.name=="Pose"         )n.getValueRaw(transform);else
+         if(n.name=="RootMove"     )n.getValueRaw(root_move);else
+         if(n.name=="RootRot"      )n.getValueRaw(root_rot);else
+         if(n.name=="Loop"         )loop  (n.asBool1());else
+         if(n.name=="Linear"       )linear(n.asBool1());else
+         if(n.name=="RootSmoothRot")FlagSet(flag, ROOT_SMOOTH_ROT, n.asBool1());else
+         if(n.name=="RootSmoothPos")FlagSet(flag, ROOT_SMOOTH_POS, n.asBool1());else
+         if(n.name=="FPS"          )        fps=n.asFlt ();else
+         if(n.name=="LoopTime"     )  loop_time=n.asText();else
+         if(n.name=="LinearTime"   )linear_time=n.asText();else
+         if(n.name=="SkeletonTime" )  skel_time=n.asText();else
+         if(n.name=="FileTime"     )  file_time=n.asText();else
+         if(n.name=="RootDelPos"   )
          {
             if(        !n.value.is()         )FlagEnable(flag, ROOT_DEL_POS);else
             if(CharFlag(n.value[0])&CHARF_DIG)FlagSet   (flag, ROOT_DEL_POS, n.asBool());else

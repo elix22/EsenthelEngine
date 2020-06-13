@@ -142,9 +142,9 @@ public:
 
    static const flt BumpScale;
    static Str  Bump    (C MaterialRegion &mr          );
-   static void Bump    (  MaterialRegion &mr, C Str &t);
+   static void Bump    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  NrmScale(C MaterialRegion &mr          );
-   static void NrmScale(  MaterialRegion &mr, C Str &t);
+   static void NrmScale(  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  FNY     (C MaterialRegion &mr          );
    static void FNY     (  MaterialRegion &mr, C Str &t);
 
@@ -165,11 +165,11 @@ public:
  //static Str  SSS     (C MaterialRegion &mr          ) {return mr.edit.sss;}
  //static void SSS     (  MaterialRegion &mr, C Str &t) {mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
    static Str  AmbR    (C MaterialRegion &mr          );
-   static void AmbR    (  MaterialRegion &mr, C Str &t);
+   static void AmbR    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  AmbG    (C MaterialRegion &mr          );
-   static void AmbG    (  MaterialRegion &mr, C Str &t);
+   static void AmbG    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  AmbB    (C MaterialRegion &mr          );
-   static void AmbB    (  MaterialRegion &mr, C Str &t);
+   static void AmbB    (  MaterialRegion &mr, C Str &t); // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  TexScale(C MaterialRegion &mr          );
    static void TexScale(  MaterialRegion &mr, C Str &t);
 

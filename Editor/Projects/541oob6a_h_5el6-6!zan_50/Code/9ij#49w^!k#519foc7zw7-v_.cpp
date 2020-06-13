@@ -56,7 +56,7 @@ Bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D  .clear(TURQ);
+   D  .clear(AZURE);
    Gui.draw ();
    D  .text (0, -0.7, S+"'Option' is "+menu("edit/option")); // draw state of "option" located in "edit" using operator() method
 }

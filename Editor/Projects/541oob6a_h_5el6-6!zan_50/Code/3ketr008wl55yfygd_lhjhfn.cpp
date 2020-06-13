@@ -57,7 +57,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text (0, 0.6, S+"n0 = "+n0.asDbl());
    D.text (0, 0.4, S+"n1 = "+n1.asDbl());
    D.text (0, 0.2, S+"n2 = "+n2.asDbl());

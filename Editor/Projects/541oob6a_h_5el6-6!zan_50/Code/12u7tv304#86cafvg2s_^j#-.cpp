@@ -44,7 +44,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    Edit.Project *cur=FindProject(Projects, CurProject);
    D.text(0, 0.90, S+"Current Project: "+(cur ? cur.name : "<none>"));
    D.text(0, 0.75, "All Projects:");

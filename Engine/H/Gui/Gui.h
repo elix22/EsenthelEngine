@@ -129,7 +129,7 @@ private:
 
    TextLine* overlayTextLine(Vec2 &offset);
 
-   friend struct Display;
+   friend struct DisplayClass;
 #endif
    GUI();
 }extern

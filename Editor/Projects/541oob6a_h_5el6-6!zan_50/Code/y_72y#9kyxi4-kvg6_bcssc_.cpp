@@ -29,7 +29,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D    .clear(TURQ);
+   D    .clear(AZURE);
    logo->drawMask(WHITE, TRANSPARENT, Rect_C(0, 0, 2, 1), *mask, Rect_C(Ms.pos(), 1.2, 1.2));
    D    .text(0, 0.9, "Please move the mouse around the screen");
 }

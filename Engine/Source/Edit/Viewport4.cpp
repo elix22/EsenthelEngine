@@ -46,7 +46,7 @@ void Viewport4::ViewportEx::draw(C GuiPC &gpc)
 /******************************************************************************/
 Viewport4::Cube& Viewport4::Cube::create(Viewport4 &v4, View &view) {super::create(); T.v4=&v4; T.view=&view; mesh="Gui/Viewcube/0.mesh"; return T;}
 
-void Viewport4::Cube::setView(C GuiPC &gpc, Display::ViewportSettings &view, Camera &camera, MatrixM &matrix)
+void Viewport4::Cube::setView(C GuiPC &gpc, DisplayClass::ViewportSettings &view, Camera &camera, MatrixM &matrix)
 {
    if(T.view)
    {
@@ -59,7 +59,7 @@ void Viewport4::Cube::setView(C GuiPC &gpc, Display::ViewportSettings &view, Cam
       matrix.identity(); matrix.pos.z+=3.3f; matrix.pos*=T.view->camera.matrix;
    }
 }
-void Viewport4::Cube::resetView(C Display::ViewportSettings &view, C Camera &camera)
+void Viewport4::Cube::resetView(C DisplayClass::ViewportSettings &view, C Camera &camera)
 {
    view  .set();
    camera.set();
@@ -69,7 +69,7 @@ GuiObj* Viewport4::Cube::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
    GuiObj *ret=null;
    if(mesh && super::test(gpc, pos, mouse_wheel))
    {
-      Display::ViewportSettings view; Camera camera; MatrixM matrix;
+      DisplayClass::ViewportSettings view; Camera camera; MatrixM matrix;
       setView(gpc, view, camera, matrix);
       VecD pos3D; Vec dir; ScreenToPosDir(pos, pos3D, dir);
       if(Sweep(pos3D, dir*D.viewRange(), *mesh, &matrix, null, null, null, &part, false))ret=this;
@@ -166,7 +166,7 @@ void Viewport4::Cube::draw(C GuiPC &gpc)
    {
       D.clip(gpc.clip);
       ALPHA_MODE alpha=D.alpha();
-      Display::ViewportSettings view; Camera camera; MatrixM matrix;
+      DisplayClass::ViewportSettings view; Camera camera; MatrixM matrix;
       setView(gpc, view, camera, matrix);
       D.sampler3D(); D.depthLock  (false); mesh->drawBlend(matrix); if(Gui.ms()==this && InRange(part, *mesh))mesh->parts[part].drawBlend(&NoTemp(Vec4(2)));
       D.sampler2D(); D.depthUnlock(     ); D.depthWrite(true); D.alpha(alpha); // reset 'depthWrite' and 'alpha' because they can be modified by 'drawBlend'

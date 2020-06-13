@@ -30,7 +30,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D    .clear      (TURQ);
+   D    .clear      (AZURE);
    video.drawAlphaFs(video_alpha); // draw video with alpha from 'video_alpha'
    D    .text       (0, 0.9, S+video.time()); // draw time position of video
 }

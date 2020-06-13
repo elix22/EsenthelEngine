@@ -870,10 +870,10 @@ Skeleton& Skeleton::setBoneTypes()
       // leave not unique names (such as "arm", "leg", "eye" and "head") at the end
       if(BoneName(bone, "Spine") || BoneName(bone, "Pelvis") || BoneName(bone, "Hips") || BoneName(bone, "Chest") || BoneName(bone, "Torso") || BoneName(bone, "Body") || BoneName(bone, "Ribs") || BoneName(bone, "RibCage") || BoneName(bone, "Rib Cage") || BoneName(bone, "Rib_Cage"))type=BONE_SPINE;else
 
-      if(BoneName(bone, "Shoulder") || BoneName(bone, "Shoulders") || BoneName(bone, "Clavicle") || BoneName(bone, "CollarBone"))type=BONE_SHOULDER;else // "Shoulders" used by "Orcs"
-      if(BoneName(bone, "ForeArm") || BoneName(bone, "LowerArm") || BoneName(bone, "Elbow"))type=BONE_LOWER_ARM;else // "Elbow" used by "Fire Ice Elemental"
+      if(BoneName(bone, "Shoulder") || BoneName(bone, "Clavicle") || BoneName(bone, "CollarBone"))type=BONE_SHOULDER;else
+      if(BoneName(bone, "ForeArm") || BoneName(bone, "LowerArm") || BoneName(bone, "Elbow"))type=BONE_LOWER_ARM;else
       if(BoneName(bone, "Hand") || BoneName(bone, "Wrist") || BoneName(bone, "Palm") && !BoneName(bone, "LegPalm"))type=BONE_HAND;else
-      if(BoneName(bone, "Finger") || BoneName(bone, "Fingers") || BoneName(bone, "Fing"))type=BONE_FINGER;else // "Fingers" used by "Troll", "Fing" used by "Hit Man"
+      if(BoneName(bone, "Finger") || BoneName(bone, "Fingers"))type=BONE_FINGER;else // "Fingers" used by "Troll"
 
       if(BoneName(bone, "Calf") || BoneName(bone, "Crus") || BoneName(bone, "Shin") || BoneName(bone, "LowerLeg") || BoneName(bone, "HorseLink") || BoneName(bone, "Knee"))type=BONE_LOWER_LEG;else
       if(BoneName(bone, "Toe") || BoneName(bone, "Toes") || Equal(bone.name, "FootL0") || Equal(bone.name, "FootR0"))type=BONE_TOE;else // "Toes" used by "Cyclop", "FootL0/FootR0" is from the EE recommended naming system
@@ -889,8 +889,8 @@ Skeleton& Skeleton::setBoneTypes()
       if(BoneName(bone, "Ear"))type=BONE_EAR;else
       if(BoneName(bone, "Hair"))type=BONE_HAIR;else
 
-      if(BoneName(bone, "Breast") || BoneName(bone, "Boob"))type=BONE_BREAST;else
-      if(BoneName(bone, "Butt") || BoneName(bone, "Buttock"))type=BONE_BUTT;else
+      if(BoneName(bone, "Breast") || BoneName(bone, "Boob") || BoneName(bone, "Boobs"))type=BONE_BREAST;else
+      if(BoneName(bone, "Butt") || BoneName(bone, "Buttock") || BoneName(bone, "Buttocks"))type=BONE_BUTT;else
 
       if(BoneName(bone, "Tail") && !BoneName(bone, "PonyTail") && !BoneName(bone, "Pony Tail") && !BoneName(bone, "Pony_Tail"))type=BONE_TAIL;else
       if(BoneName(bone, "Wing") || BoneName(bone, "Wings"))type=BONE_WING;else // "Wings" used by "Bat"
@@ -919,8 +919,8 @@ Skeleton& Skeleton::setBoneTypes()
          SkelBone &parent=bones[parent_i]; if(parent.type) // find first parent with a known type
          {
             BONE_TYPE type=BONE_UNKNOWN;
-            if(parent.type==BONE_HAND || parent.type==BONE_UPPER_ARM || parent.type==BONE_FINGER)type=BONE_FINGER;else
-            if(parent.type==BONE_FOOT || parent.type==BONE_UPPER_LEG || parent.type==BONE_TOE   )type=BONE_TOE   ;
+            if(parent.type==BONE_HAND || parent.type==BONE_FINGER)type=BONE_FINGER;else
+            if(parent.type==BONE_FOOT || parent.type==BONE_TOE   )type=BONE_TOE   ;
             if(type)
             {
                if(BoneName(bone, "Thumb" )
@@ -1015,7 +1015,7 @@ Skeleton& Skeleton::setBoneTypes()
                   {
                      order=pos.x-pos.y-pos.z; // start with left top front
                   }
-                  if(test.type==BONE_FINGER)
+                  if(test.type==BONE_FINGER || test.type==BONE_TOE)
                   {
                      pos.normalize();
                      order=pos.x; // start with left

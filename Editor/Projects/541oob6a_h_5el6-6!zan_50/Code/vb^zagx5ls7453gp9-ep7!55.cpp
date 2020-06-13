@@ -41,7 +41,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    
    if(!Joypads.elms()                 )D.text(0, 0, "No Joypads Detected");else
    if(!Joypads[0].supportsVibrations())D.text(0, 0, "Joypad #0 doesn't support Vibrations");else

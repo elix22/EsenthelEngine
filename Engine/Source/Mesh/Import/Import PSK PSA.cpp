@@ -340,7 +340,7 @@ Bool ImportPSA(C Str &name, Skeleton *skeleton, MemPtr<XAnimation> animations)
                if(anim.TrackTime>0)animation.length((xanimation.fps>0) ? anim.TrackTime/xanimation.fps : anim.TrackTime, false);
 
                // process
-               animation.setTangents().removeUnused().rightToLeft(*skel).setRootMatrix();
+               animation.removeUnused().rightToLeft(*skel).setTangents().setRootMatrix();
             }else
             {
                // invalid data

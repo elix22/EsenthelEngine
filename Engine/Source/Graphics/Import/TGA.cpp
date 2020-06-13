@@ -232,6 +232,7 @@ Bool Image::ExportTGA(File &f)C
    {
     C ImageTypeInfo &type_info=typeInfo(); // use 'T.type' to have precise information about source type
       Byte byte_pp=((type_info.channels==1) ? 1 : type_info.a ? 4 : 3);
+      Bool ignore_gamma=IgnoreGamma(0, src->hwType(), IMAGE_B8G8R8A8_SRGB);
 
       TgaHeader header; Zero(header);
       Unaligned(header.ImageType  , (byte_pp<=1) ? TGA_Mono : TGA_RGB);
@@ -251,14 +252,16 @@ Bool Image::ExportTGA(File &f)C
 
          case 3:
          {
-	         if(src->hwType()==IMAGE_B8G8R8 || src->hwType()==IMAGE_B8G8R8_SRGB)f.put(src->data() + y*src->pitch(), src->w()*3);else
-	         FREPD(x, src->w()){Color c=src->color(x, y); Byte pixel[3]={c.b, c.g, c.r}; f<<pixel;}
+	         if(src->hwType()==IMAGE_B8G8R8_SRGB || (src->hwType()==IMAGE_B8G8R8 && ignore_gamma))f.put(src->data() + y*src->pitch(), src->w()*3);else
+	         if(ignore_gamma)FREPD(x, src->w()){Color c=src->color (x, y); Byte pixel[3]={c.b, c.g, c.r}; f<<pixel;}
+	         else            FREPD(x, src->w()){Color c=src->colorS(x, y); Byte pixel[3]={c.b, c.g, c.r}; f<<pixel;}
          }break;
 
 	      case 4:
 	      {
-	         if(src->hwType()==IMAGE_B8G8R8A8 || src->hwType()==IMAGE_B8G8R8A8_SRGB)f.put(src->data() + y*src->pitch(), src->w()*4);else
-	         FREPD(x, src->w()){Color c=src->color(x, y); Swap(c.r, c.b); f<<c;}
+	         if(src->hwType()==IMAGE_B8G8R8A8_SRGB || (src->hwType()==IMAGE_B8G8R8A8 && ignore_gamma))f.put(src->data() + y*src->pitch(), src->w()*4);else
+	         if(ignore_gamma)FREPD(x, src->w()){Color c=src->color (x, y); Swap(c.r, c.b); f<<c;}
+            else            FREPD(x, src->w()){Color c=src->colorS(x, y); Swap(c.r, c.b); f<<c;}
 		   }break;
       }
 

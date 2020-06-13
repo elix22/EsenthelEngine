@@ -70,7 +70,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    Physics.draw();
    
    // draw wheels

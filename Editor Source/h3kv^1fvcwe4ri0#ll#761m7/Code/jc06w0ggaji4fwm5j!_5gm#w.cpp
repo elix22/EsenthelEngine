@@ -979,6 +979,12 @@ class EditorServer : Edit.EditorServer
                   bool ok=false; if(anim.load(f))ok=Proj.animSet(elm_id, anim);
                   f.reset().putByte(Edit.EI_SET_ANIM).putBool(ok).pos(0); connection.send(f);
                }break;
+               
+               case Edit.EI_GET_ANIM_SKEL:
+               {
+                  File &f=connection.data; UID elm_id=f.getUID();
+                  f.reset().putByte(Edit.EI_GET_ANIM_SKEL).putUID(Proj.animToSkel(elm_id)).pos(0); connection.send(f);
+               }break;
 
                // OBJ
                case Edit.EI_GET_OBJ_CUR:

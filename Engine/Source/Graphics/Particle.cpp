@@ -559,7 +559,7 @@ void Particles::draw(Flt opacity)C
                      color.a=255;
                   }
                   if(!initialized){initialized=true; DrawAnimatedParticleBegin(*image, glow, motion_affects_alpha, image_x_frames, image_y_frames);}
-                  if(depth_offset)pos-=CamMatrix.z*(radius*hard_depth_offset);
+                //if(depth_offset)pos-=CamMatrix.z*(radius*hard_depth_offset); TODO: formula is incorrect, better handle through shader and pass this in 'DrawAnimatedParticleBegin'
                   DrawAnimatedParticleAdd(color, opacity*func(life), radius, p.ang_vel*p.life, pos, p.vel, animate ? p.life*image_speed : p.image_index);
                }
             }
@@ -600,7 +600,7 @@ void Particles::draw(Flt opacity)C
                      color.a=255;
                   }
                   if(!initialized){initialized=true; DrawParticleBegin(*image, glow, motion_affects_alpha);}
-                  if(depth_offset)pos-=CamMatrix.z*(radius*hard_depth_offset);
+                //if(depth_offset)pos-=CamMatrix.z*(radius*hard_depth_offset); TODO: formula is incorrect, better handle through shader and pass this in 'DrawAnimatedParticleBegin'
                   DrawParticleAdd(color, opacity*func(life), radius, p.ang_vel*p.life, pos, p.vel);
                }
             }

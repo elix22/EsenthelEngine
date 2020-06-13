@@ -44,9 +44,6 @@
     <Filter Include="H\_\Bullet\64">
       <UniqueIdentifier>{94de32d9-c3b2-42af-b164-02925084dd25}</UniqueIdentifier>
     </Filter>
-    <Filter Include="H\_\Autodesk">
-      <UniqueIdentifier>{be1075d9-eafc-473a-bf57-5f17a0a94e8d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="H\Gui">
       <UniqueIdentifier>{f5170b63-65d8-413b-a289-a72d012f4b9e}</UniqueIdentifier>
     </Filter>
@@ -2272,9 +2269,6 @@
     </Library>
     <Library Include="..\ThirdPartyLibs\Tiff\Windows\x64\Release\Tiff.lib">
       <Filter>H\_\Libs\64</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\FBX\Windows\lib\x86\libfbxsdk-mt.lib">
-      <Filter>H\_\Autodesk</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\BC\Release\ispc_texcomp.lib">
       <Filter>H\_\Libs\32</Filter>

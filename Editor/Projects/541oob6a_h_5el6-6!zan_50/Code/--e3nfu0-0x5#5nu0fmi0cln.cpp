@@ -47,7 +47,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text (0,  0.2,   "Press space to play 'metal'");
    D.text (0,  0.0, S+"Press enter to stop/play looped 'water' (playing: "     +sound.playing()+')');
    D.text (0, -0.2, S+"Use mouse wheel to change water sound volume (current: "+sound.volume ()+')');

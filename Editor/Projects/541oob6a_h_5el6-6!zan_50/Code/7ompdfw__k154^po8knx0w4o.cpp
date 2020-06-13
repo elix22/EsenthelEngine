@@ -145,7 +145,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    // draw list of players
    D.text(0, 0.9, "Players:");

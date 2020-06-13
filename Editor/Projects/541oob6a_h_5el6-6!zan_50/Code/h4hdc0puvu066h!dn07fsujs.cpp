@@ -80,7 +80,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    D.text(0, 0.9, S+"Press 1 for single threaded calculations");
    D.text(0, 0.8, S+"Press 2 for multi threaded calculations");

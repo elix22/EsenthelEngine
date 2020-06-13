@@ -33,7 +33,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text(0, 0.90, "Project Elements:");
    flt y=0.8; FREPA(elms)
    {

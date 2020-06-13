@@ -186,9 +186,9 @@ void InitPre()
       VidOpt.ctor(); // init before applying video settings
       ApplyVideoSettings();
    }
-       WorkerThreads.create(true);
-      BuilderThreads.create(false);
-   BackgroundThreads.create(false, Cpu.threads()-1);
+       WorkerThreads.create(true , Cpu.threads()  , 0, "Editor.Worker");
+      BuilderThreads.create(false, Cpu.threads()  , 0, "Editor.Builder");
+   BackgroundThreads.create(false, Cpu.threads()-1, 0, "Editor.Background");
 }
 /******************************************************************************/
 bool Init()

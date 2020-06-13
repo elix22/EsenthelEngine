@@ -166,9 +166,9 @@ struct Skeleton // Animation Skeleton - base skeleton used by 'AnimatedSkeleton'
    Byte      findBoneB(              BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone byte index, 255  on fail
    SkelBone* findBone (              BONE_TYPE type, Int type_index=0, Int type_sub=0) ; // find bone           , null on fail
  C SkelBone* findBone (              BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone           , null on fail
-   Int       findBoneI(CChar8 *name, BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone      index, -1   on fail, bones are first compared against the specified 'name', if there's no exact match and the 'type' is specified (not BONE_UNKNOWN) then type parameters are used for searching
-   SkelBone* findBone (CChar8 *name, BONE_TYPE type, Int type_index=0, Int type_sub=0) ; // find bone           , null on fail, bones are first compared against the specified 'name', if there's no exact match and the 'type' is specified (not BONE_UNKNOWN) then type parameters are used for searching
- C SkelBone* findBone (CChar8 *name, BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone           , null on fail, bones are first compared against the specified 'name', if there's no exact match and the 'type' is specified (not BONE_UNKNOWN) then type parameters are used for searching
+   Int       findBoneI(CChar8 *name, BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone      index, -1   on fail
+   SkelBone* findBone (CChar8 *name, BONE_TYPE type, Int type_index=0, Int type_sub=0) ; // find bone           , null on fail
+ C SkelBone* findBone (CChar8 *name, BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone           , null on fail
    Int        getBoneI(              BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone      index, Exit on fail
    SkelBone&  getBone (              BONE_TYPE type, Int type_index=0, Int type_sub=0) ; // find bone           , Exit on fail
  C SkelBone&  getBone (              BONE_TYPE type, Int type_index=0, Int type_sub=0)C; // find bone           , Exit on fail

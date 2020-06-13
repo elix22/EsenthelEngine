@@ -31,7 +31,7 @@ struct Environment
            maximum ; // maximum filter , true/false, default=false
       Byte blurs   ; // number of blurs,    0..4   , default=1
       Flt  original, // original color ,    0..Inf , default=1.0
-           scale   , // bloom scale    ,    0..Inf , default=0.5
+           scale   , // bloom scale    ,    0..Inf , default=0.4
            cut     ; // bloom cutoff   ,    0..Inf , default=0.3
 
       // set / get
@@ -98,8 +98,8 @@ struct Environment
 
       Flt      atmospheric_density_exponent , // atmospheric density exponent        ,            0..1                   , default=1.0, (1 is the fastest)
                atmospheric_horizon_exponent ; // atmospheric horizon exponent        ,            0..Inf                 , default=3.5, (this affects at what height the horizon color will be selected instead of the sky color)
-      Vec4     atmospheric_horizon_color_s  , // atmospheric horizon color sRGB gamma,    (0,0,0,0)..(1,1,1,1)           , default=(0.32, 0.46, 0.58, 1.0) here alpha specifies opacity to combine with star map when used
-               atmospheric_sky_color_s      ; // atmospheric sky     color sRGB gamma,    (0,0,0,0)..(1,1,1,1)           , default=(0.16, 0.36, 0.54, 0.9) here alpha specifies opacity to combine with star map when used
+      Vec4     atmospheric_horizon_color_s  , // atmospheric horizon color sRGB gamma,    (0,0,0,0)..(1,1,1,1)           , here alpha specifies opacity to combine with star map when used
+               atmospheric_sky_color_s      ; // atmospheric sky     color sRGB gamma,    (0,0,0,0)..(1,1,1,1)           , here alpha specifies opacity to combine with star map when used
       ImagePtr atmospheric_stars            ; // atmospheric star map                , image must be in IMAGE_CUBE format, default=null
       Matrix3  atmospheric_stars_orientation; // atmospheric star orientation        ,       must be normalized          , default=MatrixIdentity3
 

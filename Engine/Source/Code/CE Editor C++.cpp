@@ -959,39 +959,21 @@ static void AddFile(Memb<PakFileData> &files, Pak &pak, C PakFile &pf)
    if(!FlagTest(pf.flag, PF_STD_DIR))Add(files, pak, pf); // skip folders
 }
 static void Add        (Memb<PakFileData> &files,           C PaksFile *pf) {if(pf)Add    (files, *pf->pak, *pf->file);}
+static void AddFile    (Memb<PakFileData> &files, Pak &pak, C PakFile  *pf) {if(pf)AddFile(files,      pak, *pf      );}
 static void AddFile    (Memb<PakFileData> &files,           C PaksFile *pf) {if(pf)AddFile(files, *pf->pak, *pf->file);}
 static void Add        (Memb<PakFileData> &files, Pak &pak, C PakFile  *pf) {if(pf)Add    (files,      pak, *pf      );}
 static void AddChildren(Memb<PakFileData> &files,           C PaksFile *pf) {if(pf)FREP(pf->children_num)AddFile(files,     &Paks.file(pf->children_offset+i));}
 static void AddChildren(Memb<PakFileData> &files, Pak &pak, C PakFile  *pf) {if(pf)FREP(pf->children_num)AddFile(files, pak, pak .file(pf->children_offset+i));}
-static Bool CreateEngineEmbedPak(C Str &name, Bool *changed=null)
+static Bool CreateEngineEmbedPak(C Str &src, C Str &dest, Bool use_cipher, Bool *changed=null)
 {
    if(changed)*changed=false;
 
    Memb<PakFileData> files;
-
-   Bool full=(CE.cei().appEmbedEngineData()>1);
-
-   if(!full)
+   Pak temp, *src_pak=null;
+   if(src.is()) // use specific PAK file
    {
-      // add folders to preserve modification times
-      Add    (files, Paks.find("Shader"));
-      Add    (files, Paks.find("Shader/4"));
-      Add    (files, Paks.find("Shader/GL"));
-      AddFile(files, Paks.find("Shader/4/Early Z"));
-      AddFile(files, Paks.find("Shader/4/Main"));
-      AddFile(files, Paks.find("Shader/4/Position"));
-      AddFile(files, Paks.find("Shader/GL/Early Z"));
-      AddFile(files, Paks.find("Shader/GL/Main"));
-      AddFile(files, Paks.find("Shader/GL/Position"));
-      
-      // #ShaderAMD
-      Add    (files, Paks.find("Shader/4 AMD"));
-      AddFile(files, Paks.find("Shader/4 AMD/Early Z"));
-      AddFile(files, Paks.find("Shader/4 AMD/Main"));
-      AddFile(files, Paks.find("Shader/4 AMD/Position"));
-   }
-
-   Bool found=false;
+      if(!temp.load(src))return ErrorRead(src); src_pak=&temp;
+   }else // if empty then find from loaded PAK's in memory
    {
       SyncLocker locker(Paks._lock);
       FREPA(Paks._paks) // iterate all loaded paks starting from those loaded first
@@ -999,26 +981,45 @@ static Bool CreateEngineEmbedPak(C Str &name, Bool *changed=null)
          PakSet::Src &src=Paks._paks[i];
          if(GetBase(src.name)=="Engine.pak")
          {
-            if(full)
-            {
-               FREPA(src)Add(files, src, src.file(i)); // add all files
-            }else
-            {
-               Add        (files, src, src.find("Gui")); // add folder to preserve modification times
-               AddChildren(files, src, src.find("Gui"));
-               FREP(src.rootFiles())AddFile(files, src, src.file(i)); // add all root files (gui files)
-            }
-            found=true;
+            src_pak=&src;
             break;
          }
       }
    }
-   if(!found)return Error("Can't find \"Engine.pak\"");
+   if(!src_pak)return Error("Can't find \"Engine.pak\"");
 
-   Cipher *cipher=CE.cei().appEmbedCipher();
-   if(FileInfoSystem(name).modify_time_utc>CE.cei().appEmbedSettingsTime() && PakEqual(files, name, cipher))return true; // check if we have newer settings (for example compression) in that case regenerate the PAK
+   if(CE.cei().appEmbedEngineData()>1) // full
+   {
+      FREPA(*src_pak)Add(files, *src_pak, src_pak->file(i)); // add all files
+   }else // 2D only
+   {
+      // add folders to preserve modification times
+      Add    (files, *src_pak, src_pak->find("Shader"));
+      Add    (files, *src_pak, src_pak->find("Shader/4"));
+      Add    (files, *src_pak, src_pak->find("Shader/GL"));
+      Add    (files, *src_pak, src_pak->find("Gui"));
+      AddFile(files, *src_pak, src_pak->find("Shader/4/Early Z"));
+      AddFile(files, *src_pak, src_pak->find("Shader/4/Main"));
+      AddFile(files, *src_pak, src_pak->find("Shader/4/Position"));
+      AddFile(files, *src_pak, src_pak->find("Shader/GL/Early Z"));
+      AddFile(files, *src_pak, src_pak->find("Shader/GL/Main"));
+      AddFile(files, *src_pak, src_pak->find("Shader/GL/Position"));
+      
+      // #ShaderAMD
+      Add    (files, *src_pak, src_pak->find("Shader/4 AMD"));
+      AddFile(files, *src_pak, src_pak->find("Shader/4 AMD/Early Z"));
+      AddFile(files, *src_pak, src_pak->find("Shader/4 AMD/Main"));
+      AddFile(files, *src_pak, src_pak->find("Shader/4 AMD/Position"));
+
+      AddChildren(files, *src_pak, src_pak->find("Gui"));
+      FREP(src_pak->rootFiles())AddFile(files, *src_pak, src_pak->file(i)); // add all root files (gui files)
+   }
+
+
+   Cipher *cipher=(use_cipher ? CE.cei().appEmbedCipher() : null);
+   if(FileInfoSystem(dest).modify_time_utc>CE.cei().appEmbedSettingsTime() && PakEqual(files, dest, cipher))return true; // check if we have newer settings (for example compression) in that case regenerate the PAK
    if(changed)*changed=true;
-   if(!PakCreate(files, name, 0, cipher, CE.cei().appEmbedCompress(), CE.cei().appEmbedCompressLevel()))return Error("Can't create Embedded Engine Pak");
+   if(!PakCreate(files, dest, 0, cipher, CE.cei().appEmbedCompress(), CE.cei().appEmbedCompressLevel()))return Error("Can't create Embedded Engine Pak");
    return true;
 }
 static Bool CreateAppPak(C Str &name, Bool &exists, Bool *changed=null)
@@ -1203,7 +1204,7 @@ Bool CodeEditor::generateVSProj(Int version)
    // embed engine data, generate always because it may be used by WINDOWS_OLD
    if(cei().appEmbedEngineData())
    {
-      Bool changed; if(!CreateEngineEmbedPak(build_path+"Assets/EngineEmbed.pak", &changed))return false;
+      Bool changed; if(!CreateEngineEmbedPak(S, build_path+"Assets/EngineEmbed.pak", true, &changed))return false;
       resource_rc.putLine(S+(resource_id++)+" PAK         \"Assets/EngineEmbed.pak\"");
       resource_changed|=changed;
    }
@@ -1645,7 +1646,7 @@ Bool CodeEditor::generateXcodeProj()
    if(cei().appEmbedEngineData())
    {
       mac_assets.New().name="Assets/EngineEmbed.pak";
-      if(!CreateEngineEmbedPak(build_path+"Assets/EngineEmbed.pak"))return false;
+      if(!CreateEngineEmbedPak(S, build_path+"Assets/EngineEmbed.pak", true))return false;
    }
 
    // app data
@@ -2152,7 +2153,12 @@ Bool CodeEditor::generateAndroidProj()
 
       // Engine.pak
       FCreateDirs(build_path+"Android/assets");
-      if(!CopyFile(bin_path+"Mobile/Engine.pak", build_path+"Android/assets/Engine.pak"))return false;
+      Str src=bin_path+"Mobile/Engine.pak", dest=build_path+"Android/assets/Engine.pak";
+      if(cei().appEmbedEngineData()==1) // 2D only
+      {
+         if(!CreateEngineEmbedPak(src, dest, false))return false;
+      }else
+         if(!CopyFile(src, dest))return false;
    }
 
    // layouts
@@ -2620,7 +2626,7 @@ Bool CodeEditor::generateLinuxMakeProj()
    if(cei().appEmbedEngineData())
    {
       BuildEmbed &be=build_embed.New().set(CC4('P', 'A', 'K', 0), build_path+"Assets/EngineEmbed.pak");
-      if(!CreateEngineEmbedPak(be.path))return false;
+      if(!CreateEngineEmbedPak(S, be.path, true))return false;
    }
    Str  app_pak_path=build_path+"Assets/App.pak";
    Bool exists; if(!CreateAppPak(app_pak_path, exists))return false;

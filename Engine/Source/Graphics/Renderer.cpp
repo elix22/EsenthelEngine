@@ -104,6 +104,7 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
    clear_color.zero();
    ms_samples_color.zero();
    target=null;
+   taa_id=null;
 
   _mode=RM_SOLID;
   _mesh_blend_alpha=ALPHA_NONE;
@@ -580,7 +581,7 @@ RendererClass& RendererClass::operator()(void (&render)())
   _outline    =0;
   _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
 
-  _ctx=_ctxs(0); // 0=some unique ID for a context
+  _ctx=_ctxs(taa_id);
   _ctx_sub=_ctx->subs(D._view_main.recti, _taa_reset); _ctx_sub->used=true; // find a unique sub-context based on main viewport rectangle, set '_taa_reset' as 'just_created' to force reset TAA when creating new sub, mark that it was used in this frame
 
    if(VR.active())D.setViewFovTan(); // !! call after setting _stereo and _render !!

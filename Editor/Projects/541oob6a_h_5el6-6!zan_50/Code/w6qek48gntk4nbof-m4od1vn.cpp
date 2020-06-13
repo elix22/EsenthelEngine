@@ -71,7 +71,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    TextStyleParams ts; ts.size=0.07;
    D.text(ts, 0,  0.6, S+"Source Size: "+(src.size()>>10)+"KB");

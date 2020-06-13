@@ -619,6 +619,13 @@ T1(TYPE)  MemcThreadSafe<TYPE>&  MemcThreadSafe<TYPE>::lockedMoveElm  (Int elm, 
 T1(TYPE)  void  MemcThreadSafe<TYPE>::  lock()C {super::  lock();}
 T1(TYPE)  void  MemcThreadSafe<TYPE>::unlock()C {super::unlock();}
 
+T1(TYPE)  Bool  MemcThreadSafe<TYPE>::save(File &f)C {SyncLocker locker(_lock);        f.cmpUIntV(elms()) ; FREPA(T)if(!lockedElm(i).save(f))return false; return f.ok();}
+T1(TYPE)  Bool  MemcThreadSafe<TYPE>::save(File &f)  {SyncLocker locker(_lock);        f.cmpUIntV(elms()) ; FREPA(T)if(!lockedElm(i).save(f))return false; return f.ok();}
+T1(TYPE)  Bool  MemcThreadSafe<TYPE>::load(File &f)  {SyncLocker locker(_lock); setNum(f.decUIntV(      )); FREPA(T)if(!lockedElm(i).load(f))goto   error;     if(f.ok())return true; error: clear(); return false;}
+
+T1(TYPE)  Bool  MemcThreadSafe<TYPE>::saveRaw(File &f)C {return super::saveRaw(f);}
+T1(TYPE)  Bool  MemcThreadSafe<TYPE>::loadRaw(File &f)  {return super::loadRaw(f);}
+
 T1(TYPE)  MemcThreadSafe<TYPE>::MemcThreadSafe() : _MemcThreadSafe(SIZE(TYPE), ClassFunc<TYPE>::GetNew(), ClassFunc<TYPE>::GetDel()) {}
 /******************************************************************************/
 // MEMT

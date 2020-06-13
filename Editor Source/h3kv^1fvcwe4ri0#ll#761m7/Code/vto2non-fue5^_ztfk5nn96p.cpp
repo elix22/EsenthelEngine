@@ -1,6 +1,6 @@
 /******************************************************************************/
-const uint ProjectVersion     =70, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=69; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
+const uint ProjectVersion     =71, // !! increase this by one if any of engine/editor asset formats have changed !!
+           ClientServerVersion=70; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
 const Str  ClientServerString ="Esenthel Editor";
 /******************************************************************************/
 const cchar8       *WorldVerSuffix     ="\\Data",
@@ -62,7 +62,7 @@ const int           ForceInstaller=-2, // -2=disable and don't update, -1=disabl
                     MeshSplitMaxSteps=3,    // max steps of splitting a mesh
                     MeshSplitMinVtxs=12000, // min number of vertexes in a mesh to split it
                     MeshSplitMinSize=4;     // min size of mesh box (in meters) to split it
-const uint          MeshJoinAllTestVtxFlag=VTX_HLP|VTX_SIZE; // this is because of "Leaf" shader which works differently depending on existence of these components
+const uint          MeshJoinAllTestVtxFlag=VTX_HLP|VTX_SIZE; // this is because of "Leaf" shader which works differently depending on existence of these components, testing for color/skin is not needed because parts that don't have them will have default values set (WHITE color, 0-bone/matrix)
 
 const Edit.Material.TEX_QUALITY MinMtrlTexQualityBase0 =Edit.Material.LOW   , // minimum texture compression quality for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureLayout, set to LOW    because can be maximized based on 'ElmMaterial.tex_quality/EditMaterial.tex_quality'
                                 MinMtrlTexQualityBase1 =Edit.Material.HIGH  , // minimum texture compression quality for Material Base1  Texture (NxNy               ) #MaterialTextureLayout, set to HIGH   because normals need this (without this, they get very blocky due to low quality)

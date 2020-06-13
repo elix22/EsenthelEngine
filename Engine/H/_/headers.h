@@ -218,7 +218,7 @@
          #include "../../../ThirdPartyLibs/OpenAL for Windows/alc.h"
       #endif
 
-      // always include these Windows to support shader compilation
+      // always include these to support shader compilation
       #include <d3dcompiler.h>
       #include <d3d11_4.h>
       #if DX11 // DirectX 11

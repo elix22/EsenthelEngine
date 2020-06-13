@@ -6,7 +6,7 @@ static Color ColorArray[]=
 {
    RED   , GREEN, BLUE  ,
    YELLOW, CYAN , PURPLE,
-   ORANGE, TURQ , BROWN ,
+   ORANGE, AZURE, BROWN ,
 };
        Flt  ByteToFltArray[256], ByteSRGBToLinearArray[256], LinearByteToSRGBArray[256], *SRGBToDisplayArray=ByteToFltArray;
 static Byte LinearToByteSRGBArray[3139], // 3139=smallest array size which preserves "LinearToByteSRGB(ByteSRGBToLinear(s))==s"

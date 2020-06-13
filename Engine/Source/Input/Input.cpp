@@ -476,7 +476,7 @@ static Bool TextSelRem(Str &str, TextEdit &edit) // assumes that 'sel' and 'cur'
 }
 static void SkipCombiningLeft (C Str &str, TextEdit &edit) {for(; CharFlagFast(str[edit.cur])&CHARF_COMBINING && edit.cur>0; )edit.cur--;}
 static void SkipCombiningRight(C Str &str, TextEdit &edit) {for(; CharFlagFast(str[edit.cur])&CHARF_COMBINING              ; )edit.cur++;}
-static Bool Processed         (  Str &str, TextEdit &edit, Bool multi_line, C Keyboard::Key &key, Bool &changed)
+static Bool Processed         (  Str &str, TextEdit &edit, Bool multi_line, C KeyboardKey &key, Bool &changed)
 {
    if(!key.winCtrl())
    {
@@ -673,7 +673,7 @@ Bool EditText(Str &str, TextEdit &edit, Bool multi_line)
 
    if(Ms.bp(MS_BACK))
    {
-      Keyboard::Key key; key.clear();
+      KeyboardKey key; key.clear();
       key.k=KB_BACK;
       Processed(str, edit, multi_line, key, changed);
       Ms.eat(4);
@@ -683,7 +683,7 @@ Bool EditText(Str &str, TextEdit &edit, Bool multi_line)
    {
    again:
       Kb.eatKey(); // eat only if processed
-      if(C Keyboard::Key *key=Kb.nextKeyPtr()) // get next key without moving it
+      if(C KeyboardKey *key=Kb.nextKeyPtr()) // get next key without moving it
          if(Processed(str, edit, multi_line, *key, changed)) // if can process this key, then eat it, otherwise, leave it to appear in the next frame so other codes before 'EditText' can try to process it
       {
          Kb.nextInQueue(); // move 'key' to 'Kb.k'

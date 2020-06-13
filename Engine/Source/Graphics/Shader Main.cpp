@@ -157,7 +157,7 @@ void MainShaderClass::createSamplers()
 Bool AMD; // #ShaderAMD !! WHEN REMOVING THEN ALSO REMOVE FROM "Esenthel Builder" !!
 void MainShaderClass::create()
 {
-   AMD=ContainsAll(D.deviceName(), "AMD Radeon", true, true);
+   AMD=ContainsAll(D.deviceName(), "Radeon", true, true); // test only for "Radeon" instead of "AMD Radeon" as there might be some GPU cards without "AMD"
    if(LogInit)LogN("MainShaderClass.create");
    compile();
 

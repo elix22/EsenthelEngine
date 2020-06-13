@@ -73,10 +73,11 @@ static void GetSizeZeros(C Image &image, Byte byte_pp, Int &size, Int &zeros)
    size=image.w()*byte_pp; zeros=Ceil4(size)-size;
    size=(size+zeros)*image.h();
 }
-Bool Image::ExportBMPRaw(File &f, Byte byte_pp, Bool ico)C // assumes that Image is locked and of accessible data
+Bool Image::ExportBMPRaw(File &f, Byte byte_pp, Bool ico)C // assumes that Image is locked and has accessible data
 {
-   Int size, zeros; GetSizeZeros(T, byte_pp, size, zeros);
-   Int mask_size; if(ico){mask_size=Ceil4(Ceil8(w())/8)*h(); size+=mask_size;} // include mask
+   Bool ignore_gamma=IgnoreGamma(0, hwType(), IMAGE_B8G8R8A8_SRGB);
+   Int  size, zeros; GetSizeZeros(T, byte_pp, size, zeros);
+   Int  mask_size; if(ico){mask_size=Ceil4(Ceil8(w())/8)*h(); size+=mask_size;} // include mask
    BitmapInfoHeader bmih;
    Unaligned(bmih.size         , SIZEU(BitmapInfoHeader));
    Unaligned(bmih.width        ,               w());
@@ -105,14 +106,16 @@ Bool Image::ExportBMPRaw(File &f, Byte byte_pp, Bool ico)C // assumes that Image
 
          case 3:
          {
-            if(hwType()==IMAGE_B8G8R8 || hwType()==IMAGE_B8G8R8_SRGB)f.put(data()+y*pitch(), T.w()*3);else
-            FREPD(x, T.w()){Color c=color(x, y); Byte pixel[3]={c.b, c.g, c.r}; f<<pixel;}
+            if(hwType()==IMAGE_B8G8R8_SRGB || (hwType()==IMAGE_B8G8R8 && ignore_gamma))f.put(data()+y*pitch(), T.w()*3);else
+            if(ignore_gamma)FREPD(x, T.w()){Color c=color (x, y); Byte pixel[3]={c.b, c.g, c.r}; f<<pixel;}
+            else            FREPD(x, T.w()){Color c=colorS(x, y); Byte pixel[3]={c.b, c.g, c.r}; f<<pixel;}
          }break;
 
          case 4:
          {
-            if(hwType()==IMAGE_B8G8R8A8 || hwType()==IMAGE_B8G8R8A8_SRGB)f.put(data()+y*pitch(), T.w()*4);else // BMP uses BGRA order
-            FREPD(x, T.w()){Color c=color(x, y); Swap(c.r, c.b); f<<c;}
+            if(hwType()==IMAGE_B8G8R8A8_SRGB || (hwType()==IMAGE_B8G8R8A8 && ignore_gamma))f.put(data()+y*pitch(), T.w()*4);else // BMP uses BGRA order
+            if(ignore_gamma)FREPD(x, T.w()){Color c=color (x, y); Swap(c.r, c.b); f<<c;}
+            else            FREPD(x, T.w()){Color c=colorS(x, y); Swap(c.r, c.b); f<<c;}
          }break;
       }
       f.put(null, zeros);

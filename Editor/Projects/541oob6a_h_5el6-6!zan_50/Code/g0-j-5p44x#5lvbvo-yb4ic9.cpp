@@ -56,7 +56,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text (0, 0.9, "Press Space to use 'FList', or press Enter for 'FileFind'");
 
    FREPA(names)D.text(0, 0.8-i*0.1, names[i]); // draw all file names

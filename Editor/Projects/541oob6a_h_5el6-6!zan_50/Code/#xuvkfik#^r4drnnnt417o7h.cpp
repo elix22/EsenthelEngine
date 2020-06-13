@@ -35,7 +35,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D  .clear(TURQ);
+   D  .clear(AZURE);
    Gui.draw();
    D.text(0, -0.7, S+"SlideBar "   +slidebar()); // draw slidebar    value
    D.text(0, -0.8, S+"ProgressBar "+progress()); // draw progressbar value

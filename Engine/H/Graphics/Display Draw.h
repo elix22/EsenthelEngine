@@ -3,7 +3,7 @@
    'DisplayDraw' contains all the basic 2D drawing options.
 
 /******************************************************************************/
-struct DisplayDraw // Display Drawing Functions, this class methods can be called by the use of 'D' display object
+struct DisplayDraw // Display Drawing Functions, this class methods can be called by the use of 'Display' object
 {
    // draw dot
    static void dot (C Color &color, C Vec2 &v,    Flt radius=0.007f) {v         .draw (color, radius);}

@@ -81,6 +81,7 @@ struct RendererClass // handles rendering
    Dbl          lowest_visible_point; // Y coordinates of lowest visible point on the scene, by default=-DBL_MAX (which means full visibility), you can optionally set this to a custom value before the shadow rendering stage, the value should be world-space Y coordinate of the lowest visible point on the scene below which you don't expect any objects to be visible, for example if your scene has heightmaps and there won't be anything visible under the heightmaps, then you can set this value to the minimum of all heightmap mesh box Y coordinates, setting the value will improve shadow quality and rendering performance
    ImageRT     *target              ; // render target destination, this can be set to a custom 'ImageRT' of IMAGE_RT mode, in that case the rendering will be performed onto the selected image, this image should have its aspect (proportions) the same as the screen (D.resW, D.resH), if set to null then rendering is performed to the screen, default=null
    ImagePtr     cel_shade_palette   ; // cel shading light palette, you can set this to custom texture in "Init()", if used then this should point to a palette of custom width and 1 pixel height, if set to null then usage of cel shading is disabled, used only in RT_DEFERRED renderer, default=null
+   CPtr         taa_id              ; // TAA unique ID, you can use this to allow usage of separate render targets for TAA effect
 
    ShaderParam *C material_color_l, // Vec4 Linear Gamma
                *C highlight       ; // Vec
@@ -311,7 +312,7 @@ private:
                          _water_col, _water_nrm, _water_ds, _water_lum, _water_spec,
                          _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;
    Memx<ImageRT>         _rts;
-   Map<UIntPtr, Context> _ctxs;
+   Map<CPtr, Context>    _ctxs;
    Context              *_ctx;
    Context::Sub          _ctx_sub_dummy, *_ctx_sub;
 #if EE_PRIVATE

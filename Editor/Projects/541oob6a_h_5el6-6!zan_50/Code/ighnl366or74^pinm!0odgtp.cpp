@@ -22,7 +22,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    // to draw big number of shapes more efficiently please use VertexIndexBuffer (VI)
 

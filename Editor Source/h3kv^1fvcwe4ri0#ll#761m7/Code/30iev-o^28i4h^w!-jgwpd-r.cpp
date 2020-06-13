@@ -562,7 +562,7 @@ class ReloadElmClass : ClosableWindow
 {
    TextNoTest text, text_all, t_name;
    TextLine   path, name, start_frame, end_frame, speed, optimize;
-   Button     path_sel, yes, yes_all, set_start_frame, set_end_frame, set_speed, set_optimize, mirror;
+   Button     path_sel, yes, yes_all, set_start_frame, set_end_frame, set_speed, set_optimize, mirror, del_end_keys;
    WindowIO   win_io;
    Memc<UID>  elms;
 
@@ -585,6 +585,7 @@ class ReloadElmClass : ClosableWindow
                if(set_speed      ())files[0].getParam("speed"      ).value=speed      ();
                if(set_optimize   ())files[0].getParam("optimize"   ).value=optimize   ();
                if(mirror         ())files[0].getParam("mirror"     ); // uses TextBool1 so no need to specify =1
+               if(del_end_keys   ())files[0].getParam("delEndKeys" ); // uses TextBool1 so no need to specify =1
             }
             if(elm.type==ELM_ANIM || elm.type==ELM_MTRL)
             {
@@ -600,7 +601,7 @@ class ReloadElmClass : ClosableWindow
    }
    void activate(Memc<UID> &elms) // multiple elements
    {
-      win_io.hide(); T-=text; T-=path; T-=path_sel; T-=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
+      win_io.hide(); T-=text; T-=path; T-=path_sel; T-=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
       rect(Rect_C(0, 0, 1, 0.36)); T+=text_all; T+=yes_all;
       Swap(elms, T.elms);
       super.activate();
@@ -609,7 +610,7 @@ class ReloadElmClass : ClosableWindow
    {
       elms.clear().add(elm_id);
       T-=text_all; T-=yes_all;
-      rect(Rect_C(0, 0, 1.4, 0.544)); T+=text; T+=yes; T+=path; T+=path_sel; T+=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
+      rect(Rect_C(0, 0, 1.4, 0.544)); T+=text; T+=yes; T+=path; T+=path_sel; T+=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=del_end_keys; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
       path.clear();
       if(Elm *elm=Proj.findElm(elm_id))if(elm.type!=ELM_FOLDER && elm.type!=ELM_LIB && elm.type!=ELM_APP)
       {
@@ -620,15 +621,16 @@ class ReloadElmClass : ClosableWindow
             case ELM_ANIM:
             {
                T+=t_name; T+=name.desc("This is the Animation name inside the source file.\nIf source file has multiple Animations, then one will be selected that has this name.");
-               T+=set_start_frame; T+=set_end_frame; T+=set_speed; T+=set_optimize; T+=mirror; T+=start_frame; T+=end_frame; T+=speed; T+=optimize;
+               T+=set_start_frame; T+=set_end_frame; T+=set_speed; T+=set_optimize; T+=mirror; T+=del_end_keys; T+=start_frame; T+=end_frame; T+=speed; T+=optimize;
                if(files.elms())
                {
-                C TextParam *start_frame=files[0].findParam("start_frame"); set_start_frame.set(start_frame!=null); T.start_frame.set(start_frame ? start_frame.value : S    ); files[0].params.removeData(start_frame);
-                C TextParam *  end_frame=files[0].findParam(  "end_frame"); set_end_frame  .set(  end_frame!=null); T.  end_frame.set(  end_frame ?   end_frame.value : S    ); files[0].params.removeData(  end_frame);
-                C TextParam *speed      =files[0].findParam("speed"      ); set_speed      .set(speed      !=null); T.speed      .set(speed       ? speed      .value : S+"1"); files[0].params.removeData(speed      );
-                C TextParam *optimize   =files[0].findParam("optimize"   ); set_optimize   .set(optimize   !=null); T.optimize   .set(optimize    ? optimize   .value : S+"1"); files[0].params.removeData(optimize   );
-                C TextParam *name       =files[0].findParam("name"       );                                         T.name       .set(name        ? name       .value : S    ); files[0].params.removeData(name       );
-                C TextParam *mirror     =files[0].findParam("mirror"     );                                         T.mirror     .set(mirror      ? mirror.asBool1()  : false); files[0].params.removeData(mirror     );
+                C TextParam *start_frame =files[0].findParam("start_frame"); set_start_frame.set(start_frame!=null); T.start_frame .set(start_frame  ? start_frame .value     : S    ); files[0].params.removeData(start_frame );
+                C TextParam *  end_frame =files[0].findParam(  "end_frame"); set_end_frame  .set(  end_frame!=null); T.  end_frame .set(  end_frame  ?   end_frame .value     : S    ); files[0].params.removeData(  end_frame );
+                C TextParam *speed       =files[0].findParam("speed"      ); set_speed      .set(speed      !=null); T.speed       .set(speed        ? speed       .value     : S+"1"); files[0].params.removeData(speed       );
+                C TextParam *optimize    =files[0].findParam("optimize"   ); set_optimize   .set(optimize   !=null); T.optimize    .set(optimize     ? optimize    .value     : S+"1"); files[0].params.removeData(optimize    );
+                C TextParam *name        =files[0].findParam("name"       );                                         T.name        .set(name         ? name        .value     : S    ); files[0].params.removeData(name        );
+                C TextParam *mirror      =files[0].findParam("mirror"     );                                         T.mirror      .set(mirror       ? mirror      .asBool1() : false); files[0].params.removeData(mirror      );
+                C TextParam *del_end_keys=files[0].findParam("delEndKeys" );                                         T.del_end_keys.set(del_end_keys ? del_end_keys.asBool1() : false); files[0].params.removeData(del_end_keys);
                }
             }break;
 
@@ -661,20 +663,21 @@ class ReloadElmClass : ClosableWindow
    {
       cchar8 *speed_t="Set custom speed factor, default=1", *optimize_t="Set custom keyframe optimization (reduction) factor, default=1\nIf not specified, then optimization of 1 is applied.\nValue of 0 completely disables keyframe reduction.";
       Gui+=super.create("Reload Elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
-      text_all .create(Vec2  (0.5  , -0.09), "Are you sure you wish to reload all selected\nelements from their original files?");
-      text     .create(Vec2  (0.7  , -0.09), "Are you sure you wish to reload selected\nelement from its original file?");
-      path     .create(Rect_C(0.675, -0.20, 1.3 , 0.055));
-      path_sel .create(Rect_LU(path.rect().ru(), path.rect().h()), "...").func(Select, T).focusable(false);
-    t_name     .create(Vec2(0.08, -0.264), "Name");
-      name     .create(Rect_L(t_name.rect().right()+Vec2(0.055, 0), 0.3, 0.0475));
-set_start_frame.create(Rect_L(0.50, -0.264, 0.27, 0.0475), "Set Start Frame").func(ToggleStart   , T)                 ; set_start_frame.mode=BUTTON_TOGGLE; start_frame.create(Rect_LU(set_start_frame.rect().ru(), 0.15, set_start_frame.rect().h())).hide();
-set_end_frame  .create(Rect_L(0.98, -0.264, 0.25, 0.0475), "Set End Frame"  ).func(ToggleEnd     , T)                 ; set_end_frame  .mode=BUTTON_TOGGLE;   end_frame.create(Rect_LU(set_end_frame  .rect().ru(), 0.15, set_end_frame  .rect().h())).hide();
-set_speed      .create(Rect_L(0.50, -0.328, 0.27, 0.0475), "Set Speed"      ).func(ToggleSpeed   , T).desc(   speed_t); set_speed      .mode=BUTTON_TOGGLE;       speed.create(Rect_LU(set_speed      .rect().ru(), 0.15, set_speed      .rect().h())).hide().desc(   speed_t);
-set_optimize   .create(Rect_L(0.98, -0.328, 0.25, 0.0475), "Set Optimize"   ).func(ToggleOptimize, T).desc(optimize_t); set_optimize   .mode=BUTTON_TOGGLE;    optimize.create(Rect_LU(set_optimize   .rect().ru(), 0.15, set_optimize   .rect().h())).hide().desc(optimize_t);
-      mirror   .create(Rect_L(path.rect().min.x, -0.328, 0.23, 0.0475), "Mirror");                                      mirror         .mode=BUTTON_TOGGLE;
-      yes_all  .create(Rect_C(0.5 , -0.22 , 0.29, 0.07), "Yes").func(Reload, T).focusable(false);
-      yes      .create(Rect_C(0.7 , -0.408, 0.29, 0.07), "Yes").func(Reload, T).focusable(false);
-      win_io.create(S, S, S, Select, Select, T);
+      text_all    .create(Vec2  (0.5  , -0.09), "Are you sure you wish to reload all selected\nelements from their original files?");
+      text        .create(Vec2  (0.7  , -0.09), "Are you sure you wish to reload selected\nelement from its original file?");
+      path        .create(Rect_C(0.675, -0.20, 1.3 , 0.055));
+      path_sel    .create(Rect_LU(path.rect().ru(), path.rect().h()), "...").func(Select, T).focusable(false);
+    t_name        .create(Vec2(0.08, -0.264), "Name");
+      name        .create(Rect_L(t_name.rect().right()+Vec2(0.055, 0), 0.3, 0.0475));
+set_start_frame   .create(Rect_L(0.50, -0.264, 0.27, 0.0475), "Set Start Frame").func(ToggleStart   , T)                 ; set_start_frame.mode=BUTTON_TOGGLE; start_frame.create(Rect_LU(set_start_frame.rect().ru(), 0.15, set_start_frame.rect().h())).hide();
+set_end_frame     .create(Rect_L(0.98, -0.264, 0.25, 0.0475), "Set End Frame"  ).func(ToggleEnd     , T)                 ; set_end_frame  .mode=BUTTON_TOGGLE;   end_frame.create(Rect_LU(set_end_frame  .rect().ru(), 0.15, set_end_frame  .rect().h())).hide();
+set_speed         .create(Rect_L(0.50, -0.328, 0.27, 0.0475), "Set Speed"      ).func(ToggleSpeed   , T).desc(   speed_t); set_speed      .mode=BUTTON_TOGGLE;       speed.create(Rect_LU(set_speed      .rect().ru(), 0.15, set_speed      .rect().h())).hide().desc(   speed_t);
+set_optimize      .create(Rect_L(0.98, -0.328, 0.25, 0.0475), "Set Optimize"   ).func(ToggleOptimize, T).desc(optimize_t); set_optimize   .mode=BUTTON_TOGGLE;    optimize.create(Rect_LU(set_optimize   .rect().ru(), 0.15, set_optimize   .rect().h())).hide().desc(optimize_t);
+      mirror      .create(Rect_L(path.rect().min.x, -0.328        , 0.14, 0.0475), "Mirror"      );                        mirror         .mode=BUTTON_TOGGLE;
+      del_end_keys.create(Rect_LU(mirror.rect().ru()+Vec2(0.02, 0), 0.25, 0.0475), "Del End Keys");                        del_end_keys   .mode=BUTTON_TOGGLE;
+      yes_all     .create(Rect_C(0.5 , -0.22 , 0.29, 0.07), "Yes").func(Reload, T).focusable(false);
+      yes         .create(Rect_C(0.7 , -0.408, 0.29, 0.07), "Yes").func(Reload, T).focusable(false);
+      win_io      .create(S, S, S, Select, Select, T);
    }
    virtual void update(C GuiPC &gpc)override
    {

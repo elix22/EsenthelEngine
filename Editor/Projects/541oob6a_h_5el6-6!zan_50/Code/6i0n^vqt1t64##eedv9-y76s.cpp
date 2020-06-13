@@ -29,7 +29,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text (0, 0.9, "Drag & Drop some files to this window");
 
    FREPA(FileNames)D.text(0, 0.7-i*0.1, FileNames[i]); // draw all file names

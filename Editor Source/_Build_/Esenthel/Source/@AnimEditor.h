@@ -115,6 +115,26 @@ public:
    OptimizeAnim();
    };
 
+   class ScalePosKeys : PropWin
+   {
+      bool      refresh_needed, preview;
+      Vec       scale;
+      flt       scale_xyz;
+      Button    ok;
+      Animation anim;
+
+      static void Changed(C Property &prop);
+      static void OK(ScalePosKeys &oa);
+
+      void scalePos(Animation &anim);
+      Animation* getAnim();
+      void refresh();        
+      ScalePosKeys& create();
+
+public:
+   ScalePosKeys();
+   };
+
    class TimeRangeSpeed : PropWin
    {
       flt    start, end, speed;
@@ -147,7 +167,7 @@ public:
                      loop, linear, root_from_body,
                      root_del_pos, root_del_pos_x, root_del_pos_y, root_del_pos_z,
                      root_del_rot, root_del_rot_x, root_del_rot_y, root_del_rot_z,
-                     root_del_scale, root_smooth, root_set_move, root_set_rot, reload;
+                     root_del_scale, root_smooth, root_smooth_rot, root_smooth_pos, root_set_move, root_set_rot, reload;
    CheckBox          play;
    Memx<Property>    props, root_props;
    Tabs              op, settings;
@@ -160,6 +180,7 @@ public:
    Str8              sel_bone_name;
    Vec               orn_target, orn_perp, copied_bone_pos;
    OptimizeAnim      optimize_anim;
+   ScalePosKeys      scale_pos_keys;
    TimeRangeSpeed    time_range_speed;
    Edit::Undo<Change> undos;   void undoVis();
 
@@ -182,19 +203,27 @@ public:
    static void  DelFrames     (AnimEditor &editor);
    static void  DelFramesAtEnd(AnimEditor &editor);
    static void Optimize       (AnimEditor &editor);
+   static void ScalePosKey    (AnimEditor &editor);
    static void TimeRangeSp    (AnimEditor &editor);
    static void ReverseFrames  (AnimEditor &editor);
    static void RemMovement    (AnimEditor &editor);
    static void FreezeBone     (AnimEditor &editor);
    static void Mirror         (AnimEditor &editor);
+   void rotate(C Matrix3 &m);
    static void RotX           (AnimEditor &editor);
    static void RotY           (AnimEditor &editor);
    static void RotZ           (AnimEditor &editor);
+   static void RotXH          (AnimEditor &editor);
+   static void RotYH          (AnimEditor &editor);
+   static void RotZH          (AnimEditor &editor);
    static void DrawBones      (AnimEditor &editor);
    static void DrawMesh       (AnimEditor &editor);
    static void Grid           (AnimEditor &editor);
    static void TransformObj   (AnimEditor &editor);
-   static void TransformObjDo(AnimEditor &editor);
+   static void TransformObjYes            (AnimEditor &editor);                       
+   static void TransformObjYesPreserveThis(AnimEditor &editor);                       
+   static void TransformObjYesPreserveAll (AnimEditor &editor);                       
+          void transformObj(bool transform_anims=true, C UID &ignore_anim_id=UIDZero);
 
    static void Undo  (AnimEditor &editor);
    static void Redo  (AnimEditor &editor);
@@ -207,15 +236,17 @@ public:
    static void RootDelPos(AnimEditor &editor);
    static void RootDelRot(AnimEditor &editor);
    static void RootDel(AnimEditor &editor);
-   static void RootDelPosX (AnimEditor &editor);
-   static void RootDelPosY (AnimEditor &editor);
-   static void RootDelPosZ (AnimEditor &editor);
-   static void RootDelRotX (AnimEditor &editor);
-   static void RootDelRotY (AnimEditor &editor);
-   static void RootDelRotZ (AnimEditor &editor);
- //static void RootDelScale(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelScale"); FlagToggle(d.flag, ElmAnim.ROOT_DEL_SCALE); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d.flag&ElmAnim.ROOT_DEL_SCALE){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim.adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_SCALE     ); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
-   static void RootSmooth  (AnimEditor &editor);
-   static void RootFromBody(AnimEditor &editor);
+   static void RootSmooth(AnimEditor &editor);
+   static void RootDelPosX  (AnimEditor &editor);
+   static void RootDelPosY  (AnimEditor &editor);
+   static void RootDelPosZ  (AnimEditor &editor);
+   static void RootDelRotX  (AnimEditor &editor);
+   static void RootDelRotY  (AnimEditor &editor);
+   static void RootDelRotZ  (AnimEditor &editor);
+ //static void RootDelScale (AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelScale"); FlagToggle(d.flag, ElmAnim.ROOT_DEL_SCALE ); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d.flag&ElmAnim.ROOT_DEL_SCALE ){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim.adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_SCALE     ); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   static void RootSmoothRot(AnimEditor &editor);
+   static void RootSmoothPos(AnimEditor &editor);
+   static void RootFromBody (AnimEditor &editor);
    static void RootFromBodyX(AnimEditor &editor);
    static void RootFromBodyZ(AnimEditor &editor);
    static void RootFromBodyXZ(AnimEditor &editor);
@@ -235,9 +266,10 @@ public:
    static void RootRotY(  AnimEditor &editor, C Str&t);
    static void RootRotZ(  AnimEditor &editor, C Str&t);
 
-   static void SetSelMirror(AnimEditor &editor);
-   static void SetMirrorSel(AnimEditor &editor);
-          void setSelMirror(bool set_other);
+   static void SetSelMirror(AnimEditor &editor);               
+   static void SetMirrorSel(AnimEditor &editor);               
+          void setSelMirror(int i, int bone_i, bool set_other);
+   void setSelMirror(bool set_other);
    static void SkelBonePosCopy (AnimEditor &editor);
    static void SkelBonePosCopyR(AnimEditor &editor);
           void skelBonePosCopy (bool relative);
@@ -267,9 +299,10 @@ public:
    Matrix transformedBoneAxis(int i)C;
    int getBone(GuiObj *go, C Vec2 &screen_pos);
    int boneParent(int bone)C;
-   AnimKeys* findVisKeys(int sbon_index, bool root=true);
-   AnimKeys* findKeys(int sbon_index, bool root=true);
-   AnimKeys* getKeys(int sbon_index, bool root=true);
+   AnimKeys* findKeys(Animation *anim, int sbon_index, bool root=true);
+   AnimKeys* findVisKeys(int sbon_index, bool root=true);            
+   AnimKeys* findKeys   (int sbon_index, bool root=true);            
+   AnimKeys*  getKeys   (int sbon_index, bool root=true);
    AnimKeys* findKeysParent(int sbon_index, bool root=true); // return null for root, because 'findKeys' already returns root for -1, and 'findKeysParent' would return the same
 
    static int CompareKey(C AnimKeys::Orn   &key, C flt &time);
@@ -287,6 +320,8 @@ public:
    flt getBlend(C AnimKeys::Key &key )C;
    flt getBlend(           flt  time)C;
 
+   static void ScaleScaleFactor(Vec &scale_factor, C Vec &scale);
+
    virtual void update(C GuiPC &gpc)override;
    bool selectionZoom(flt &dist);
    bool getHit(GuiObj *go, C Vec2 &screen_pos, Vec &hit_pos);
@@ -300,7 +335,7 @@ public:
    bool delFramesPos(int bone);
    bool delFramesScale(int bone);
    void delFrame();
-   void delFrames();
+   void delFrames(int bone);
    void delFramesAtEnd();
    void reverseFrames();
    void removeMovement();

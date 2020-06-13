@@ -108,7 +108,7 @@ struct ImageRT;
 struct ImageHeader;
 struct Video;
 struct Font;
-struct Display;
+struct DisplayClass;
 struct MainShaderClass;
 struct RendererClass;
 struct RenderTargets;
@@ -179,8 +179,8 @@ struct MeshGroup;
 // INPUT
 /******************************************************************************/
 struct KbSc;
-struct Keyboard;
-struct Mouse;
+struct KeyboardClass;
+struct MouseClass;
 struct Touch;
 struct VirtualRealityApi;
 /******************************************************************************/

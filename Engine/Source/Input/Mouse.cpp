@@ -164,9 +164,9 @@ void MouseCursor::create(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware)
 
 static Bool DelayPush;
 
-Mouse Ms;
+MouseClass Ms;
 /******************************************************************************/
-Mouse::Mouse()
+MouseClass::MouseClass()
 {
    REPAO(_button)=0;
   _selecting=_dragging=_first=_detected=_on_client=_freezed=_clip_rect_on=_clip_window=_freeze=_action=_locked=false;
@@ -187,7 +187,7 @@ Mouse::Mouse()
   _button_name[6]="Mouse7";
   _button_name[7]="Mouse8";
 }
-void Mouse::del()
+void MouseClass::del()
 {
   _cursor=null; _cursor_temp.del(); // clear the pointer and images because display and images are already deleted, and attempting to use it afterwards will result in a crash
 #if WINDOWS_OLD
@@ -207,7 +207,7 @@ void Mouse::del()
    if(Grab){XDestroyWindow(XDisplay, Grab); Grab=NULL;}
 #endif
 }
-void Mouse::create()
+void MouseClass::create()
 {
    if(LogInit)LogN("Mouse.create");
 #if WINDOWS_OLD
@@ -303,15 +303,15 @@ ok:;
 #endif
 }
 /******************************************************************************/
-CChar8* Mouse::buttonName(Int x)C
+CChar8* MouseClass::buttonName(Int x)C
 {
    return InRange(x, _button_name) ? _button_name[x] : null;
 }
 /******************************************************************************/
-void Mouse::speed(Flt speed)  {       T._speed=speed*SPEED;}
-Flt  Mouse::speed(         )C {return T._speed      /SPEED;}
+void MouseClass::speed(Flt speed)  {       T._speed=speed*SPEED;}
+Flt  MouseClass::speed(         )C {return T._speed      /SPEED;}
 /******************************************************************************/
-void Mouse::pos(C Vec2 &pos)
+void MouseClass::pos(C Vec2 &pos)
 {
    T._pos=pos;
    VecI2 posi=D.screenToWindowPixelI(pos);
@@ -394,7 +394,7 @@ static void Clip(RectI *rect) // 'rect' is in window client space, full rect is 
    else    emscripten_exit_pointerlock   ();
 #endif
 }
-void Mouse::clipUpdate() // !! Don't call always, to avoid changing clip for other apps when inactive !!
+void MouseClass::clipUpdate() // !! Don't call always, to avoid changing clip for other apps when inactive !!
 {
    if(App.active() && (_freezed || _clip_rect_on || _clip_window))
    {
@@ -437,11 +437,11 @@ void Mouse::clipUpdate() // !! Don't call always, to avoid changing clip for oth
       Clip(&recti);
    }else Clip(null);
 }
-void Mouse::clipUpdateConditional()
+void MouseClass::clipUpdateConditional()
 {
    if(App.active() && (/*_freezed || */_clip_rect_on || _clip_window))clipUpdate(); // update only if clipping to rect/window (this ignores freeze because cases calling this method don't need it)
 }
-Mouse& Mouse::clip(C Rect *rect, Int window)
+MouseClass& MouseClass::clip(C Rect *rect, Int window)
 {
    Bool rect_on=(rect!=null),
         win    =((window<0) ? _clip_window : (window!=0)); // <0 - keep old, >=0 - set new
@@ -453,13 +453,13 @@ Mouse& Mouse::clip(C Rect *rect, Int window)
    }
    return T;
 }
-Mouse& Mouse::freeze() {_freeze=true; return T;}
+MouseClass& MouseClass::freeze() {_freeze=true; return T;}
 /******************************************************************************/
 #if WINDOWS_NEW
 static void MouseResetCursor() {Ms.resetCursor();}
 #endif
 static Bool CanUseHWCursor() {return Ms._cursor && Ms._cursor->_hw.is() && !VR.active();} // can't use hardware cursor in VR mode (it can be enabled there, however that would also require drawing it manually on the gui surface, and that would result in cursor being drawn twice on the window - 1-on gui surface 2-using hardware cursor)
-void Mouse::resetCursor()
+void MouseClass::resetCursor()
 {
 #if WINDOWS_NEW
    if(!App.mainThread()){App._callbacks.include(MouseResetCursor); return;} // for Windows New this can be called only on the main thread
@@ -492,7 +492,7 @@ void Mouse::resetCursor()
    if(XDisplay && App.hwnd())XDefineCursor(XDisplay, App.Hwnd(), XCursor((cur<0) ? null : (cur==0) ? MsCurEmpty._cursor : _cursor->_hw._cursor));
 #endif
 }
-Mouse& Mouse::cursor(C MouseCursor *cursor)
+MouseClass& MouseClass::cursor(C MouseCursor *cursor)
 {
    if(T._cursor!=cursor)
    {
@@ -501,7 +501,7 @@ Mouse& Mouse::cursor(C MouseCursor *cursor)
    }
    return T;
 }
-Mouse& Mouse::cursor(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware, Bool reset)
+MouseClass& MouseClass::cursor(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware, Bool reset)
 {
    if(_cursor_temp._image!=image || _cursor_temp._hot_spot!=hot_spot || _want_cur_hw!=hardware || reset)
    {
@@ -511,7 +511,7 @@ Mouse& Mouse::cursor(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware, Bool r
    return T;
 }
 /******************************************************************************/
-Mouse& Mouse::visible(Bool show)
+MouseClass& MouseClass::visible(Bool show)
 {
    if(_visible!=show)
    {
@@ -521,14 +521,14 @@ Mouse& Mouse::visible(Bool show)
    return T;
 }
 /******************************************************************************/
-void Mouse::eat(Int b)
+void MouseClass::eat(Int b)
 {
 	if(InRange(b, _button))FlagDisable(_button[b], BS_NOT_ON);
 }
-void Mouse::eatWheel() {_wheel.zero(); _wheel_i.zero();} // don't clear '_wheel_f' because it should continue to be accumulated
-void Mouse::eat     () {REPA(_button)eat(i);}
+void MouseClass::eatWheel() {_wheel.zero(); _wheel_i.zero();} // don't clear '_wheel_f' because it should continue to be accumulated
+void MouseClass::eat     () {REPA(_button)eat(i);}
 /******************************************************************************/
-void Mouse::acquire(Bool on)
+void MouseClass::acquire(Bool on)
 {
 #if WINDOWS_OLD
 #if !MS_RAW_INPUT
@@ -542,7 +542,7 @@ void Mouse::acquire(Bool on)
    resetCursor();
 }
 /******************************************************************************/
-void Mouse::clear()
+void MouseClass::clear()
 {
    eatWheel();
   _delta_relative.zero();
@@ -551,7 +551,7 @@ void Mouse::clear()
    if(DelayPush){DelayPush=false; push(0);}
 }
 /******************************************************************************/
-void Mouse::push(Byte b, Flt double_click_time)
+void MouseClass::push(Byte b, Flt double_click_time)
 {
    if(InRange(b, _button) && !(_button[b]&BS_ON))
    {
@@ -577,7 +577,7 @@ void Mouse::push(Byte b, Flt double_click_time)
       }
    }
 }
-void Mouse::release(Byte b)
+void MouseClass::release(Byte b)
 {
    if(InRange(b, _button) && (_button[b]&BS_ON))
    {
@@ -587,7 +587,7 @@ void Mouse::release(Byte b)
    }
 }
 /******************************************************************************/
-void Mouse::update()
+void MouseClass::update()
 {
    // clip
    if(_freeze){if(!_freezed){_freezed=true ; clipUpdate();} _freeze=false;}
@@ -775,7 +775,7 @@ void Mouse::update()
   _detected|=_action;
 }
 /******************************************************************************/
-void Mouse::draw()
+void MouseClass::draw()
 {
    if(_cursor && _cursor->_image && _detected && visible() && !CanUseHWCursor() && _on_client
 #if !WINDOWS_OLD

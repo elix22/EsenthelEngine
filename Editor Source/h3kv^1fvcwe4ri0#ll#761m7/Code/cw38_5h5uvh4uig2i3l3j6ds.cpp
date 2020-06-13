@@ -402,6 +402,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(mesh_elm)if(ElmMesh *mesh_data=mesh_elm.meshData())return mesh_data.posScale(); // because we're operating on meshes in original import matrix, we need to adjust by the transform scale
       return 1;
    }
+   flt       posEps()C {return          EPS*posScale();}
    flt vtxDupPosEps()C {return VtxDupPosEps*posScale();}
    Vec selMeshCenter()C
    {
@@ -511,7 +512,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                   if(C MeshPtr &mesh=Proj.gamePath(obj_data.mesh_id))
                      mesh->drawBlend(MatrixIdentity, &Vec4(1, 1, 1, 0.5));
 
-            if(background_alpha()<1)REPAO(back_meshes).drawBlend();
+            if(background_alpha()>0 && background_alpha()<1)REPAO(back_meshes).drawBlend();
          }break;
       }
       particles.draw();
@@ -1204,21 +1205,23 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    void getSamePos(int part, int vtx, MemPtr<VecI2> vtxs)
    {
       vtxs.clear();
+      flt pos_eps=posEps();
     C MeshLod &lod=getLod(); if(C MeshPart *p=lod.parts.addr(part))if(InRange(vtx, p.base.vtx))
       {
        C Vec &pos=p.base.vtx.pos(vtx); REPAD(p, lod)
          {
-          C MeshPart &part=lod.parts[p]; if(partVisible(p, part))REPA(part.base.vtx)if(Equal(part.base.vtx.pos(i), pos))vtxs.add(VecI2(p, i));
+          C MeshPart &part=lod.parts[p]; if(partVisible(p, part))REPA(part.base.vtx)if(Equal(part.base.vtx.pos(i), pos, pos_eps))vtxs.add(VecI2(p, i));
          }
       }
    }
    void includeSamePos(int part, MemPtr<VecI2> vtxs) // !! assumes that 'vtxs' is sorted and valid (point to valid indexes) !!
    {
+      flt pos_eps=posEps();
     C MeshLod &lod=getLod(); if(C MeshPart *p=lod.parts.addr(part))REPA(p.base.vtx)
       {
        C Vec &pos=p.base.vtx.pos(i); REPAD(v, vtxs)
          {
-          C VecI2 &vtx=vtxs[v]; if(Equal(pos, lod.parts[vtx.x].base.vtx.pos(vtx.y))){vtxs.binaryInclude(VecI2(part, i)); break;} // if share position then process this one too
+          C VecI2 &vtx=vtxs[v]; if(Equal(pos, lod.parts[vtx.x].base.vtx.pos(vtx.y), pos_eps)){vtxs.binaryInclude(VecI2(part, i)); break;} // if share position then process this one too
          }
       }
    }
@@ -1440,12 +1443,12 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          "UV",
          "All",
       };
-      cchar8 *vfs_desc[]=
+      Str vfs_desc[]=
       {
-         "This mode selects only single face/vertexes\n\nKeyboard Shortcut: Shift+Alt+1",
-         "This mode selects a group of face/vertexes that are connected to each other and have the same normal vectors\n\nKeyboard Shortcut: Shift+Alt+2",
-         "This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates\n\nKeyboard Shortcut: Shift+Alt+3",
-         "This mode selects a group of all face/vertexes that are connected to each other\n\nKeyboard Shortcut: Shift+Alt+4",
+         S+"This mode selects only single face/vertexes\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+1",
+         S+"This mode selects a group of face/vertexes that are connected to each other and have the same normal vectors\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+2",
+         S+"This mode selects a group of face/vertexes that are connected to each other and have the same texture coordinates\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+3",
+         S+"This mode selects a group of all face/vertexes that are connected to each other\n\nKeyboard Shortcut: "+Kb.winCtrlName()+"+4",
       };
       mode.tab(MESH)+=vtx_face_sel_text.create(Rect(mesh_undo.rect().ld()-Vec2(0, 0.01+ts.size.y/2)), "Vertex/Face Selection:", &ts).visible(mesh_parts.edit_selected());
       mode.tab(MESH)+=vtx_face_sel_mode.create(Rect_L(vtx_face_sel_text.rect().ld()-Vec2(0, ts.size.y+0.005), 0.40, 0.055), 0, vfs_modes, Elms(vfs_modes), true).valid(true).set(0).visible(vtx_face_sel_text.visible());
@@ -1463,11 +1466,11 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Set Normals (UV)"              , MeshSetNormalT, T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on UV vertex connections");
          n.New().create("Set Normals (Position)"        , MeshSetNormalP, T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will set normals of selected vertexes/faces\nNormals will be smoothened based on vertex connections");
          n.New().create("Set Normals (None)"            , MeshSetNormal , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces");
-         n.New().create("Set Normals (Highlight)"       , MeshSetNormalH, T).kbsc(KbSc(KB_N, KBSC_WIN     |KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
+         n.New().create("Set Normals (Highlight)"       , MeshSetNormalH, T).kbsc(KbSc(KB_N, KBSC_WIN_CTRL|KBSC_ALT           )).desc("This option will set normals of selected vertexes/faces\nNormals will be taken from highlighted element.\nTo use:\n-Select parts\n-Highlight target part\n-Press Keyboard shortcut for this option");
          n.New().create("Align Normals Up"              , MeshNormalY   , T).kbsc(KbSc(KB_N, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align normals towards up direction by a bit");
          n.New().create("Align To Vertex Round XZ"      , MeshAlignXZ   , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will align the object so that the highlighted vertex XZ position will be an integer.");
          n.New().create("Align To Vertex Round"         , MeshAlign     , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will align the object so that the highlighted vertex position will be an integer.");
-         n.New().create("Set Vertex Ambient Occlusion"  , MeshSetVtxAO  , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_WIN           )).desc("This option will calculate Ambient Occlusion for each vertex and store it as vertex color.");
+         n.New().create("Set Vertex Ambient Occlusion"  , MeshSetVtxAO  , T).kbsc(KbSc(KB_A, KBSC_CTRL_CMD|KBSC_WIN_CTRL      )).desc("This option will calculate Ambient Occlusion for each vertex and store it as vertex color.");
          n.New().create("Create Face"                   , MeshCreateFace, T).kbsc(KbSc(KB_F, KBSC_CTRL_CMD                    )).desc("This option will create 1 face from selected vertexes");
          n.New().create("Merge Faces"                   , MeshMergeFaces, T).kbsc(KbSc(KB_M, KBSC_CTRL_CMD                    )).desc("This option will merge 2 selected/highlighted faces if they share 2 vertexes");
          n.New().create("Rotate Quads"                  , MeshRotQuads  , T).kbsc(KbSc(KB_Q, KBSC_CTRL_CMD|KBSC_ALT           ));
@@ -1480,10 +1483,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          n.New().create("Separate into 1 Object"        , MeshSeparate1, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT         )).desc("This option will separate selected parts into 1 new object");
          n.New().create("Separate into Multiple Objects", MeshSeparateN, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT|KBSC_ALT)).desc("This option will separate selected parts into multiple new objects (1 per part)");
          n.New().create("Edit Selected"                 , MeshEditSel  , T).kbsc(KbSc(KB_E, KBSC_CTRL_CMD      )).flag(MENU_HIDDEN);
-         n.New().create("VFS0"                          , MeshVFS0     , T).kbsc(KbSc(KB_1, KBSC_SHIFT|KBSC_ALT)).flag(MENU_HIDDEN);
-         n.New().create("VFS1"                          , MeshVFS1     , T).kbsc(KbSc(KB_2, KBSC_SHIFT|KBSC_ALT)).flag(MENU_HIDDEN);
-         n.New().create("VFS2"                          , MeshVFS2     , T).kbsc(KbSc(KB_3, KBSC_SHIFT|KBSC_ALT)).flag(MENU_HIDDEN);
-         n.New().create("VFS3"                          , MeshVFS3     , T).kbsc(KbSc(KB_4, KBSC_SHIFT|KBSC_ALT)).flag(MENU_HIDDEN);
+         n.New().create("VFS0"                          , MeshVFS0     , T).kbsc(KbSc(KB_1, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS1"                          , MeshVFS1     , T).kbsc(KbSc(KB_2, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS2"                          , MeshVFS2     , T).kbsc(KbSc(KB_3, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
+         n.New().create("VFS3"                          , MeshVFS3     , T).kbsc(KbSc(KB_4, KBSC_WIN_CTRL)).flag(MENU_HIDDEN);
          n.New().create("MeshAO Preview"                , MeshAOClass.PreviewToggle, MeshAO).kbsc(KbSc(KB_P, KBSC_ALT)).flag(MENU_HIDDEN);
          n++;
          {
@@ -2214,7 +2217,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       if(obj_elm)REPA(v4.view)if(focus_obj==&v4.view[i].viewport)Importer.import(*obj_elm, names, screen_pos);
    }
 
-   void animate(C AnimSkel &anim_skel)
+   void animate(C AnimSkel &anim_skel, bool transform_anims=true, C UID &ignore_anim_id=UIDZero)
    {
       if(mesh_skel && skel_elm)
       {
@@ -2226,7 +2229,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          mesh_skel.animate(anim_skel); // 'mesh_skel' is in 'mesh_matrix'
          edit_skel.animate(anim_skel, matrixes); // need to modify 'edit_skel' so new animations will import correctly
 
-         Proj.offsetAnimations(saved_skel, *mesh_skel, skel_elm.id); // we've transformed mesh skeleton, and since animations can transform bones on top of skeleton, then we need to offset them back
+         if(transform_anims)Proj.offsetAnimations(saved_skel, *mesh_skel, skel_elm.id, ignore_anim_id); // we've transformed mesh skeleton, and since animations can transform bones on top of skeleton, then we need to offset them back
 
          // need to modify 'saved_skel' so existing animations won't be modified
          saved_skel=*mesh_skel; saved_edit_skel=edit_skel; saved_skel_matrix=mesh_matrix; cur_skel_to_saved_skel.create(saved_skel);
@@ -2234,6 +2237,16 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
          setChangedMesh(true);
          setChangedSkel(true);
+      }
+   }
+   void animate(C Animation &anim, flt anim_time, bool transform_anims=true, C UID &ignore_anim_id=UIDZero)
+   {
+      if(mesh_skel)
+      {
+         SkelAnim skel_anim; skel_anim.create(*mesh_skel, anim);
+         AnimSkel anim_skel; anim_skel.create( mesh_skel);
+         anim_skel.updateBegin().clear().animateEx(skel_anim, anim_time, true, true, true).updateMatrix().updateEnd();
+         animate(anim_skel, transform_anims, ignore_anim_id);
       }
    }
 

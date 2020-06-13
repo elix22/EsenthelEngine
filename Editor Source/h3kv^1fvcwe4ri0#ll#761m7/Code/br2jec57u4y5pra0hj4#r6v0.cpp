@@ -175,15 +175,15 @@ class SelectionClass
    }
 
    // operations
-   void   select      (Obj &obj) {if(!obj.selected){obj.selected=true ; objs.add    (&obj); sel_changed=true;}}
-   void deselect      (Obj &obj) {if( obj.selected){obj.selected=false; objs.exclude(&obj); sel_changed=true;}}
+   void   select      (Obj &obj) {if(!obj.selected){WorldEdit.obj_pos.apply(); obj.selected=true ; objs.add    (&obj); sel_changed=true;}}
+   void deselect      (Obj &obj) {if( obj.selected){WorldEdit.obj_pos.apply(); obj.selected=false; objs.exclude(&obj); sel_changed=true;}}
    void   selectToggle(Obj &obj) {if( obj.selected)deselect(obj);else select(obj);}
 
    void   highlight(Obj &obj) {if(!obj.highlighted){obj.highlighted=true ; highlighted.add    (&obj);}}
    void unhighlight(Obj &obj) {if( obj.highlighted){obj.highlighted=false; highlighted.exclude(&obj);}}
 
-   SelectionClass& clearSelect   () {if(objs.elms())sel_changed=true; REPAO(objs       ).selected   =false; objs       .clear(); return T;}
-   SelectionClass& clearHighlight() {                                 REPAO(highlighted).highlighted=false; highlighted.clear(); return T;}
+   SelectionClass& clearSelect   () {if(objs.elms()){WorldEdit.obj_pos.apply(); sel_changed=true; REPAO(objs       ).selected   =false; objs       .clear();} return T;}
+   SelectionClass& clearHighlight() {                                                             REPAO(highlighted).highlighted=false; highlighted.clear();  return T;}
 
    void highlightScreenObjs(Obj &base)
    {
@@ -264,7 +264,6 @@ class SelectionClass
       // process selection
       if(sel_scope)
       {
-         WorldEdit.obj_pos.apply();
          SEL_MODE sel=((Kb.ctrlCmd() && Kb.shift()) ? SM_KEEP : Kb.ctrlCmd() ? SM_TOGGLE : Kb.shift() ? SM_INCLUDE : Kb.alt() ? SM_EXCLUDE : tsm.selMode());
          switch(sel_scope)
          {

@@ -93,7 +93,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    LightDir(Cam.matrix.z).set();
    
    SetMatrix();

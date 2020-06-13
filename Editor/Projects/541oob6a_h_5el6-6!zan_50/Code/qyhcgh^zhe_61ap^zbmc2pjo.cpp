@@ -53,7 +53,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text(0, 0, "This tutorial plays a sound with data created dynamically by the application");
 }
 /******************************************************************************/

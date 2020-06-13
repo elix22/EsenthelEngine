@@ -62,7 +62,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    // draw values
    D.text(0, 0.2, S+"x: "   +x   );

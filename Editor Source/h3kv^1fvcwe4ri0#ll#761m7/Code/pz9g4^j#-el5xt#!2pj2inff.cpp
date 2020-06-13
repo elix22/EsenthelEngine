@@ -190,7 +190,7 @@ class DetectSimilarTextures : PropWin
          rect(Rect_C(0, 0, 1.6, D.h()*1.75));
          progress.clear().show();
 
-         threads.create(false);
+         threads.create(false, Cpu.threads(), 0, "Editor.DetectSimilarTextures");
          reset();
       }
       return T;

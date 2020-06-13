@@ -85,11 +85,12 @@ void ObjView::meshWeldPos()
          mesh_undos.set("weldPos");
          MeshLod &lod=getLod();
          Memt<Vec> poss; Vec center=0;
+         flt pos_eps=posEps();
          REPA(sel_vtx)
          {
           C VecI2 &v=sel_vtx[i]; if(C MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part->base.vtx))
             {
-             C Vec &pos=part->base.vtx.pos(v.y); REPA(poss)if(Equal(pos, poss[i]))goto has; poss.add(pos); center+=pos; has:;
+             C Vec &pos=part->base.vtx.pos(v.y); REPA(poss)if(Equal(pos, poss[i], pos_eps))goto has; poss.add(pos); center+=pos; has:;
             }
          }
          if(poss.elms())
@@ -110,7 +111,7 @@ void ObjView::meshWeldPos(flt pos_eps)
 {
    bool changed=false;
    pos_eps*=posScale();
-   flt remove_degenerate_faces_eps=EPS*posScale();
+   flt remove_degenerate_faces_eps=posEps();
    mesh_undos.set("weldPos");
    MeshLod &lod=getLod();
    REPA(lod)if(partOp(i))if(MeshPart *part=lod.parts.addr(i))
@@ -361,11 +362,12 @@ void ObjView::meshCreateFace()
    if(MeshPart *part=getPart(sel_vtx[0].x))
    {
       MeshBase &base=part->base;
+      flt pos_eps=posEps();
       MemtN<Vec, 4> unique;
       FREPA(sel_vtx) // add in order
       {
        C Vec &pos=base.vtx.pos(sel_vtx[i].y);
-         REPA(unique)if(Equal(unique[i], pos))goto has;
+         REPA(unique)if(Equal(unique[i], pos, pos_eps))goto has;
          if(unique.elms()>=4)goto invalid_vtx_number;
          unique.add(pos);
       has:;

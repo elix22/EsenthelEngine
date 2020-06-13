@@ -44,6 +44,10 @@ struct _MemcThreadSafe // Thread-Safe Continuous Memory Based Container Base - D
    void   lock()C {_lock.on ();}
    void unlock()C {_lock.off();}
 
+   // io
+   Bool saveRaw(File &f)C;
+   Bool loadRaw(File &f) ;
+
 private:
   _Memc     _memc;
    SyncLock _lock;

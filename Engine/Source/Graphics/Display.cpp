@@ -21,7 +21,7 @@ namespace EE{
 
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY 0x84FF
 /******************************************************************************/
-Display D;
+DisplayClass D;
 
 #if DX11 // DirectX 10/11
    #define GDI_COMPATIBLE 0 // requires DXGI_FORMAT_B8G8R8A8_UNORM or DXGI_FORMAT_B8G8R8A8_UNORM_SRGB
@@ -376,7 +376,7 @@ void GLContext::unlock()
 /******************************************************************************/
 // DISPLAY
 /******************************************************************************/
-VecI2 Display::screen()C
+VecI2 DisplayClass::screen()C
 {
 #if WINDOWS_OLD
    return VecI2(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
@@ -435,7 +435,7 @@ VecI2 Display::screen()C
    return App.desktop(); // this is not changed when device is rotated (obtained at app startup)
 }
 /******************************************************************************/
-void Display::setShader(C Material *material)
+void DisplayClass::setShader(C Material *material)
 {
    if(created())
    {
@@ -446,7 +446,7 @@ void Display::setShader(C Material *material)
      _set_shader_material=null;
    }
 }
-Display& Display::drawNullMaterials(Bool on)
+DisplayClass& DisplayClass::drawNullMaterials(Bool on)
 {
    if(_draw_null_mtrl!=on)
    {
@@ -455,7 +455,7 @@ Display& Display::drawNullMaterials(Bool on)
    }
    return T;
 }
-void Display::screenChanged(Flt old_width, Flt old_height)
+void DisplayClass::screenChanged(Flt old_width, Flt old_height)
 {
    if(old_width>0 && old_height>0)
    {
@@ -463,7 +463,7 @@ void Display::screenChanged(Flt old_width, Flt old_height)
       if(screen_changed)screen_changed(old_width, old_height);
    }
 }
-Str8 Display::shaderModelName()C
+Str8 DisplayClass::shaderModelName()C
 {
    switch(shaderModel())
    {
@@ -480,7 +480,7 @@ Str8 Display::shaderModelName()C
       case SM_6_2      : return "6.2";
    }
 }
-Str8 Display::apiName()C
+Str8 DisplayClass::apiName()C
 {
 #if DX11
    return "DirectX 11";
@@ -498,7 +498,7 @@ Str8 Display::apiName()C
    return "OpenGL";
 #endif
 }
-Bool Display::smallSize()C
+Bool DisplayClass::smallSize()C
 {
 #if WINDOWS_NEW
    Dbl inches; if(OK(GetIntegratedDisplaySize(&inches)))return inches<7;
@@ -514,7 +514,7 @@ Bool Display::smallSize()C
 #endif
    return false;
 }
-Flt Display::browserZoom()C
+Flt DisplayClass::browserZoom()C
 {
 #if WEB
    return emscripten_get_device_pixel_ratio();
@@ -523,7 +523,7 @@ Flt Display::browserZoom()C
 #endif
 }
 #if GL
-VecI2 Display::glVer()
+VecI2 DisplayClass::glVer()
 {
    if(created())
    {
@@ -534,7 +534,7 @@ VecI2 Display::glVer()
    }
    return 0;
 }
-Ptr Display::glGetProcAddress(CChar8 *name)
+Ptr DisplayClass::glGetProcAddress(CChar8 *name)
 {
 #if WINDOWS
    return wglGetProcAddress(name);
@@ -555,7 +555,7 @@ Ptr Display::glGetProcAddress(CChar8 *name)
 #endif
 }
 #endif
-Bool Display::gatherAvailable()C
+Bool DisplayClass::gatherAvailable()C
 {
 #if DX11
    return shaderModel()>=SM_4_1;
@@ -565,7 +565,7 @@ Bool Display::gatherAvailable()C
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
-Bool Display::gatherChannelAvailable()C
+Bool DisplayClass::gatherChannelAvailable()C
 {
 #if DX11
    return shaderModel()>=SM_5;
@@ -575,7 +575,7 @@ Bool Display::gatherChannelAvailable()C
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
-Bool Display::independentBlendAvailable()C
+Bool DisplayClass::independentBlendAvailable()C
 {
 #if DX11
    return shaderModel()>=SM_4_1;
@@ -585,12 +585,12 @@ Bool Display::independentBlendAvailable()C
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
-Bool Display::deferredUnavailable  ()C {return created() &&       _max_rt<3     ;} // deferred requires at least 3 MRT's (#0 Color, #1 Nrm, #2 Ext, #3 Vel optional) #RTOutput
-Bool Display::deferredMSUnavailable()C {return created() && shaderModel()<SM_4_1;} // only Shader Model 4.1 (DX 10.1) and above support multi-sampled RT's
+Bool DisplayClass::deferredUnavailable  ()C {return created() &&       _max_rt<3     ;} // deferred requires at least 3 MRT's (#0 Color, #1 Nrm, #2 Ext, #3 Vel optional) #RTOutput
+Bool DisplayClass::deferredMSUnavailable()C {return created() && shaderModel()<SM_4_1;} // only Shader Model 4.1 (DX 10.1) and above support multi-sampled RT's
 /******************************************************************************/
 // MONITOR
 /******************************************************************************/
-Display::Monitor::Monitor()
+DisplayClass::Monitor::Monitor()
 {
    primary=false;
    full=work.zero();
@@ -598,7 +598,7 @@ Display::Monitor::Monitor()
    device_key[0]=device_name[0]='\0';
 #endif
 }
-VecI2 Display::Monitor::mode()C
+VecI2 DisplayClass::Monitor::mode()C
 {
 #if WINDOWS_OLD
    DEVMODE mode; Zero(mode);
@@ -639,7 +639,7 @@ VecI2 Display::Monitor::mode()C
    return D.screen(); // TODO:
 #endif
 }
-Str Display::Monitor::standardColorProfilePath()C
+Str DisplayClass::Monitor::standardColorProfilePath()C
 {
 #if WINDOWS_OLD
    wchar_t file_name[MAX_PATH]; file_name[0]='\0'; DWORD size=SIZE(file_name); // must be size in bytes
@@ -647,7 +647,7 @@ Str Display::Monitor::standardColorProfilePath()C
 #endif
    return S;
 }
-Str Display::Monitor::colorProfilePath()C
+Str DisplayClass::Monitor::colorProfilePath()C
 {
 #if WINDOWS_OLD
    if(Is(device_key))
@@ -675,7 +675,7 @@ Str Display::Monitor::colorProfilePath()C
    return S;
 }
 #if WINDOWS_OLD
-Bool Display::Monitor::set(HMONITOR monitor)
+Bool DisplayClass::Monitor::set(HMONITOR monitor)
 {
    MONITORINFOEX monitor_info; Zero(monitor_info); monitor_info.cbSize=SIZE(monitor_info);
    if(GetMonitorInfo(monitor, &monitor_info))
@@ -705,7 +705,7 @@ Bool Display::Monitor::set(HMONITOR monitor)
 }
 #endif
 #if DX11
-Display::Monitor* Display::getMonitor(IDXGIOutput &output)
+DisplayClass::Monitor* DisplayClass::getMonitor(IDXGIOutput &output)
 {
    DXGI_OUTPUT_DESC desc; if(OK(output.GetDesc(&desc)))
       if(auto monitor=_monitors(desc.Monitor))
@@ -735,7 +735,7 @@ Display::Monitor* Display::getMonitor(IDXGIOutput &output)
 }
 #endif
 #if WINDOWS_OLD
-Display::Monitor* Display::getMonitor(HMONITOR hmonitor)
+DisplayClass::Monitor* DisplayClass::getMonitor(HMONITOR hmonitor)
 {
    if(hmonitor)if(auto monitor=_monitors(hmonitor))
    {
@@ -749,12 +749,12 @@ Display::Monitor* Display::getMonitor(HMONITOR hmonitor)
 }
 static BOOL CALLBACK EnumMonitors(HMONITOR hmonitor, HDC dc, LPRECT rect, LPARAM dwData) {D.getMonitor(hmonitor); return true;} // continue
 #endif
-C Display::Monitor* Display::mainMonitor()C
+C DisplayClass::Monitor* DisplayClass::mainMonitor()C
 {
    REPA(_monitors){C Monitor &monitor=_monitors[i]; if(monitor.primary)return &monitor;}
    return null;
 }
-C Display::Monitor* Display::curMonitor()
+C DisplayClass::Monitor* DisplayClass::curMonitor()
 {
 #if DX11
    if(SwapChain)
@@ -787,13 +787,13 @@ C Display::Monitor* Display::curMonitor()
 #endif
    return null;
 }
-C Display::Monitor* Display::getMonitor()
+C DisplayClass::Monitor* DisplayClass::getMonitor()
 {
    if(auto monitor=curMonitor())return monitor;
            return mainMonitor();
 }
 /******************************************************************************/
-void Display::getMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)
+void DisplayClass::getMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_size, VecI2 &maximized_win_client_size)
 {
    if(auto monitor=getMonitor())
    {
@@ -810,7 +810,7 @@ void Display::getMonitor(RectI &full, RectI &work, VecI2 &max_normal_win_client_
 /******************************************************************************/
 // MANAGE
 /******************************************************************************/
-Display::Display() : _monitors(Compare, null, null, 4)
+DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 {
   _full            =MOBILE; // by default request fullscreen for MOBILE, on WINDOWS_PHONE this will hide the navigation bar
   _sync            =true;
@@ -916,7 +916,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
   _grass_mirror =false;
 
   _bloom_original=1.0f;
-  _bloom_scale   =0.5f;
+  _bloom_scale   =0.4f;
   _bloom_cut     =0.3f;
   _bloom_blurs   =1;
   _bloom_max     =false;
@@ -954,7 +954,7 @@ Display::Display() : _monitors(Compare, null, null, 4)
 
   _smaa_threshold=0.1f;
 }
-void Display::init() // make this as a method because if we put this to Display constructor, then 'SecondaryContexts' may not have been initialized yet
+void DisplayClass::init() // make this as a method because if we put this to Display constructor, then 'SecondaryContexts' may not have been initialized yet
 {
 #if DEBUG
    REP(IMAGE_ALL_TYPES)DYNAMIC_ASSERT(ImageTI[i].high_precision==(ImageTI[i].precision>IMAGE_PRECISION_8 || IsSByte(IMAGE_TYPE(i))), "Invalid 'ImageTI.high_precision'");
@@ -1029,7 +1029,7 @@ void Display::init() // make this as a method because if we put this to Display 
 #endif
 }
 /******************************************************************************/
-void Display::del()
+void DisplayClass::del()
 {
    Gui.del(); // deleting Gui should be outside of '_lock' lock (because for example it can wait for a thread working in the background which is using '_lock')
 
@@ -1082,7 +1082,7 @@ void Display::del()
 #endif
 }
 /******************************************************************************/
-void Display::createDevice()
+void DisplayClass::createDevice()
 {
    if(LogInit)LogN("Display.createDevice");
    SyncLocker locker(_lock);
@@ -1544,7 +1544,7 @@ again:
    T._modes[1].swap();
 #endif
 }
-void Display::androidClose()
+void DisplayClass::androidClose()
 {
 #if ANDROID
    SyncLocker locker(_lock);
@@ -1556,7 +1556,7 @@ void Display::androidClose()
    MainContext.surface=null;
 #endif
 }
-void Display::androidOpen()
+void DisplayClass::androidOpen()
 {
 #if ANDROID
    SyncLocker locker(_lock);
@@ -1577,7 +1577,7 @@ void Display::androidOpen()
    }else Exit("OpenGL Display and MainContext not available.");
 #endif
 }
-Bool Display::create()
+Bool DisplayClass::create()
 {
 if(LogInit)LogN("Display.create");
            createDevice();
@@ -1616,7 +1616,7 @@ _linear_gamma^=1; linearGamma(!_linear_gamma); // set after loading shaders
    return true;
 }
 /******************************************************************************/
-Bool Display::created()
+Bool DisplayClass::created()
 {
 #if DX11
    return D3DC!=null;
@@ -1697,7 +1697,7 @@ static DXGI_FORMAT SwapChainFormat()
    return LINEAR_GAMMA ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
 }
 #endif
-Bool Display::findMode()
+Bool DisplayClass::findMode()
 {
    SyncLocker locker(_lock);
 
@@ -1829,7 +1829,7 @@ Bool Display::findMode()
    return true;
 }
 /******************************************************************************/
-CChar8* Display::AsText(RESET_RESULT result)
+CChar8* DisplayClass::AsText(RESET_RESULT result)
 {
    switch(result)
    {
@@ -1840,7 +1840,7 @@ CChar8* Display::AsText(RESET_RESULT result)
       default                        : return "RESET_UNKNOWN";
    }
 }
-void Display::ResetFailed(RESET_RESULT New, RESET_RESULT old)
+void DisplayClass::ResetFailed(RESET_RESULT New, RESET_RESULT old)
 {
    Exit(
      ((New==old) ? S+"Can't set display mode: "+AsText(New)
@@ -1882,7 +1882,7 @@ again:
 }
 #endif
 
-Display::RESET_RESULT Display::ResetTry(Bool set)
+DisplayClass::RESET_RESULT DisplayClass::ResetTry(Bool set)
 {
    SyncLocker locker(_lock);
   _resetting=true;
@@ -1972,12 +1972,12 @@ Display::RESET_RESULT Display::ResetTry(Bool set)
   _resetting=false;
    return result;
 }
-void Display::Reset()
+void DisplayClass::Reset()
 {
    RESET_RESULT result=ResetTry(); if(result!=RESET_OK)ResetFailed(result, result);
 }
 /******************************************************************************/
-void Display::getGamma()
+void DisplayClass::getGamma()
 {
    Bool ok=false;
 #if WINDOWS_OLD
@@ -2029,7 +2029,7 @@ void Display::getGamma()
 #endif
    if(!ok)REP(256)_gamma_array[0][i]=_gamma_array[1][i]=_gamma_array[2][i]=(i*0xFFFF+128)/255;
 }
-void Display::getCaps()
+void DisplayClass::getCaps()
 {
    if(LogInit)LogN("Display.getCaps");
 #if DX11
@@ -2170,7 +2170,7 @@ void Display::getCaps()
    }
 }
 /******************************************************************************/
-void Display::after(Bool resize_callback)
+void DisplayClass::after(Bool resize_callback)
 {
    if(LogInit)LogN("Display.after");
    if(!full() // if we're setting window
@@ -2183,7 +2183,7 @@ void Display::after(Bool resize_callback)
    setColorLUT();
 }
 /******************************************************************************/
-Bool Display::flip()
+Bool DisplayClass::flip()
 {
    if(created())
    {
@@ -2244,7 +2244,7 @@ Bool Display::flip()
    }
    return true;
 }
-void Display::flush()
+void DisplayClass::flush()
 {
    if(created())
    {
@@ -2255,7 +2255,7 @@ void Display::flush()
    #endif
    }
 }
-void Display::finish()
+void DisplayClass::finish()
 {
    if(created())
    {
@@ -2273,7 +2273,7 @@ void Display::finish()
 /******************************************************************************/
 // SETTINGS
 /******************************************************************************/
-void Display::adjustWindow(Bool set)
+void DisplayClass::adjustWindow(Bool set)
 {
    RectI full, work; VecI2 max_normal_win_client_size, maximized_win_client_size;
     getMonitor(full, work, max_normal_win_client_size, maximized_win_client_size);
@@ -2361,7 +2361,7 @@ void Display::adjustWindow(Bool set)
    if(!D.full() && !set)WindowSize(resW(), resH(), true); // don't resize Window on Linux when changing mode due to 'set' (when window got resized due to OS/User input instead of calling 'D.mode', because there the window is already resized and calling this would cause window jumping)
 #endif
 }
-Display::RESET_RESULT Display::modeTry(Int w, Int h, Int full, Bool set)
+DisplayClass::RESET_RESULT DisplayClass::modeTry(Int w, Int h, Int full, Bool set)
 {
          if(w   <=0)w= T.resW();
          if(h   <=0)h= T.resH();
@@ -2393,12 +2393,12 @@ Display::RESET_RESULT Display::modeTry(Int w, Int h, Int full, Bool set)
    }
    return RESET_OK;
 }
-void Display::modeSet(Int w, Int h, Int full)
+void DisplayClass::modeSet(Int w, Int h, Int full)
 {
    RESET_RESULT result=modeTry(w, h, full, true);
    if(result!=RESET_OK)ResetFailed(result, result);
 }
-Display& Display::mode(Int w, Int h, Int full)
+DisplayClass& DisplayClass::mode(Int w, Int h, Int full)
 {
 #if WINDOWS_NEW // on WindowsNew we can only request a change on the window
    if(created())
@@ -2453,7 +2453,7 @@ Display& Display::mode(Int w, Int h, Int full)
    }
    return T;
 }
-Display& Display::toggle(Bool window_size)
+DisplayClass& DisplayClass::toggle(Bool window_size)
 {
    if(!created())_full^=1;else
    {
@@ -2467,20 +2467,20 @@ Display& Display::toggle(Bool window_size)
    }
    return T;
 }
-Display& Display::full(Bool full, Bool window_size)
+DisplayClass& DisplayClass::full(Bool full, Bool window_size)
 {
    if(!created())T._full=full;else
    if(full!=T.full())toggle(window_size);
    return T;
 }
-Display& Display::monitorPrecision(IMAGE_PRECISION precision)
+DisplayClass& DisplayClass::monitorPrecision(IMAGE_PRECISION precision)
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(!created())_monitor_prec=precision;else
    if(monitorPrecision()!=precision){_monitor_prec=precision; if(findMode())Reset();}
    return T;
 }
-Bool Display::exclusiveFull()C
+Bool DisplayClass::exclusiveFull()C
 {
 #if WINDOWS_OLD && DX11
    return !SwapChainDesc.Windowed;
@@ -2488,7 +2488,7 @@ Bool Display::exclusiveFull()C
    return false;
 #endif
 }
-Display& Display::exclusive(Bool exclusive)
+DisplayClass& DisplayClass::exclusive(Bool exclusive)
 {
    if(_exclusive!=exclusive)
    {
@@ -2508,7 +2508,7 @@ Display& Display::exclusive(Bool exclusive)
 }
 static COLOR_SPACE LastSrcColorSpace;
 static Str         LastDestColorSpace;
-void Display::setColorLUT()
+void DisplayClass::setColorLUT()
 {
    SyncLocker locker(D._lock); // needed by 'LastSrcColorSpace', 'LastDestColorSpace', '_color_lut' and 'rtCreateMain'
    Str dest_color_space; if(_color_space && created())if(auto monitor=getMonitor())dest_color_space=monitor->colorProfilePath();
@@ -2533,7 +2533,7 @@ void Display::setColorLUT()
 ok:
    Renderer.rtCreateMain(); // always needs to be called, if succeeded or failed
 }
-Display& Display::colorSpace(COLOR_SPACE color_space)
+DisplayClass& DisplayClass::colorSpace(COLOR_SPACE color_space)
 {
    if(InRange(color_space, COLOR_SPACE_NUM) && _color_space!=color_space)
    {
@@ -2543,7 +2543,7 @@ Display& Display::colorSpace(COLOR_SPACE color_space)
    return T;
 }
 /******************************************************************************/
-void Display::validateCoords(Int eye)
+void DisplayClass::validateCoords(Int eye)
 {
    Vec4  coords;
    Vec2 &coords_mul=coords.xy,
@@ -2577,7 +2577,7 @@ void Display::validateCoords(Int eye)
    Sh.Coords->setConditional(coords);
 }
 /******************************************************************************/
-void Display::sizeChanged()
+void DisplayClass::sizeChanged()
 {
    D._size =D._unscaled_size/D._scale;
    D._size2=D._size         *2;
@@ -2599,7 +2599,7 @@ void Display::sizeChanged()
 
    viewReset();
 }
-Display& Display::scale(Flt scale)
+DisplayClass& DisplayClass::scale(Flt scale)
 {
    if(T._scale!=scale)
    {
@@ -2613,7 +2613,7 @@ Display& Display::scale(Flt scale)
    }
    return T;
 }
-void Display::densityUpdate()
+void DisplayClass::densityUpdate()
 {
 again:
   _render_res=ByteScale2Res(res(), densityByte());
@@ -2625,7 +2625,7 @@ again:
       goto again;
    }
 }
-Bool Display::densityFast(Byte density)
+Bool DisplayClass::densityFast(Byte density)
 {
    if(density!=densityByte())
    {
@@ -2635,32 +2635,32 @@ Bool Display::densityFast(Byte density)
    }
    return false;
 }
-Flt      Display::density(           )C {return ByteScale2ToFlt(densityByte());}
-Display& Display::density(Flt density)
+Flt           DisplayClass::density(           )C {return ByteScale2ToFlt(densityByte());}
+DisplayClass& DisplayClass::density(Flt density)
 {
    Byte b=FltToByteScale2(density);
    if(densityFast(b))Renderer.rtClean();
    return T;
 }
-Display& Display::densityFilter(FILTER_TYPE filter) {_density_filter=filter; return T;}
-Display& Display::samples(Byte samples)
+DisplayClass& DisplayClass::densityFilter(FILTER_TYPE filter) {_density_filter=filter; return T;}
+DisplayClass& DisplayClass::samples(Byte samples)
 {
    samples=DisplaySamples(samples);
    if(T._samples!=samples){T._samples=samples; Renderer.rtClean();}
    return T;
 }
 /******************************************************************************/
-Display& Display::highPrecColRT(Bool on) {if(_hp_col_rt!=on){_hp_col_rt=on; Renderer.rtClean();} return T;}
-Display& Display::highPrecNrmRT(Bool on) {if(_hp_nrm_rt!=on){_hp_nrm_rt=on; Renderer.rtClean();} return T;}
-Display& Display::highPrecLumRT(Bool on) {if(_hp_lum_rt!=on){_hp_lum_rt=on; Renderer.rtClean();} return T;}
-Display& Display::litColRTPrecision(IMAGE_PRECISION precision) // !! Warning: there might be small render result differences between using high precision RT's, because sometimes we can use sRGB/non-sRGB RT views, but sometimes we have to do gamma correction in the shader, and for performance reasons, LinearToSRGBFast/SRGBToLinearFast are chosen, which don't provide the same exact results !!
+DisplayClass& DisplayClass::highPrecColRT(Bool on) {if(_hp_col_rt!=on){_hp_col_rt=on; Renderer.rtClean();} return T;}
+DisplayClass& DisplayClass::highPrecNrmRT(Bool on) {if(_hp_nrm_rt!=on){_hp_nrm_rt=on; Renderer.rtClean();} return T;}
+DisplayClass& DisplayClass::highPrecLumRT(Bool on) {if(_hp_lum_rt!=on){_hp_lum_rt=on; Renderer.rtClean();} return T;}
+DisplayClass& DisplayClass::litColRTPrecision(IMAGE_PRECISION precision) // !! Warning: there might be small render result differences between using high precision RT's, because sometimes we can use sRGB/non-sRGB RT views, but sometimes we have to do gamma correction in the shader, and for performance reasons, LinearToSRGBFast/SRGBToLinearFast are chosen, which don't provide the same exact results !!
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(_lit_col_rt_prec!=precision){_lit_col_rt_prec=precision; Renderer.rtClean();}
    return T;
 }
 /******************************************************************************/
-void Display::setSync()
+void DisplayClass::setSync()
 {
    SyncLocker locker(_lock);
    if(created())
@@ -2684,20 +2684,20 @@ void Display::setSync()
    #endif
    }
 }
-Display& Display::sync(Bool sync) {if(T._sync!=sync){T._sync=sync; setSync();} return T;}
+DisplayClass& DisplayClass::sync(Bool sync) {if(T._sync!=sync){T._sync=sync; setSync();} return T;}
 /******************************************************************************/
-Display& Display::dither             (Bool             dither   ) {                                                                    if(T._dither          !=dither   ){T._dither          =dither   ;             } return T;}
-Display& Display::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 if(T._max_lights      !=max      ){T._max_lights      =max      ;             } return T;}
-Display& Display::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();} return T;}
-Display& Display::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();} return T;}
-Display& Display::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();} return T;}
-Display& Display::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();} return T;}
-Display& Display::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();} return T;}
-Display& Display::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;             } return T;}
-Display& Display::particlesSoft      (Bool             on       ) {                                                                    if(T._particles_soft  !=on       ){T._particles_soft  =on       ;             } return T;}
-Display& Display::particlesSmoothAnim(Bool             on       ) {                                                                    if(T._particles_smooth!=on       ){T._particles_smooth=on       ;             } return T;}
+DisplayClass& DisplayClass::dither             (Bool             dither   ) {                                                                    if(T._dither          !=dither   ){T._dither          =dither   ;             } return T;}
+DisplayClass& DisplayClass::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 if(T._max_lights      !=max      ){T._max_lights      =max      ;             } return T;}
+DisplayClass& DisplayClass::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();} return T;}
+DisplayClass& DisplayClass::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();} return T;}
+DisplayClass& DisplayClass::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();} return T;}
+DisplayClass& DisplayClass::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();} return T;}
+DisplayClass& DisplayClass::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();} return T;}
+DisplayClass& DisplayClass::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;             } return T;}
+DisplayClass& DisplayClass::particlesSoft      (Bool             on       ) {                                                                    if(T._particles_soft  !=on       ){T._particles_soft  =on       ;             } return T;}
+DisplayClass& DisplayClass::particlesSmoothAnim(Bool             on       ) {                                                                    if(T._particles_smooth!=on       ){T._particles_smooth=on       ;             } return T;}
 
-Display& Display::eyeDistance(Flt dist)
+DisplayClass& DisplayClass::eyeDistance(Flt dist)
 {
    if(_eye_dist!=dist)
    {
@@ -2709,7 +2709,7 @@ Display& Display::eyeDistance(Flt dist)
    return T;
 }
 
-Display& Display::edgeDetect(EDGE_DETECT_MODE mode)
+DisplayClass& DisplayClass::edgeDetect(EDGE_DETECT_MODE mode)
 {
    Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._edge_detect!=mode)
    {
@@ -2721,7 +2721,7 @@ Display& Display::edgeDetect(EDGE_DETECT_MODE mode)
    }
    return T;
 }
-Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
+DisplayClass& DisplayClass::edgeSoften(EDGE_SOFTEN_MODE mode)
 {
    Clamp(mode, EDGE_SOFTEN_NONE, EDGE_SOFTEN_MODE(EDGE_SOFTEN_NUM-1)); if(T._edge_soften!=mode)
    {
@@ -2765,11 +2765,11 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
    }
    return T;
 }
-Display& Display::smaaThreshold(Flt threshold)
+DisplayClass& DisplayClass::smaaThreshold(Flt threshold)
 {
    SAT(threshold); _smaa_threshold=threshold; Sh.SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
-Display& Display::tAA(Bool on)
+DisplayClass& DisplayClass::tAA(Bool on)
 {
    if(tAA()!=on)
    {
@@ -2783,24 +2783,24 @@ Display& Display::tAA(Bool on)
    }
    return T;
 }
-Display& Display::tAAReset()
+DisplayClass& DisplayClass::tAAReset()
 {
    DYNAMIC_ASSERT(Renderer._ctx    ==                    null, "'D.tAAReset' called during rendering"); // check in case this is called during rendering
      DEBUG_ASSERT(Renderer._ctx_sub==&Renderer._ctx_sub_dummy, "'D.tAAReset' called during rendering"); // check in case this is called during rendering
    Renderer._ctxs.clear();
    return T;
 }
-Display& Display::tAADualHistory(Bool dual) {dual=(dual!=false); if(_taa_dual!=dual){_taa_dual=dual; tAAReset();} return T;} // make sure this is bool because this is used as array index
+DisplayClass& DisplayClass::tAADualHistory(Bool dual) {dual=(dual!=false); if(_taa_dual!=dual){_taa_dual=dual; tAAReset();} return T;} // make sure this is bool because this is used as array index
 
-Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
-Display& Display::secondaryOpenGLContexts(Byte contexts)
+Int           DisplayClass::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
+DisplayClass& DisplayClass::secondaryOpenGLContexts(Byte contexts)
 {
 #if GL && HAS_THREADS
    if(!created())SecondaryContexts.setNum(contexts);
 #endif
    return T;
 }
-Bool Display::canUseGPUDataOnSecondaryThread()C
+Bool DisplayClass::canUseGPUDataOnSecondaryThread()C
 {
 #if GL
    return created() && SecondaryContexts.elms(); // was created and there are some secondary GL contexts
@@ -2809,7 +2809,7 @@ Bool Display::canUseGPUDataOnSecondaryThread()C
 #endif
 }
 /******************************************************************************/
-Display& Display::aspectMode(ASPECT_MODE mode)
+DisplayClass& DisplayClass::aspectMode(ASPECT_MODE mode)
 {
    Clamp(mode, ASPECT_MODE(0), ASPECT_MODE(ASPECT_NUM-1));
    if(T._aspect_mode!=mode)
@@ -2819,7 +2819,7 @@ Display& Display::aspectMode(ASPECT_MODE mode)
    }
    return T;
 }
-void Display::aspectRatioEx(Bool force, Bool quiet)
+void DisplayClass::aspectRatioEx(Bool force, Bool quiet)
 {
    Flt aspect_ratio=_disp_aspect_ratio_want;
 #if DESKTOP || WEB
@@ -2875,14 +2875,14 @@ void Display::aspectRatioEx(Bool force, Bool quiet)
       }
    }
 }
-Display& Display::aspectRatio(Flt aspect_ratio)
+DisplayClass& DisplayClass::aspectRatio(Flt aspect_ratio)
 {
    T._disp_aspect_ratio_want=Max(0, aspect_ratio);
    aspectRatioEx(false);
    return T;
 }
 /******************************************************************************/
-Display& Display::texFilter(Byte filter)
+DisplayClass& DisplayClass::texFilter(Byte filter)
 {
    if(created())MIN(filter, maxTexFilter());
    if(T._tex_filter!=filter)
@@ -2900,7 +2900,7 @@ Display& Display::texFilter(Byte filter)
    }
    return T;
 }
-Display& Display::texMipFilter(Bool on)
+DisplayClass& DisplayClass::texMipFilter(Bool on)
 {
    if(T._tex_mip_filter!=on)
    {
@@ -2917,7 +2917,7 @@ Display& Display::texMipFilter(Bool on)
    }
    return T;
 }
-Display& Display::texMipMin(Byte min)
+DisplayClass& DisplayClass::texMipMin(Byte min)
 {
    Clamp(min, 0, 16);
    if(T._tex_mip_min!=min)
@@ -2932,7 +2932,7 @@ Display& Display::texMipMin(Byte min)
    }
    return T;
 }
-Display& Display::texMipBias(Flt bias)
+DisplayClass& DisplayClass::texMipBias(Flt bias)
 {
    if(T._tex_mip_bias!=bias)
    {
@@ -2947,7 +2947,7 @@ Display& Display::texMipBias(Flt bias)
    return T;
 }
 /******************************************************************************/
-Display& Display::fontSharpness(Flt value)
+DisplayClass& DisplayClass::fontSharpness(Flt value)
 {
    if(T._font_sharpness!=value)
    {
@@ -2965,8 +2965,8 @@ Display& Display::fontSharpness(Flt value)
    return T;
 }
 /******************************************************************************/
-Display& Display::gamma   (Flt gamma) {if(T._gamma!=gamma){T._gamma=gamma; gammaSet();} return T;}
-void     Display::gammaSet()
+DisplayClass& DisplayClass::gamma   (Flt gamma) {if(T._gamma!=gamma){T._gamma=gamma; gammaSet();} return T;}
+void          DisplayClass::gammaSet()
 {
    if(created())
    {
@@ -3045,73 +3045,73 @@ void     Display::gammaSet()
    }
 }
 /******************************************************************************/
-Display& Display::diffuseMode(DIFFUSE_MODE mode)
+DisplayClass& DisplayClass::diffuseMode(DIFFUSE_MODE mode)
 {
    Clamp(mode, DIFFUSE_MODE(0), DIFFUSE_MODE(DIFFUSE_NUM-1));
    if(_diffuse_mode!=mode){_diffuse_mode=mode; /*setShader();*/} // RT_FORWARD always uses lambert, so 'setShader' not needed
    return T;
 }
 /******************************************************************************/
-Display& Display::bumpMode(BUMP_MODE mode)
+DisplayClass& DisplayClass::bumpMode(BUMP_MODE mode)
 {
    Clamp(mode, BUMP_FLAT, BUMP_MODE(BUMP_NUM-1));
    if(_bump_mode!=mode){_bump_mode=mode; setShader();}
    return T;
 }
 /******************************************************************************/
-Display& Display:: glowAllow   (Bool allow   ) {if(_glow_allow!=allow){_glow_allow   =allow   ; tAAReset();} return T;} // 'glowAllow' affects type of TAA RT's #RTOutput
-Display& Display::bloomAllow   (Bool allow   ) {                      _bloom_allow   =allow   ;              return T;}
-Display& Display::bloomOriginal(Flt  original) {MAX  (original, 0);   _bloom_original=original;              return T;}
-Display& Display::bloomScale   (Flt  scale   ) {MAX  (scale   , 0);   _bloom_scale   =scale   ;              return T;}
-Display& Display::bloomCut     (Flt  cut     ) {MAX  (cut     , 0);   _bloom_cut     =cut     ;              return T;}
-Display& Display::bloomHalf    (Bool half    ) {                      _bloom_half    =half    ;              return T;}
-Display& Display::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4);   _bloom_blurs   =blurs   ;              return T;}
-Display& Display::bloomSamples (Bool high    ) {                      _bloom_samples =high    ;              return T;}
-Display& Display::bloomMaximum (Bool on      ) {if(_bloom_max!=on){   _bloom_max     =on      ; if(!Sh.MaxX && on && created()){Sh.MaxX=Sh.get("MaxX"); Sh.MaxY=Sh.get("MaxY");}} return T;}
-Bool     Display::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
+DisplayClass& DisplayClass:: glowAllow   (Bool allow   ) {if(_glow_allow!=allow){_glow_allow   =allow   ; tAAReset();} return T;} // 'glowAllow' affects type of TAA RT's #RTOutput
+DisplayClass& DisplayClass::bloomAllow   (Bool allow   ) {                      _bloom_allow   =allow   ;              return T;}
+DisplayClass& DisplayClass::bloomOriginal(Flt  original) {MAX  (original, 0);   _bloom_original=original;              return T;}
+DisplayClass& DisplayClass::bloomScale   (Flt  scale   ) {MAX  (scale   , 0);   _bloom_scale   =scale   ;              return T;}
+DisplayClass& DisplayClass::bloomCut     (Flt  cut     ) {MAX  (cut     , 0);   _bloom_cut     =cut     ;              return T;}
+DisplayClass& DisplayClass::bloomHalf    (Bool half    ) {                      _bloom_half    =half    ;              return T;}
+DisplayClass& DisplayClass::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4);   _bloom_blurs   =blurs   ;              return T;}
+DisplayClass& DisplayClass::bloomSamples (Bool high    ) {                      _bloom_samples =high    ;              return T;}
+DisplayClass& DisplayClass::bloomMaximum (Bool on      ) {if(_bloom_max!=on){   _bloom_max     =on      ; if(!Sh.MaxX && on && created()){Sh.MaxX=Sh.get("MaxX"); Sh.MaxY=Sh.get("MaxY");}} return T;}
+Bool          DisplayClass::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
 /******************************************************************************/
-Display& Display::volLight(Bool on ) {_vol_light=    on     ; return T;}
-Display& Display::volAdd  (Bool add) {_vol_add  =    add    ; return T;}
-Display& Display::volMax  (Flt  max) {_vol_max  =Max(max, 0); return T;}
+DisplayClass& DisplayClass::volLight(Bool on ) {_vol_light=    on     ; return T;}
+DisplayClass& DisplayClass::volAdd  (Bool add) {_vol_add  =    add    ; return T;}
+DisplayClass& DisplayClass::volMax  (Flt  max) {_vol_max  =Max(max, 0); return T;}
 /******************************************************************************/
-Display& Display::shadowMode         (SHADOW_MODE mode) {Clamp(mode, SHADOW_NONE, SHADOW_MODE(SHADOW_NUM-1)); _shd_mode=mode;             return T;}
-Display& Display::shadowJitter       (Bool     on     ) {           if(_shd_jitter!=on){_shd_jitter   ^=1;   shadowJitterSet();         } return T;}
-Display& Display::shadowReduceFlicker(Bool     reduce ) {                               _shd_reduce    =reduce;                           return T;}
-Display& Display::shadowFrac         (Flt      frac   ) {SAT(frac); if(_shd_frac!=frac){_shd_frac      =frac; shadowRangeSet();         } return T;}
-Display& Display::shadowFade         (Flt      fade   ) {SAT(fade); if(_shd_fade!=fade){_shd_fade      =fade; shadowRangeSet();         } return T;}
-Display& Display::shadowSoft         (Byte     soft   ) {                               _shd_soft      =Min(soft   , SHADOW_SOFT_NUM-1);  return T;}
-Display& Display::shadowMapNum       (Byte     map_num) {                               _shd_map_num   =Mid(map_num,    1,    6       );  return T;}
-Display& Display::shadowMapSizeLocal (Flt      frac   ) {                               _shd_map_size_l=Sat(frac                      );  return T;}
-Display& Display::shadowMapSizeCone  (Flt      factor ) {                               _shd_map_size_c=Mid(factor , 0.0f, 2.0f       );  return T;}
-Display& Display::shadowMapSplit     (C Vec2  &factor ) {                               _shd_map_split .set(Max(2, factor.x), Max(0, factor.y)); return T;}
+DisplayClass& DisplayClass::shadowMode         (SHADOW_MODE mode) {Clamp(mode, SHADOW_NONE, SHADOW_MODE(SHADOW_NUM-1)); _shd_mode=mode;             return T;}
+DisplayClass& DisplayClass::shadowJitter       (Bool     on     ) {           if(_shd_jitter!=on){_shd_jitter   ^=1;   shadowJitterSet();         } return T;}
+DisplayClass& DisplayClass::shadowReduceFlicker(Bool     reduce ) {                               _shd_reduce    =reduce;                           return T;}
+DisplayClass& DisplayClass::shadowFrac         (Flt      frac   ) {SAT(frac); if(_shd_frac!=frac){_shd_frac      =frac; shadowRangeSet();         } return T;}
+DisplayClass& DisplayClass::shadowFade         (Flt      fade   ) {SAT(fade); if(_shd_fade!=fade){_shd_fade      =fade; shadowRangeSet();         } return T;}
+DisplayClass& DisplayClass::shadowSoft         (Byte     soft   ) {                               _shd_soft      =Min(soft   , SHADOW_SOFT_NUM-1);  return T;}
+DisplayClass& DisplayClass::shadowMapNum       (Byte     map_num) {                               _shd_map_num   =Mid(map_num,    1,    6       );  return T;}
+DisplayClass& DisplayClass::shadowMapSizeLocal (Flt      frac   ) {                               _shd_map_size_l=Sat(frac                      );  return T;}
+DisplayClass& DisplayClass::shadowMapSizeCone  (Flt      factor ) {                               _shd_map_size_c=Mid(factor , 0.0f, 2.0f       );  return T;}
+DisplayClass& DisplayClass::shadowMapSplit     (C Vec2  &factor ) {                               _shd_map_split .set(Max(2, factor.x), Max(0, factor.y)); return T;}
 
-Display& Display::shadowMapSize(Int map_size)
+DisplayClass& DisplayClass::shadowMapSize(Int map_size)
 {
    MAX(map_size, 0); if(_shd_map_size!=map_size){_shd_map_size=map_size; if(created())Renderer.createShadowMap();}
    return T;
 }
-Display& Display::cloudsMapSize(Int map_size)
+DisplayClass& DisplayClass::cloudsMapSize(Int map_size)
 {
    MAX(map_size, 0); if(_cld_map_size!=map_size){_cld_map_size=map_size; if(created())Renderer.createShadowMap();}
    return T;
 }
-Int Display::shadowMapNumActual()C
+Int DisplayClass::shadowMapNumActual()C
 {
    return (Renderer._cur_type==RT_FORWARD) ? Ceil2(shadowMapNum()) // align to even numbers on RT_FORWARD
                                            :       shadowMapNum();
 }
-Bool Display::shadowSupported()C
+Bool DisplayClass::shadowSupported()C
 {
    return Renderer._shd_map.is();
 }
-void Display::shadowJitterSet()
+void DisplayClass::shadowJitterSet()
 {
    Vec4 j;
    j.xy=Flt(shadowJitter())/Renderer._shd_map.hwSize(); // mul
    j.zw=j.xy*-0.5f; // add
    Sh.ShdJitter->set(j);
 }
-void Display::shadowRangeSet()
+void DisplayClass::shadowRangeSet()
 {
    Sh.ShdRange->setConditional(_shd_range=D.shadowFrac()*D.viewRange());
    {
@@ -3130,17 +3130,17 @@ void Display::shadowRangeSet()
    }
 }
 /******************************************************************************/
-Bool Display::aoWant()C
+Bool DisplayClass::aoWant()C
 {
    return ambientMode    ()!=AMBIENT_FLAT
       &&  ambientContrast()> EPS_COL8
       && (aoAll() || (ambientColorD()+nightShadeColorD()).max()>EPS_COL8_NATIVE); // no need to calculate AO if it's too small
 }
-Flt Display::ambientRes   ()C {return ByteScaleToFlt(_amb_res);}
-Flt Display::ambientPowerS()C {return LinearToSRGB(ambientPowerL());}
-Vec Display::ambientColorS()C {return LinearToSRGB(ambientColorL());}
+Flt DisplayClass::ambientRes   ()C {return ByteScaleToFlt(_amb_res);}
+Flt DisplayClass::ambientPowerS()C {return LinearToSRGB(ambientPowerL());}
+Vec DisplayClass::ambientColorS()C {return LinearToSRGB(ambientColorL());}
 
-void Display::ambientSet()C
+void DisplayClass::ambientSet()C
 {
    Sh.AmbientColor_l ->set(   ambientColorD());
    Sh.NightShadeColor->set(nightShadeColorD());
@@ -3148,52 +3148,52 @@ void Display::ambientSet()C
    Flt max_lum=ambientColorD().max(), intensity=Sat(1-max_lum);
    Sh.AmbientColorNS_l->set(ambientColorD() + nightShadeColorD()*intensity);
 }
-void Display::ambientSetRange()C
+void DisplayClass::ambientSetRange()C
 {
    Sh.AmbientRange_2    ->set(         D.ambientRange()/2);
    Sh.AmbientRangeInvSqr->set(Sqr(1.0f/D.ambientRange()) );
 }
 
-Display& Display::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}
-Display& Display::ambientMode    (  AMBIENT_MODE mode      ) {Clamp(mode, AMBIENT_FLAT, AMBIENT_MODE(AMBIENT_NUM-1)); _amb_mode=mode;                      return T;}
-Display& Display::ambientSoft    (  Byte         soft      ) {MIN  (soft,                       AMBIENT_SOFT_NUM-1 ); _amb_soft=soft;                      return T;}
-Display& Display::ambientJitter  (  Bool         jitter    ) {_amb_jitter=jitter;                                                                          return T;}
-Display& Display::ambientNormal  (  Bool         normal    ) {_amb_normal=normal;                                                                          return T;}
-Display& Display::ambientPowerS  (  Flt          srgb_power) {return ambientPowerL(SRGBToLinear(srgb_power));}
-Display& Display::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
-Display& Display::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                    if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
-Display& Display::ambientColorL  (C Vec         & lin_color) {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
-Display& Display::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                     if(_amb_contrast!=contrast ){_amb_contrast=contrast ; Sh.AmbientContrast->set(ambientContrast());} return T;}
-Display& Display::ambientMin     (  Flt          min       ) {SAT(min        );                                                     if(_amb_min     !=min      ){_amb_min     =min      ; Sh.AmbientMin     ->set(ambientMin     ());} return T;}
-Display& Display::ambientRange   (  Flt          range     ) {MAX(range   , 0);                                                     if(_amb_range   !=range    ){_amb_range   =range    ; ambientSetRange();} return T;}
+DisplayClass& DisplayClass::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}
+DisplayClass& DisplayClass::ambientMode    (  AMBIENT_MODE mode      ) {Clamp(mode, AMBIENT_FLAT, AMBIENT_MODE(AMBIENT_NUM-1)); _amb_mode=mode;                      return T;}
+DisplayClass& DisplayClass::ambientSoft    (  Byte         soft      ) {MIN  (soft,                       AMBIENT_SOFT_NUM-1 ); _amb_soft=soft;                      return T;}
+DisplayClass& DisplayClass::ambientJitter  (  Bool         jitter    ) {_amb_jitter=jitter;                                                                          return T;}
+DisplayClass& DisplayClass::ambientNormal  (  Bool         normal    ) {_amb_normal=normal;                                                                          return T;}
+DisplayClass& DisplayClass::ambientPowerS  (  Flt          srgb_power) {return ambientPowerL(SRGBToLinear(srgb_power));}
+DisplayClass& DisplayClass::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
+DisplayClass& DisplayClass::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                    if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
+DisplayClass& DisplayClass::ambientColorL  (C Vec         & lin_color) {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
+DisplayClass& DisplayClass::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                     if(_amb_contrast!=contrast ){_amb_contrast=contrast ; Sh.AmbientContrast->set(ambientContrast());} return T;}
+DisplayClass& DisplayClass::ambientMin     (  Flt          min       ) {SAT(min        );                                                     if(_amb_min     !=min      ){_amb_min     =min      ; Sh.AmbientMin     ->set(ambientMin     ());} return T;}
+DisplayClass& DisplayClass::ambientRange   (  Flt          range     ) {MAX(range   , 0);                                                     if(_amb_range   !=range    ){_amb_range   =range    ; ambientSetRange();} return T;}
 /******************************************************************************/
-Vec      Display::nightShadeColorS(                 )C {return LinearToSRGB(nightShadeColorL());}
-Display& Display::nightShadeColorS(C Vec &srgb_color)  {return nightShadeColorL(SRGBToLinear(srgb_color));}
-Display& Display::nightShadeColorL(C Vec & lin_color)  {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_ns_color_l!=c){_ns_color_l=c; ambientSet();} return T;}
+Vec           DisplayClass::nightShadeColorS(                 )C {return LinearToSRGB(nightShadeColorL());}
+DisplayClass& DisplayClass::nightShadeColorS(C Vec &srgb_color)  {return nightShadeColorL(SRGBToLinear(srgb_color));}
+DisplayClass& DisplayClass::nightShadeColorL(C Vec & lin_color)  {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_ns_color_l!=c){_ns_color_l=c; ambientSet();} return T;}
 /******************************************************************************/
-Display& Display::envColor(C Vec      &color) {if(_env_color!=color)                    Sh.EnvColor->set( _env_color=color  );                                                                                          return T;}
-Display& Display::envMap  (C ImagePtr &cube ) {if(_env_map  !=cube ){Bool was=_env_map; Sh.Env     ->set((_env_map  =cube)()); if(cube)Sh.EnvMipMaps->setConditional(cube->mipMaps()-1); if(was!=_env_map)setShader();} return T;} // if changed map presence then reset shader
+DisplayClass& DisplayClass::envColor(C Vec      &color) {if(_env_color!=color)                    Sh.EnvColor->set( _env_color=color  );                                                                                          return T;}
+DisplayClass& DisplayClass::envMap  (C ImagePtr &cube ) {if(_env_map  !=cube ){Bool was=_env_map; Sh.Env     ->set((_env_map  =cube)()); if(cube)Sh.EnvMipMaps->setConditional(cube->mipMaps()-1); if(was!=_env_map)setShader();} return T;} // if changed map presence then reset shader
 /******************************************************************************/
-Flt      Display::motionRes   (                  )C {return   ByteScaleToFlt(_mtn_res);}
-Display& Display::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}               return T;}
-Display& Display::motionMode  (MOTION_MODE mode  )  {Clamp(mode , MOTION_NONE   , MOTION_MODE(MOTION_NUM-1));                       _mtn_mode  =mode ;  return T;}
-Display& Display::motionDilate(DILATE_MODE mode  )  {Clamp(mode , DILATE_MODE(0), DILATE_MODE(DILATE_NUM-1));                       _mtn_dilate=mode ;  return T;}
-Display& Display::motionScale (Flt         scale )  {MAX  (scale, 0                                        ); if(_mtn_scale!=scale){_mtn_scale =scale;} return T;}
+Flt           DisplayClass::motionRes   (                  )C {return   ByteScaleToFlt(_mtn_res);}
+DisplayClass& DisplayClass::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}               return T;}
+DisplayClass& DisplayClass::motionMode  (MOTION_MODE mode  )  {Clamp(mode , MOTION_NONE   , MOTION_MODE(MOTION_NUM-1));                       _mtn_mode  =mode ;  return T;}
+DisplayClass& DisplayClass::motionDilate(DILATE_MODE mode  )  {Clamp(mode , DILATE_MODE(0), DILATE_MODE(DILATE_NUM-1));                       _mtn_dilate=mode ;  return T;}
+DisplayClass& DisplayClass::motionScale (Flt         scale )  {MAX  (scale, 0                                        ); if(_mtn_scale!=scale){_mtn_scale =scale;} return T;}
 /******************************************************************************/
-Display& Display::dofMode     (DOF_MODE mode     ) {Clamp(mode, DOF_NONE, DOF_MODE(DOF_NUM-1)); _dof_mode     =mode             ; return T;}
-Display& Display::dofFocusMode(Bool     realistic) {                                            _dof_foc_mode =(realistic!=0)   ; return T;}
-Display& Display::dofFocus    (Flt      z        ) {                                            _dof_focus    =Max(z        , 0); return T;}
-Display& Display::dofRange    (Flt      range    ) {                                            _dof_range    =Max(range    , 0); return T;}
-Display& Display::dofIntensity(Flt      intensity) {                                            _dof_intensity=Max(intensity, 0); return T;}
+DisplayClass& DisplayClass::dofMode     (DOF_MODE mode     ) {Clamp(mode, DOF_NONE, DOF_MODE(DOF_NUM-1)); _dof_mode     =mode             ; return T;}
+DisplayClass& DisplayClass::dofFocusMode(Bool     realistic) {                                            _dof_foc_mode =(realistic!=0)   ; return T;}
+DisplayClass& DisplayClass::dofFocus    (Flt      z        ) {                                            _dof_focus    =Max(z        , 0); return T;}
+DisplayClass& DisplayClass::dofRange    (Flt      range    ) {                                            _dof_range    =Max(range    , 0); return T;}
+DisplayClass& DisplayClass::dofIntensity(Flt      intensity) {                                            _dof_intensity=Max(intensity, 0); return T;}
 /******************************************************************************/
-Display& Display::eyeAdaptation          (  Bool on        ) {                                                            _eye_adapt           =on        ;                                                    return T;}
-Display& Display::eyeAdaptationBrightness(  Flt  brightness) {MAX  (brightness, 0); if(_eye_adapt_brightness!=brightness){_eye_adapt_brightness=brightness; Sh.HdrBrightness->set(eyeAdaptationBrightness());} return T;}
-Display& Display::eyeAdaptationExp       (  Flt  exp       ) {Clamp(exp, 0.1f , 1); if(_eye_adapt_exp       !=exp       ){_eye_adapt_exp       =exp       ; Sh.HdrExp       ->set(eyeAdaptationExp       ());} return T;}
-Display& Display::eyeAdaptationMaxDark   (  Flt  max_dark  ) {MAX  (max_dark  , 0); if(_eye_adapt_max_dark  !=max_dark  ){_eye_adapt_max_dark  =max_dark  ; Sh.HdrMaxDark   ->set(eyeAdaptationMaxDark   ());} return T;}
-Display& Display::eyeAdaptationMaxBright (  Flt  max_bright) {MAX  (max_bright, 0); if(_eye_adapt_max_bright!=max_bright){_eye_adapt_max_bright=max_bright; Sh.HdrMaxBright ->set(eyeAdaptationMaxBright ());} return T;}
-Display& Display::eyeAdaptationSpeed     (  Flt  speed     ) {MAX  (speed     , 1); if(_eye_adapt_speed     !=speed     ){_eye_adapt_speed     =speed     ;                                                  } return T;}
-Display& Display::eyeAdaptationWeight    (C Vec &weight    ) {                      if(_eye_adapt_weight    !=weight    ){_eye_adapt_weight    =weight    ; Sh.HdrWeight    ->set(eyeAdaptationWeight()/4  );} return T;}
-Display& Display::resetEyeAdaptation     (  Flt  brightness)
+DisplayClass& DisplayClass::eyeAdaptation          (  Bool on        ) {                                                            _eye_adapt           =on        ;                                                    return T;}
+DisplayClass& DisplayClass::eyeAdaptationBrightness(  Flt  brightness) {MAX  (brightness, 0); if(_eye_adapt_brightness!=brightness){_eye_adapt_brightness=brightness; Sh.HdrBrightness->set(eyeAdaptationBrightness());} return T;}
+DisplayClass& DisplayClass::eyeAdaptationExp       (  Flt  exp       ) {Clamp(exp, 0.1f , 1); if(_eye_adapt_exp       !=exp       ){_eye_adapt_exp       =exp       ; Sh.HdrExp       ->set(eyeAdaptationExp       ());} return T;}
+DisplayClass& DisplayClass::eyeAdaptationMaxDark   (  Flt  max_dark  ) {MAX  (max_dark  , 0); if(_eye_adapt_max_dark  !=max_dark  ){_eye_adapt_max_dark  =max_dark  ; Sh.HdrMaxDark   ->set(eyeAdaptationMaxDark   ());} return T;}
+DisplayClass& DisplayClass::eyeAdaptationMaxBright (  Flt  max_bright) {MAX  (max_bright, 0); if(_eye_adapt_max_bright!=max_bright){_eye_adapt_max_bright=max_bright; Sh.HdrMaxBright ->set(eyeAdaptationMaxBright ());} return T;}
+DisplayClass& DisplayClass::eyeAdaptationSpeed     (  Flt  speed     ) {MAX  (speed     , 1); if(_eye_adapt_speed     !=speed     ){_eye_adapt_speed     =speed     ;                                                  } return T;}
+DisplayClass& DisplayClass::eyeAdaptationWeight    (C Vec &weight    ) {                      if(_eye_adapt_weight    !=weight    ){_eye_adapt_weight    =weight    ; Sh.HdrWeight    ->set(eyeAdaptationWeight()/4  );} return T;}
+DisplayClass& DisplayClass::resetEyeAdaptation     (  Flt  brightness)
 {
    if(Renderer._eye_adapt_scale[0].is())
    {
@@ -3204,10 +3204,10 @@ Display& Display::resetEyeAdaptation     (  Flt  brightness)
    return T;
 }
 /******************************************************************************/
-Display& Display::grassDensity(Flt  density) {_grass_density=Sat(density); return T;}
-Display& Display::grassShadow (Bool on     ) {_grass_shadow =    on      ; return T;}
-Display& Display::grassMirror (Bool on     ) {_grass_mirror =    on      ; return T;}
-Display& Display::grassRange  (Flt  range  )
+DisplayClass& DisplayClass::grassDensity(Flt  density) {_grass_density=Sat(density); return T;}
+DisplayClass& DisplayClass::grassShadow (Bool on     ) {_grass_shadow =    on      ; return T;}
+DisplayClass& DisplayClass::grassMirror (Bool on     ) {_grass_mirror =    on      ; return T;}
+DisplayClass& DisplayClass::grassRange  (Flt  range  )
 {
    MAX(range, 0); if(_grass_range!=range)
    {
@@ -3219,7 +3219,7 @@ Display& Display::grassRange  (Flt  range  )
    return T;
 }
 static Flt BendFactor;
-Display& Display::grassUpdate()
+DisplayClass& DisplayClass::grassUpdate()
 {
    BendFactor+=Time.d();
    Vec4 bf=Vec4(1.6f, 1.2f, 1.4f, 1.1f)*BendFactor+Vec4(0.1f, 0.5f, 0.7f, 1.1f);
@@ -3234,15 +3234,15 @@ Display& Display::grassUpdate()
    return T;
 }
 /******************************************************************************/
-Display& Display::furStaticGravity (Flt gravity  ) {_fur_gravity  =gravity  ; return T;}
-Display& Display::furStaticVelScale(Flt vel_scale) {_fur_vel_scale=vel_scale; return T;}
+DisplayClass& DisplayClass::furStaticGravity (Flt gravity  ) {_fur_gravity  =gravity  ; return T;}
+DisplayClass& DisplayClass::furStaticVelScale(Flt vel_scale) {_fur_vel_scale=vel_scale; return T;}
 /******************************************************************************/
-void Display::lodSetCurrentFactor()
+void DisplayClass::lodSetCurrentFactor()
 {
    // '_lod_current_factor' contains information about '_lod_factors_fov' in current rendering mode
   _lod_current_factor=_lod_factors_fov[Renderer.mirror()];
 }
-void Display::lodUpdateFactors()
+void DisplayClass::lodUpdateFactors()
 {
    // '_lod_fov2' is a value based on Fov (viewFovY()), squared
    if(FovPerspective(viewFovMode()))_lod_fov2=Sqr(Tan(viewFovY()*0.5f));
@@ -3250,7 +3250,7 @@ void Display::lodUpdateFactors()
    REPD(m, 2)_lod_factors_fov[m]=_lod_factors[m]*_lod_fov2;
    lodSetCurrentFactor();
 }
-Display& Display::lod(Flt general, Flt mirror)
+DisplayClass& DisplayClass::lod(Flt general, Flt mirror)
 {
    // set values
   _lod_factor       =Max(0, general);
@@ -3267,15 +3267,15 @@ Display& Display::lod(Flt general, Flt mirror)
    lodUpdateFactors();
    return T;
 }
-Display& Display::lodFactor      (Flt factor) {return lod(     factor, _lod_factor_mirror);}
-Display& Display::lodFactorMirror(Flt factor) {return lod(_lod_factor,      factor       );}
+DisplayClass& DisplayClass::lodFactor      (Flt factor) {return lod(     factor, _lod_factor_mirror);}
+DisplayClass& DisplayClass::lodFactorMirror(Flt factor) {return lod(_lod_factor,      factor       );}
 /******************************************************************************/
-Display& Display::tesselationAllow    (Bool on     ) {                       if(_tesselation_allow    !=on     ) _tesselation_allow    =on     ;               return T;}
-Display& Display::tesselation         (Bool on     ) {                       if(_tesselation          !=on     ){_tesselation          =on     ; setShader();} return T;}
-Display& Display::tesselationHeightmap(Bool on     ) {                       if(_tesselation_heightmap!=on     ){_tesselation_heightmap=on     ; setShader();} return T;}
-Display& Display::tesselationDensity  (Flt  density) {MAX(density, EPS_GPU); if(_tesselation_density  !=density){_tesselation_density  =density; Sh.TesselationDensity->set(tesselationDensity());} return T;}
+DisplayClass& DisplayClass::tesselationAllow    (Bool on     ) {                       if(_tesselation_allow    !=on     ) _tesselation_allow    =on     ;               return T;}
+DisplayClass& DisplayClass::tesselation         (Bool on     ) {                       if(_tesselation          !=on     ){_tesselation          =on     ; setShader();} return T;}
+DisplayClass& DisplayClass::tesselationHeightmap(Bool on     ) {                       if(_tesselation_heightmap!=on     ){_tesselation_heightmap=on     ; setShader();} return T;}
+DisplayClass& DisplayClass::tesselationDensity  (Flt  density) {MAX(density, EPS_GPU); if(_tesselation_density  !=density){_tesselation_density  =density; Sh.TesselationDensity->set(tesselationDensity());} return T;}
 /******************************************************************************/
-void Display::setViewFovTan()
+void DisplayClass::setViewFovTan()
 {
    Vec2 mul(Renderer.resW()/(_view_active.recti.w()*w()), Renderer.resH()/(_view_active.recti.h()*h()));
   _view_fov_tan_full=_view_active.fov_tan*mul;
@@ -3296,7 +3296,7 @@ void Display::setViewFovTan()
 
    Sh.DepthWeightScale->set(_view_active.fov_tan.y*0.00714074011f);
 }
-void Display::viewUpdate()
+void DisplayClass::viewUpdate()
 {
   _view_active=_view_main;
    if(_lock.owned())_view_active.setViewport(); // set actual viewport only if we own the lock, this is because this method can be called outside of 'Draw' where we don't have the lock, however to avoid locking which could affect performance (for example GPU still owning the lock on other thread, for example for flipping back buffer, we would have to wait until it finished), we can skip setting the viewport because drawing is not allowed in update anyway. To counteract this skip here, instead we always reset the viewport at the start of Draw in 'DrawState'
@@ -3315,23 +3315,23 @@ void Display::viewUpdate()
    lodUpdateFactors();
    shadowRangeSet  ();
 }
-void Display::viewReset()
+void DisplayClass::viewReset()
 {
    Rect rect=viewRect(); _view_main.recti.set(0, -1); _view_rect.set(0, -1); if(_view_main.full)viewRect(null);else viewRect(rect); // if last was full then set full, otherwise set based on rect
 }
 
-Display& Display::view(C Rect  &rect, Flt from, Flt range, C Vec2 &fov, FOV_MODE fov_mode) {_view_main.set(screenToPixelI(rect), from, range, fov, fov_mode); viewUpdate(); return T;}
-Display& Display::view(C RectI &rect, Flt from, Flt range, C Vec2 &fov, FOV_MODE fov_mode) {_view_main.set(               rect , from, range, fov, fov_mode); viewUpdate(); return T;}
+DisplayClass& DisplayClass::view(C Rect  &rect, Flt from, Flt range, C Vec2 &fov, FOV_MODE fov_mode) {_view_main.set(screenToPixelI(rect), from, range, fov, fov_mode); viewUpdate(); return T;}
+DisplayClass& DisplayClass::view(C RectI &rect, Flt from, Flt range, C Vec2 &fov, FOV_MODE fov_mode) {_view_main.set(               rect , from, range, fov, fov_mode); viewUpdate(); return T;}
 
-Display& Display::viewRect (C RectI *rect              ) {RectI recti=(rect ? *rect : RectI(0, 0, Renderer.resW(), Renderer.resH())); if( viewRectI()      !=recti                        ){                       _view_main.setRect (recti      ).setFov(); viewUpdate();} return T;} // need to use 'Renderer.res' in case VR is enabled and we're rendering to its 'GuiTexture'
-Display& Display::viewRect (C Rect  &rect              ) {RectI recti=screenToPixelI(rect);                                           if( viewRectI()      !=recti                        ){                       _view_main.setRect (recti      ).setFov(); viewUpdate();} return T;}
-Display& Display::viewFrom (  Flt    from              ) {                                                                            if( viewFrom ()      !=from                         ){                       _view_main.setFrom (from       )         ; viewUpdate();} return T;}
-Display& Display::viewRange(  Flt    range             ) {                                                                            if( viewRange()      !=range                        ){                       _view_main.setRange(range      )         ; viewUpdate();} return T;}
-Display& Display::viewFov  (  Flt    fov, FOV_MODE mode) {                                                                            if( viewFov  ()      !=fov  || viewFovMode()!=mode  ){                       _view_main.setFov  (fov, mode  )         ; viewUpdate();} return T;}
-Display& Display::viewFov  (C Vec2  &fov               ) {                                                                            if( viewFovXY()      !=fov  || viewFovMode()!=FOV_XY){                       _view_main.setFov  (fov, FOV_XY)         ; viewUpdate();} return T;}
-Display& Display::viewForceSquarePixel(Bool on         ) {                                                                            if(_view_square_pixel!=on                           ){_view_square_pixel=on; _view_main.setFov  (           )         ; viewUpdate();} return T;}
+DisplayClass& DisplayClass::viewRect (C RectI *rect              ) {RectI recti=(rect ? *rect : RectI(0, 0, Renderer.resW(), Renderer.resH())); if( viewRectI()      !=recti                        ){                       _view_main.setRect (recti      ).setFov(); viewUpdate();} return T;} // need to use 'Renderer.res' in case VR is enabled and we're rendering to its 'GuiTexture'
+DisplayClass& DisplayClass::viewRect (C Rect  &rect              ) {RectI recti=screenToPixelI(rect);                                           if( viewRectI()      !=recti                        ){                       _view_main.setRect (recti      ).setFov(); viewUpdate();} return T;}
+DisplayClass& DisplayClass::viewFrom (  Flt    from              ) {                                                                            if( viewFrom ()      !=from                         ){                       _view_main.setFrom (from       )         ; viewUpdate();} return T;}
+DisplayClass& DisplayClass::viewRange(  Flt    range             ) {                                                                            if( viewRange()      !=range                        ){                       _view_main.setRange(range      )         ; viewUpdate();} return T;}
+DisplayClass& DisplayClass::viewFov  (  Flt    fov, FOV_MODE mode) {                                                                            if( viewFov  ()      !=fov  || viewFovMode()!=mode  ){                       _view_main.setFov  (fov, mode  )         ; viewUpdate();} return T;}
+DisplayClass& DisplayClass::viewFov  (C Vec2  &fov               ) {                                                                            if( viewFovXY()      !=fov  || viewFovMode()!=FOV_XY){                       _view_main.setFov  (fov, FOV_XY)         ; viewUpdate();} return T;}
+DisplayClass& DisplayClass::viewForceSquarePixel(Bool on         ) {                                                                            if(_view_square_pixel!=on                           ){_view_square_pixel=on; _view_main.setFov  (           )         ; viewUpdate();} return T;}
 
-Flt Display::viewQuadDist()C
+Flt DisplayClass::viewQuadDist()C
 {
    Vec    view_quad_max(_view_main.fov_tan.x*_view_main.from, _view_main.fov_tan.y*_view_main.from, _view_main.from);
    return view_quad_max.length();
@@ -3340,13 +3340,13 @@ Flt Display::viewQuadDist()C
 // CLEAR
 /******************************************************************************/
 #define CLEAR_DEPTH_VALUE (!REVERSE_DEPTH) // Warning: for GL this is set at app startup using 'glClearDepth' and not here
-void Display::clear(C Color &srgb_color)
+void DisplayClass::clear(C Color &srgb_color)
 {
    clearCol(srgb_color);
    clearDS (          );
 }
-void Display::clearCol(C Color &srgb_color) {return clearCol(SRGBToDisplay(srgb_color));}
-void Display::clearCol(C Vec4  &     color)
+void DisplayClass::clearCol(C Color &srgb_color) {return clearCol(SRGBToDisplay(srgb_color));}
+void DisplayClass::clearCol(C Vec4  &     color)
 {
    if(Renderer._cur[0])
    {
@@ -3372,7 +3372,7 @@ void Display::clearCol(C Vec4  &     color)
    }
 }
 
-void Display::clearCol(Int i, C Vec4 &color) // !! this ignores the viewport !!
+void DisplayClass::clearCol(Int i, C Vec4 &color) // !! this ignores the viewport !!
 {
    DEBUG_RANGE_ASSERT(i, Renderer._cur);
 #if DX11
@@ -3383,15 +3383,15 @@ void Display::clearCol(Int i, C Vec4 &color) // !! this ignores the viewport !!
 }
 #if DX11
 // DX10+ 'clearDepth' always clears full depth buffer (viewport is ignored)
-void Display::clearDepth  (      ) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH                                                             , CLEAR_DEPTH_VALUE, 0);}
-void Display::clearDS     (Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH|(Renderer._cur_ds->hwTypeInfo().s ? D3D11_CLEAR_STENCIL : 0), CLEAR_DEPTH_VALUE, s);}
-void Display::clearStencil(Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv,                                                       D3D11_CLEAR_STENCIL     , CLEAR_DEPTH_VALUE, s);}
+void DisplayClass::clearDepth  (      ) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH                                                             , CLEAR_DEPTH_VALUE, 0);}
+void DisplayClass::clearDS     (Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH|(Renderer._cur_ds->hwTypeInfo().s ? D3D11_CLEAR_STENCIL : 0), CLEAR_DEPTH_VALUE, s);}
+void DisplayClass::clearStencil(Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv,                                                       D3D11_CLEAR_STENCIL     , CLEAR_DEPTH_VALUE, s);}
 #elif GL
 // GL 'clearDepth' always clears full depth buffer (viewport is ignored)
 // Don't check for '_cur_ds_id' because this can be 0 for RenderBuffers
-void Display::clearDepth  (      ) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST);                    glClear(GL_DEPTH_BUFFER_BIT                                                           ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
-void Display::clearDS     (Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearStencil(s); glClear(GL_DEPTH_BUFFER_BIT|(Renderer._cur_ds->hwTypeInfo().s?GL_STENCIL_BUFFER_BIT:0)); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
-void Display::clearStencil(Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearStencil(s); glClear(                                                      GL_STENCIL_BUFFER_BIT   ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
+void DisplayClass::clearDepth  (      ) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST);                    glClear(GL_DEPTH_BUFFER_BIT                                                           ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
+void DisplayClass::clearDS     (Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearStencil(s); glClear(GL_DEPTH_BUFFER_BIT|(Renderer._cur_ds->hwTypeInfo().s?GL_STENCIL_BUFFER_BIT:0)); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
+void DisplayClass::clearStencil(Byte s) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearStencil(s); glClear(                                                      GL_STENCIL_BUFFER_BIT   ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
 #endif
 /******************************************************************************/
 // CONVERT COORDINATES
@@ -3406,17 +3406,17 @@ Rect ImgClamp(C Rect &screen, C VecI2 &size)
    return r;
 }
 
-Vec2 Display::screenToUV(C Vec2 &screen)
+Vec2 DisplayClass::screenToUV(C Vec2 &screen)
 {
    return Vec2((screen.x+D.w())/D.w2(),
                (D.h()-screen.y)/D.h2());
 }
-Rect Display::screenToUV(C Rect &screen)
+Rect DisplayClass::screenToUV(C Rect &screen)
 {
    return Rect((screen.min.x+D.w())/D.w2(), (D.h()-screen.max.y)/D.h2(),
                (screen.max.x+D.w())/D.w2(), (D.h()-screen.min.y)/D.h2());
 }
-Vec2 Display::UVToScreen(C Vec2 &uv)
+Vec2 DisplayClass::UVToScreen(C Vec2 &uv)
 {
    return Vec2(uv.x*D.w2()-D.w(),
                D.h()-uv.y*D.h2());
@@ -3427,63 +3427,63 @@ Rect ScreenToPixel(C Rect &screen, C VecI2 &res)
    return Rect((screen.min.x+D.w())*res.x/D.w2(), (D.h()-screen.max.y)*res.y/D.h2(),
                (screen.max.x+D.w())*res.x/D.w2(), (D.h()-screen.min.y)*res.y/D.h2());
 }
-Vec2 Display::screenToPixel(C Vec2 &screen)
+Vec2 DisplayClass::screenToPixel(C Vec2 &screen)
 {
    return Vec2((screen.x+D.w())*D._pixel_size_inv.x,
                (D.h()-screen.y)*D._pixel_size_inv.y);
 }
-Rect Display::screenToPixel(C Rect &screen)
+Rect DisplayClass::screenToPixel(C Rect &screen)
 {
    return Rect((screen.min.x+D.w())*D._pixel_size_inv.x, (D.h()-screen.max.y)*D._pixel_size_inv.y,
                (screen.max.x+D.w())*D._pixel_size_inv.x, (D.h()-screen.min.y)*D._pixel_size_inv.y);
 }
 
 // use 'Round' instead of 'Floor' to match GPU vertex rounding, so that all 3 ways of rect drawing will be identical: Rect r; 1) r.draw 2) D.clip(r) full_rect.draw() 3) D.viewRect(r) full_rect.draw()
-RectI          ScreenToPixelI(C Rect &screen, C VecI2 &res) {return RoundGPU(ScreenToPixel(screen, res));}
-VecI2 Display::screenToPixelI(C Vec2 &screen              ) {return RoundGPU(screenToPixel(screen));}
-RectI Display::screenToPixelI(C Rect &screen              ) {return RoundGPU(screenToPixel(screen));}
+RectI               ScreenToPixelI(C Rect &screen, C VecI2 &res) {return RoundGPU(ScreenToPixel(screen, res));}
+VecI2 DisplayClass::screenToPixelI(C Vec2 &screen              ) {return RoundGPU(screenToPixel(screen));}
+RectI DisplayClass::screenToPixelI(C Rect &screen              ) {return RoundGPU(screenToPixel(screen));}
 
-Vec2 Display::pixelToScreen(C Vec2 &pixel)
+Vec2 DisplayClass::pixelToScreen(C Vec2 &pixel)
 {
    return Vec2(pixel.x*D._pixel_size.x-D.w(),
                D.h()-pixel.y*D._pixel_size.y);
 }
-Vec2 Display::pixelToScreen(C VecI2 &pixel)
+Vec2 DisplayClass::pixelToScreen(C VecI2 &pixel)
 {
    return Vec2(pixel.x*D._pixel_size.x-D.w(),
                D.h()-pixel.y*D._pixel_size.y);
 }
-Rect Display::pixelToScreen(C Rect &pixel)
+Rect DisplayClass::pixelToScreen(C Rect &pixel)
 {
    return Rect(pixel.min.x*D._pixel_size.x-D.w(), D.h()-pixel.max.y*D._pixel_size.y,
                pixel.max.x*D._pixel_size.x-D.w(), D.h()-pixel.min.y*D._pixel_size.y);
 }
-Rect Display::pixelToScreen(C RectI &pixel)
+Rect DisplayClass::pixelToScreen(C RectI &pixel)
 {
    return Rect(pixel.min.x*D._pixel_size.x-D.w(), D.h()-pixel.max.y*D._pixel_size.y,
                pixel.max.x*D._pixel_size.x-D.w(), D.h()-pixel.min.y*D._pixel_size.y);
 }
-Vec2 Display::screenToPixelSize(C Vec2  &screen) {return screen*D._pixel_size_inv;}
-Vec2 Display::pixelToScreenSize(  Flt    pixel ) {return  pixel*D._pixel_size    ;}
-Vec2 Display::pixelToScreenSize(C Vec2  &pixel ) {return  pixel*D._pixel_size    ;}
-Vec2 Display::pixelToScreenSize(C VecI2 &pixel ) {return  pixel*D._pixel_size    ;}
+Vec2 DisplayClass::screenToPixelSize(C Vec2  &screen) {return screen*D._pixel_size_inv;}
+Vec2 DisplayClass::pixelToScreenSize(  Flt    pixel ) {return  pixel*D._pixel_size    ;}
+Vec2 DisplayClass::pixelToScreenSize(C Vec2  &pixel ) {return  pixel*D._pixel_size    ;}
+Vec2 DisplayClass::pixelToScreenSize(C VecI2 &pixel ) {return  pixel*D._pixel_size    ;}
 
-Vec2 Display::windowPixelToScreen(C Vec2 &pixel) // this is used by mouse/touch pointers
+Vec2 DisplayClass::windowPixelToScreen(C Vec2 &pixel) // this is used by mouse/touch pointers
 {
    return Vec2(pixel.x*D._window_pixel_to_screen_mul.x+D._window_pixel_to_screen_add.x,
                pixel.y*D._window_pixel_to_screen_mul.y+D._window_pixel_to_screen_add.y);
 }
-Vec2 Display::windowPixelToScreen(C VecI2 &pixel) // this is used by mouse/touch pointers
+Vec2 DisplayClass::windowPixelToScreen(C VecI2 &pixel) // this is used by mouse/touch pointers
 {
    return Vec2(pixel.x*D._window_pixel_to_screen_mul.x+D._window_pixel_to_screen_add.x,
                pixel.y*D._window_pixel_to_screen_mul.y+D._window_pixel_to_screen_add.y);
 }
-VecI2 Display::screenToWindowPixelI(C Vec2 &screen)
+VecI2 DisplayClass::screenToWindowPixelI(C Vec2 &screen)
 {
    return VecI2(Round((screen.x-D._window_pixel_to_screen_add.x)/D._window_pixel_to_screen_mul.x),
                 Round((screen.y-D._window_pixel_to_screen_add.y)/D._window_pixel_to_screen_mul.y));
 }
-RectI Display::screenToWindowPixelI(C Rect &screen)
+RectI DisplayClass::screenToWindowPixelI(C Rect &screen)
 {  // since Y gets flipped, we need to swap min.y <-> max.y
    return RectI(Round((screen.min.x-D._window_pixel_to_screen_add.x)/D._window_pixel_to_screen_mul.x),
                 Round((screen.max.y-D._window_pixel_to_screen_add.y)/D._window_pixel_to_screen_mul.y),
@@ -3513,16 +3513,16 @@ RectI Display::screenToWindowPixelI(C Rect &screen)
    D.text(0, D.h()-0.35f, "Line aligned");
 */
 
-Vec2 Display::screenAlignedToPixel      (C Vec2 &screen  ) {return pixelToScreen(screenToPixelI(screen));}
-Vec2 Display::  alignScreenToPixelOffset(C Vec2 &screen  ) {return  screenAlignedToPixel(screen)-screen;}
-void Display::  alignScreenToPixel      (  Vec2 &screen  ) {screen =screenAlignedToPixel(screen);}
-void Display::  alignScreenToPixel      (  Rect &screen  ) {screen+=alignScreenToPixelOffset(screen.lu());}
-void Display::  alignScreenXToPixel     (  Flt  &screen_x)
+Vec2 DisplayClass::screenAlignedToPixel      (C Vec2 &screen  ) {return pixelToScreen(screenToPixelI(screen));}
+Vec2 DisplayClass::  alignScreenToPixelOffset(C Vec2 &screen  ) {return  screenAlignedToPixel(screen)-screen;}
+void DisplayClass::  alignScreenToPixel      (  Vec2 &screen  ) {screen =screenAlignedToPixel(screen);}
+void DisplayClass::  alignScreenToPixel      (  Rect &screen  ) {screen+=alignScreenToPixelOffset(screen.lu());}
+void DisplayClass::  alignScreenXToPixel     (  Flt  &screen_x)
 {
    Int pixel=RoundGPU((screen_x+D.w())*D._pixel_size_inv.x); // use 'RoundGPU' to match 'screenToPixelI'
     screen_x=pixel*D._pixel_size.x-D.w();
 }
-void Display::alignScreenYToPixel(Flt &screen_y)
+void DisplayClass::alignScreenYToPixel(Flt &screen_y)
 {
    Int pixel=RoundGPU((D.h()-screen_y)*D._pixel_size_inv.y); // use 'RoundGPU' to match 'screenToPixelI'
     screen_y=D.h()-pixel*D._pixel_size.y;
@@ -3530,8 +3530,8 @@ void Display::alignScreenYToPixel(Flt &screen_y)
 /******************************************************************************/
 // FADE
 /******************************************************************************/
-Bool Display::fading()C {return Renderer._fade || _fade_get;}
-void Display::setFade(Flt seconds, Bool previous_frame)
+Bool DisplayClass::fading()C {return Renderer._fade || _fade_get;}
+void DisplayClass::setFade(Flt seconds, Bool previous_frame)
 {
    if(!VR.active()) // fading is currently not supported in VR mode, because fading operates on a static image that's not rotating when moving headset
    {
@@ -3581,17 +3581,17 @@ void Display::setFade(Flt seconds, Bool previous_frame)
       }
    }
 }
-void Display::clearFade()
+void DisplayClass::clearFade()
 {
    Renderer._fade.clear();
   _fade_get=false;
   _fade_step=_fade_len=0;
 }
-void Display::fadeUpdate()
+void DisplayClass::fadeUpdate()
 {
    if(Renderer._fade && (_fade_step+=Time.ad()/_fade_len)>=1)clearFade();
 }
-void Display::fadeDraw()
+void DisplayClass::fadeDraw()
 {
    if(Renderer._fade)
    {
@@ -3615,9 +3615,9 @@ static void SetPalette(Int index, C ImagePtr &palette) // !! Warning: '_color_pa
    if(palette)palette->copyTry(D._color_palette_soft[index], -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1);
    else                        D._color_palette_soft[index].del();
 }
-Display& Display::colorPalette     (C ImagePtr &palette) {SetPalette(0, palette);    return T;}
-Display& Display::colorPalette1    (C ImagePtr &palette) {SetPalette(1, palette);    return T;}
-Display& Display::colorPaletteAllow(  Bool      on     ) {D._color_palette_allow=on; return T;}
+DisplayClass& DisplayClass::colorPalette     (C ImagePtr &palette) {SetPalette(0, palette);    return T;}
+DisplayClass& DisplayClass::colorPalette1    (C ImagePtr &palette) {SetPalette(1, palette);    return T;}
+DisplayClass& DisplayClass::colorPaletteAllow(  Bool      on     ) {D._color_palette_allow=on; return T;}
 /******************************************************************************/
 #if WINDOWS_NEW
 Int DipsToPixels(Flt dips) {return Round(dips*ScreenScale);}

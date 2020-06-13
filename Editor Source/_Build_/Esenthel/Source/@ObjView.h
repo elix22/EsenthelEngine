@@ -220,6 +220,7 @@ public:
    int boneTabs()C;
    int boneAxis()C;
    flt posScale()C;
+   flt       posEps()C; 
    flt vtxDupPosEps()C; 
    Vec selMeshCenter()C;
    Skeleton* getVisSkel();
@@ -429,7 +430,8 @@ public:
    void drag(Memc<UID> &elms, GuiObj* &focus_obj, C Vec2 &screen_pos);
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
-   void animate(C AnimSkel &anim_skel);
+   void animate(C AnimSkel &anim_skel, bool transform_anims=true, C UID &ignore_anim_id=UIDZero);
+   void animate(C Animation &anim, flt anim_time, bool transform_anims=true, C UID &ignore_anim_id=UIDZero);
 
    virtual void update(C GuiPC &gpc)override;
    static void Add(Str &s, cchar8 *t);       

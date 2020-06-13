@@ -778,8 +778,8 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
    // orientation
    if(angle_eps>=0)
    {
-   #define USE_DOT 1 // calculating Dot is faster than the angle
-   #if USE_DOT
+   #define USE_DOT 0 // don't use Dot, because even though it is faster, the precision for Flt is too low (example: dot_eps=Cos(angle_eps); for angle_eps=0.0002f gives dot_eps=1.0f)
+   #if     USE_DOT
       Flt dot_eps=Cos(angle_eps);
    #endif
       optimized.setNumDiscard(orns.elms()); REPAO(optimized)=i;
@@ -794,8 +794,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
          Flt  n_time=AfterTime(n->time, p->time, anim_length);
          Orient test;
 
-         // check between this and previous key (this is extra important for orientations)
-         if(!anim_linear)
+         // check between this and previous key !! this is extra important for orientations, both Linear and Cubic !!
          {
           C Orn &orn=orns[i];
             Flt  prev_time=(InRange(i-1, orns) ? orns[i-1].time : anim_loop ? orns.last().time-anim_length : 0);
@@ -809,27 +808,41 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
                Orient orn;
              C Orn &src_p=orns[src_prev], &src_n=orns[src_next];
                Flt  step =0.5f; // here for source, step is always 0.5, because we want to test between keys
-            #if HAS_ANIM_TANGENT
-               orn.dir =LerpTan(src_p.orn.dir , src_n.orn.dir , step, src_p.tan.dir , src_n.tan.dir );
-               orn.perp=LerpTan(src_p.orn.perp, src_n.orn.perp, step, src_p.tan.perp, src_n.tan.perp);
-            #else
-               Int src_prev2=Index(i-2, anim_loop, orns.elms()),
-                   src_next2=Index(i+1, anim_loop, orns.elms());
-             C Orn &src_p2=orns[src_prev2], &src_n2=orns[src_next2];
-               orn.dir =Lerp4(src_p2.orn.dir , src_p.orn.dir , src_n.orn.dir , src_n2.orn.dir , step);
-               orn.perp=Lerp4(src_p2.orn.perp, src_p.orn.perp, src_n.orn.perp, src_n2.orn.perp, step);
-            #endif
+               if(anim_linear)
+               {
+                  orn.dir =Lerp(src_p.orn.dir , src_n.orn.dir , step);
+                  orn.perp=Lerp(src_p.orn.perp, src_n.orn.perp, step);
+               }else
+               {
+               #if HAS_ANIM_TANGENT
+                  orn.dir =LerpTan(src_p.orn.dir , src_n.orn.dir , step, src_p.tan.dir , src_n.tan.dir );
+                  orn.perp=LerpTan(src_p.orn.perp, src_n.orn.perp, step, src_p.tan.perp, src_n.tan.perp);
+               #else
+                  Int src_prev2=Index(i-2, anim_loop, orns.elms()),
+                      src_next2=Index(i+1, anim_loop, orns.elms());
+                C Orn &src_p2=orns[src_prev2], &src_n2=orns[src_next2];
+                  orn.dir =Lerp4(src_p2.orn.dir , src_p.orn.dir , src_n.orn.dir , src_n2.orn.dir , step);
+                  orn.perp=Lerp4(src_p2.orn.perp, src_p.orn.perp, src_n.orn.perp, src_n2.orn.perp, step);
+               #endif
+               }
                orn.fix();
 
                // calculate optimized orn
                step=LerpRS(p->time, n_time, AfterTime(anim_params.time, p->time, anim_length)); // use Sat in case orn.time is outside of range, or 'p' has the same time as 'n'
-            #if HAS_ANIM_TANGENT
-               test.dir =LerpTan(p->orn.dir , n->orn.dir , step, GetTangentDir(p2->orn.dir , n->orn.dir ), GetTangentDir(p->orn.dir , n2->orn.dir ));
-               test.perp=LerpTan(p->orn.perp, n->orn.perp, step, GetTangentDir(p2->orn.perp, n->orn.perp), GetTangentDir(p->orn.perp, n2->orn.perp));
-            #else
-               test.dir =Lerp4(p2->orn.dir , p->orn.dir , n->orn.dir , n2->orn.dir , step);
-               test.perp=Lerp4(p2->orn.perp, p->orn.perp, n->orn.perp, n2->orn.perp, step);
-            #endif
+               if(anim_linear)
+               {
+                  test.dir =Lerp(p->orn.dir , n->orn.dir , step);
+                  test.perp=Lerp(p->orn.perp, n->orn.perp, step);
+               }else
+               {
+               #if HAS_ANIM_TANGENT
+                  test.dir =LerpTan(p->orn.dir , n->orn.dir , step, GetTangentDir(p2->orn.dir , n->orn.dir ), GetTangentDir(p->orn.dir , n2->orn.dir ));
+                  test.perp=LerpTan(p->orn.perp, n->orn.perp, step, GetTangentDir(p2->orn.perp, n->orn.perp), GetTangentDir(p->orn.perp, n2->orn.perp));
+               #else
+                  test.dir =Lerp4(p2->orn.dir , p->orn.dir , n->orn.dir , n2->orn.dir , step);
+                  test.perp=Lerp4(p2->orn.perp, p->orn.perp, n->orn.perp, n2->orn.perp, step);
+               #endif
+               }
                test.fix();
 
             #if USE_DOT
@@ -2194,6 +2207,60 @@ static void DelRot(Animation &anim, UInt flag)
       anim.keys.setTangents(anim.loop(), anim.length());
    }
 }
+struct SphericalInterpolator
+{
+   Bool linear;
+   Flt  rot_angle, circle_r;
+   Vec  rot_axis, circle_pos, circle_x, circle_y, linear_delta;
+
+   Flt circleDist()C {return circle_r*rot_angle;} // distance travelled along the circle edge
+   Flt linearDist()C {return linear_delta.length();} // distance travelled along the 'linear_delta' edge
+   Flt travelDist()C {return Dist(circleDist(), linearDist());} // linear distance is always perpendicular to the rotation plane (on separate axis), this is a helix length
+
+   Bool init(C Matrix &start, C Matrix &end, Flt eps=EPS) // 'eps' must be >=0 because codes below will fail if angle is <=0
+   {
+      DEBUG_ASSERT(eps>=0, "SphericalInterpolator eps");
+      GetDelta(rot_axis, start, end);
+      rot_angle=rot_axis.normalize();
+      if(rot_angle<=eps)return false; // if 'rot_angle' is close to zero, then there is no rotation and we can fall back to linear interpolation
+
+      Vec full_delta=end.pos-start.pos; // full delta from 'start' to 'end'
+      Vec rot_plane_delta=PointOnPlane(full_delta, rot_axis); // delta on rotation plane
+      linear_delta=full_delta-rot_plane_delta; // remaining delta that has to be processed linearly
+
+      // isosceles triangle inside the interpolation circle, triangle top is located at the center of circle, bottom vertexes are 'start.pos' and 'end.pos', bottom edge is 'delta' (before normalization)
+      Flt delta_len=rot_plane_delta.normalize();
+      if( delta_len<=eps) // linear
+      {
+         linear    =true;
+         circle_r  =0;
+         circle_pos=start.pos;
+         circle_x.zero();
+         circle_y.zero();
+      }else
+      {
+         linear=false;
+         Vec cross=Cross(rot_plane_delta, rot_axis); // no need for 'CrossN' because 'rot_plane_delta' and 'rot_axis' are already normalized and perpendicular
+         Flt delta_len_2=delta_len*0.5f,
+              tri_height=delta_len_2*Ctg(rot_angle/2); // ctg=1/tan
+         circle_r  =Dist(tri_height, delta_len_2);
+         circle_pos=start.pos+rot_plane_delta*delta_len_2 // center between start and end (bottom if triangle)
+                   -cross*tri_height;
+         circle_x=cross          *circle_r;
+         circle_y=rot_plane_delta*circle_r;
+      }
+      return true;
+   }
+   void set(Vec &pos, Flt frac)
+   {
+      if(linear)pos=circle_pos + linear_delta*frac;else
+      {
+         Flt angle=(frac-0.5f)*rot_angle; // subtract 0.5 because triangle has bottom half-way through 'delta'
+         Vec2 cs; CosSin(cs.x, cs.y, angle);
+         pos=circle_pos + circle_x*cs.x + circle_y*cs.y + linear_delta*frac;
+      }
+   }
+};
 Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &old_skel, C Skeleton &new_skel, Int old_skel_bone_as_root, C MemPtr< Mems<IndexWeight> > &weights, UInt root_flags)
 {
 /* 
@@ -2320,42 +2387,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
 
    MemtN<BoneWeight, 4> old_bones;
 
-   if(root_flags&(ROOT_2_KEYS|ROOT_SMOOTH)) // FIXME remove smooth
-   {
-      Bool changed=false;
-      if(anim_out.keys.poss.elms()>2)
-      {
-         anim_out.keys.poss.setNumDiscard(2);
-         anim_out.keys.poss[0].time=                0; anim_out.keys.poss[0].pos=anim_out.rootStart().pos;
-         anim_out.keys.poss[1].time=anim_out.length(); anim_out.keys.poss[1].pos=anim_out.rootEnd  ().pos;
-         changed=true;
-      }
-      if(anim_out.keys.orns.elms()>2)
-      {
-         anim_out.keys.orns.setNumDiscard(2);
-         anim_out.keys.orns[0].time=                0; anim_out.keys.orns[0].orn=anim_out.rootStart(); anim_out.keys.orns[0].orn.fix();
-         anim_out.keys.orns[1].time=anim_out.length(); anim_out.keys.orns[1].orn=anim_out.rootEnd  (); anim_out.keys.orns[1].orn.fix();
-         changed=true;
-      }
-      if(anim_out.keys.scales.elms()>2)
-      {
-         anim_out.keys.scales.setNumDiscard(2);
-         anim_out.keys.scales[0].time=                0; anim_out.keys.scales[0].scale=ScaleFactorR(anim_out.rootStart().scale());
-         anim_out.keys.scales[1].time=anim_out.length(); anim_out.keys.scales[1].scale=ScaleFactorR(anim_out.rootEnd  ().scale());
-         changed=true;
-      }
-      if(changed)
-      {
-         anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
-       //anim_out.setRootMatrix(); no need to call because it doesn't change
-         root_not_changed=root_not_changed_post=false;
-      }
-   }else
-   if(root_flags&ROOT_SMOOTH)
-   {
-      // FIXME ROOT_SMOOTH
-   }
-   if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL !!
+   if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL and ROOT_SMOOTH !!
    {
       AnimParams params(anim_out, 0);
       if(!anim_out.keys.scales.elms())
@@ -2408,6 +2440,106 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
       if(changed)
       {
          anim_out.setRootMatrix();
+         root_not_changed=root_not_changed_post=false;
+      }
+   }
+   if(root_flags&(ROOT_SMOOTH|ROOT_LINEAR_POS)) // !! do this after ROOT_START_IDENTITY, because otherwise using only ROOT_SMOOTH may change positions too !!
+   {
+      if(root_flags&ROOT_LINEAR_POS)FlagDisable(root_flags, ROOT_SMOOTH_POS); // if want only simple linear pos, then disable smooth pos
+
+      Bool changed=false;
+      SphericalInterpolator si;
+      if((root_flags&ROOT_SMOOTH_ROT_POS) && anim_out.keys.orns.elms()>=2 && si.init(anim_out.rootStart(), anim_out.rootEnd(), EPS_ANIM_ANGLE)) // use spherical interpolation only if we actually have some rotations
+      {
+         if(root_flags&ROOT_SMOOTH_ROT) // orientations
+         {
+            const Int precision=4; // number of keyframes per 90 deg, can be modified, this is needed because rotation interpolation is done by interpolating axis vectors, and few samples are needed to get smooth results
+            Int num=1+Max(1, Round(si.rot_angle*(precision/PI_2)));
+            anim_out.keys.orns.setNum(num);
+            if(num)
+            {
+               OrientD orn=anim_out.rootStart(); orn.fix();
+               AnimKeys::Orn &key=anim_out.keys.orns.first();
+               key.time=0;
+               key.orn =orn;
+               if(num>=2)
+               {
+                  AnimKeys::Orn &key=anim_out.keys.orns.last();
+                  key.time=anim_out.length ();
+                 (key.orn =anim_out.rootEnd()).fix();
+                  if(num>=3)
+                  {
+                     num--;
+                     MatrixD3 rot; rot.setRotate(si.rot_axis, si.rot_angle/num);
+                     for(int i=1; i<num; i++)
+                     {
+                        orn.mul(rot, true);
+                        AnimKeys::Orn &key=anim_out.keys.orns[i];
+                        key.time=Flt(i)/num*anim_out.length();
+                        key.orn =orn;
+                     }
+                  }
+               }
+            }
+            FlagDisable(root_flags, ROOT_SMOOTH_ROT); // mark as processed
+            changed=true;
+         }
+
+         if((root_flags&ROOT_SMOOTH_POS) && !si.linear) // positions (if linear then skip here, and we will process them later below)
+         {
+            Flt travel_distance=si.travelDist();
+            const Int precision=10; // number of keyframes per meter, can be modified
+            Int num=((travel_distance<=EPS) ? Equal(anim_out.rootStart().pos, VecZero) ? 0 : 1 : 1+Max(1, Round(travel_distance*precision)));
+            anim_out.keys.poss.setNum(num);
+            if(num)
+            {
+               AnimKeys::Pos &key=anim_out.keys.poss.first();
+               key.time=0;
+               key.pos =anim_out.rootStart().pos;
+               if(num>=2)
+               {
+                  AnimKeys::Pos &key=anim_out.keys.poss.last();
+                  key.time=anim_out.length ();
+                  key.pos =anim_out.rootEnd().pos;
+                  num--;
+                  for(Int i=1; i<num; i++)
+                  {
+                     Flt frac=Flt(i)/num;
+                     AnimKeys::Pos &key=anim_out.keys.poss[i];
+                     key.time=frac*anim_out.length();
+                     si.set(key.pos, frac);
+                  }
+               }
+            }
+            FlagDisable(root_flags, ROOT_SMOOTH_POS); // mark as processed
+            changed=true;
+         }
+      }
+      if((root_flags&ROOT_SMOOTH_ROT) && anim_out.keys.orns.elms()>2) // if still have orientations to process
+      {
+         anim_out.keys.orns.setNumDiscard(2);
+         anim_out.keys.orns[0].time=                0; anim_out.keys.orns[0].orn=anim_out.rootStart(); anim_out.keys.orns[0].orn.fix();
+         anim_out.keys.orns[1].time=anim_out.length(); anim_out.keys.orns[1].orn=anim_out.rootEnd  (); anim_out.keys.orns[1].orn.fix();
+         changed=true;
+      }
+      if((root_flags&(ROOT_SMOOTH_POS|ROOT_LINEAR_POS)) && anim_out.keys.poss.elms()>2) // if still have positions to process
+      {
+         anim_out.keys.poss.setNumDiscard(2);
+         anim_out.keys.poss[0].time=                0; anim_out.keys.poss[0].pos=anim_out.rootStart().pos;
+         anim_out.keys.poss[1].time=anim_out.length(); anim_out.keys.poss[1].pos=anim_out.rootEnd  ().pos;
+         changed=true;
+      }
+      if((root_flags&ROOT_SMOOTH_SCALE) && anim_out.keys.scales.elms()>2) // if still have scales to process
+      {
+         anim_out.keys.scales.setNumDiscard(2);
+         anim_out.keys.scales[0].time=                0; anim_out.keys.scales[0].scale=ScaleFactorR(anim_out.rootStart().scale());
+         anim_out.keys.scales[1].time=anim_out.length(); anim_out.keys.scales[1].scale=ScaleFactorR(anim_out.rootEnd  ().scale());
+         changed=true;
+      }
+      if(changed)
+      {
+         anim_out.keys.setTangents(anim_out.loop(), anim_out.length());
+       //anim_out.setRootMatrix(); no need to call because it doesn't change
          root_not_changed=root_not_changed_post=false;
       }
    }

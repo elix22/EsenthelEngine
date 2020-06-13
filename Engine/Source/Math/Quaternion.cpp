@@ -240,10 +240,10 @@ static Quaternion SlerpNoInv(C Quaternion &a, C Quaternion &b, Flt step)
 {
    Quaternion O;
    Flt dot=Dot(a, b);
-   if(Abs(dot)>=0.99f)O=Lerp(a, b, step);else // if angle is small then use linear interpolation
+   if(Abs(dot)>=0.99f)O=Lerp(a, b, step);else // if angle is small then use linear interpolation !! this also allows to use 'AcosFast' below !!
    {
-      Flt angle=Acos(dot  ),
-          sin  =Sin (angle);
+      Flt angle=AcosFast(dot  ),
+          sin  =Sin     (angle);
       O=a*(Sin(angle*(1-step))/sin) + b*(Sin(angle*step)/sin);
    }
    O.normalize();
@@ -259,10 +259,10 @@ Quaternion Slerp(C Quaternion &a, C Quaternion &b, Flt step)
       CHS(dot);
       temp.chs();
    }
-   if(dot>=0.99f)O=Lerp(a, temp, step);else // if angle is small then use linear interpolation
+   if(dot>=0.99f)O=Lerp(a, temp, step);else // if angle is small then use linear interpolation !! this also allows to use 'AcosFast' below !!
    {
-      Flt angle=Acos(dot  ),
-          sin  =Sin (angle);
+      Flt angle=AcosFast(dot  ),
+          sin  =Sin     (angle);
       O=a*(Sin(angle*(1-step))/sin) + temp*(Sin(angle*step)/sin);
    }
    O.normalize();

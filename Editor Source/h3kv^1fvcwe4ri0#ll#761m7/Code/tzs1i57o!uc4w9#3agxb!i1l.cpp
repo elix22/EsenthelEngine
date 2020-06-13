@@ -13,7 +13,7 @@ class LodView : GuiCustom
          D.clip(gpc.clip);
          Rect r=rect()+gpc.offset;
          r.extend(-0.005);
-         r.draw((ObjEdit.selLod()==lod_index) ? RED : (ObjEdit.lit_lod==lod_index) ? TURQ : BLACK, false);
+         r.draw((ObjEdit.selLod()==lod_index) ? RED : (ObjEdit.lit_lod==lod_index) ? AZURE : BLACK, false);
          TextStyleParams ts; ts.size=0.039;
          if(InRange(lod_index, ObjEdit.mesh.lods()))
          {

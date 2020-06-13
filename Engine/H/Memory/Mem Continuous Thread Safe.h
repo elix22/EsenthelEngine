@@ -80,6 +80,13 @@ T1(const_mem_addr TYPE) struct MemcThreadSafe : _MemcThreadSafe // Thread-Safe C
    void   lock()C; //   lock this container, must be called before using methods which name starts with "locked", 'unlock' must be called after all of those operations
    void unlock()C; // unlock this container, must be called after  using methods which name starts with "locked"
 
+   // io
+   Bool save(File &f);   Bool save(File &f)C; // save elements with their own 'save' method, this method first saves number of current elements, and then for each element calls its 'save' method, false on fail
+   Bool load(File &f);                        // load elements with their own 'load' method, this method first loads number of saved   elements, and then for each element calls its 'load' method, false on fail
+
+   Bool saveRaw(File &f)C; // save raw memory of elements (number of elements + elements raw memory), false on fail
+   Bool loadRaw(File &f) ; // load raw memory of elements (number of elements + elements raw memory), false on fail
+
    MemcThreadSafe();
 };
 /******************************************************************************/

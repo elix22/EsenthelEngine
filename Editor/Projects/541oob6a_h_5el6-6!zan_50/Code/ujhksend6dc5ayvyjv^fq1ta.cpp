@@ -52,7 +52,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    if(Kb.b(KB_SPACE))fade_modifier.drawFs();else // if    space pressed then draw fading texture to full screen
    switch(fx_index)                              // if no space pressed then draw effects

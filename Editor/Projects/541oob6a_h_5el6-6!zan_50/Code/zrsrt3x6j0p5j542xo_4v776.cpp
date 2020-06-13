@@ -33,7 +33,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    D.dot(RED  , Ms.pos()); // draw red   dot at mouse cursor position
    D.dot(GREEN, point   ); // draw green dot at 'point' position

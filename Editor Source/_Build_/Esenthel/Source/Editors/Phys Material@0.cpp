@@ -32,7 +32,7 @@ PhysMtrlEditor PhysMtrlEdit;
       if(sim_type)
       {
          cam.setSpherical().set();
-         D.clear(TURQ);
+         D.clear(AZURE);
          REPAO(actor_stat).draw(GREEN);
          REPAO(actor_dyn ).draw(WHITE);
          SetMatrix();

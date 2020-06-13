@@ -68,7 +68,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text (-0.5, 0.1, S+"'combobox_a' element: "+combobox_a()); // draw selected element
    D.text ( 0.5, 0.1, S+"'combobox_b' element: "+combobox_b()); // draw selected element
    Gui.draw();

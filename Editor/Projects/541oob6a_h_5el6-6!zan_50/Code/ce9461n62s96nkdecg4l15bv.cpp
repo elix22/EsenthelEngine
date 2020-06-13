@@ -43,7 +43,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    if(Music.playlist()) // if any playlist playing
    {

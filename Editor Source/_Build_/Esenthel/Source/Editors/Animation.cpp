@@ -209,7 +209,7 @@ AnimEditor AnimEdit;
                }else
                {
                   r.draw(Color(0, 64), false);
-                  
+
                   AnimKeys *sel_keys=AnimEdit.findVisKeys(AnimEdit.sel_bone),
                            *lit_keys=AnimEdit.findVisKeys(AnimEdit.lit_bone, false); // don't display root keys for highlighted
                   const flt s=r.h()/(TRACK_NUM+1)/2;
@@ -234,7 +234,7 @@ AnimEditor AnimEdit;
                   Vec2         p=AnimEdit.screenPos()+Vec2(0.01f, -0.25f);
                   int       bone=AnimEdit.lit_bone;
                   Skeleton *skel=AnimEdit.skel;
-                  flt frame; Str frame_t; if(AnimEdit.timeToFrame(AnimEdit.animTime(), frame))frame_t=S+", "+Round(frame)+"f";
+                  flt frame, frames; Str frame_t; if(AnimEdit.timeToFrame(AnimEdit.animTime(), frame) && AnimEdit.timeToFrame(anim->length(), frames))frame_t=S+", "+Round(frame)+'/'+Round(frames)+"f";
                                                        D.text(ObjEdit.ts, p, S+"Time: "+AnimEdit.animTime()+'/'+anim->length()+"s ("+Round(AnimEdit.timeToFrac(AnimEdit.animTime())*100)+'%'+frame_t+')'); p.y-=ObjEdit.ts.size.y;
                   if(skel && InRange(bone, skel->bones))D.text(ObjEdit.ts, p, S+"Bone \""+skel->bones[bone].name+"\", Parent: "+(InRange(skel->bones[bone].parent, skel->bones) ? S+'"'+skel->bones[skel->bones[bone].parent].name+'"' : S+"none"));
                   if(Gui.ms()==this)
@@ -456,6 +456,59 @@ AnimEditor AnimEdit;
          hide();
          return T;
       }
+      void AnimEditor::ScalePosKeys::Changed(C Property &prop) {AnimEdit.scale_pos_keys.refresh();}
+      void AnimEditor::ScalePosKeys::OK(ScalePosKeys &oa)
+      {
+         if(AnimEdit.anim)
+         {
+            AnimEdit.undos.set("scalePos");
+            oa.scalePos(*AnimEdit.anim);
+            AnimEdit.setChanged();
+         }
+         oa.hide();
+      }
+      void AnimEditor::ScalePosKeys::scalePos(Animation &anim)
+      {
+         if(AnimKeys *keys=AnimEdit.findKeys(&anim, AnimEdit.sel_bone))
+         {
+            REPA(keys->poss)
+            {
+               Vec &pos=keys->poss[i].pos;
+               pos.x*=scale.x;
+               pos.y*=scale.y;
+               pos.z*=scale.z;
+               pos  *=scale_xyz;
+            }
+            keys->setTangents(anim.loop(), anim.length());
+         }
+         anim.setRootMatrix();
+      }
+      Animation* AnimEditor::ScalePosKeys::getAnim()
+      {
+         Animation *src=AnimEdit.anim;
+         if(refresh_needed)
+         {
+            refresh_needed=false;
+            if(src)anim=*src;else anim.del();
+            scalePos(anim);
+         }
+         return preview ? &anim : src;
+      }
+      void AnimEditor::ScalePosKeys::refresh() {refresh_needed=true;}
+      ::AnimEditor::ScalePosKeys& AnimEditor::ScalePosKeys::create()
+      {
+         add("Preview"  , MEMBER(ScalePosKeys, preview  ));
+         add("Scale X"  , MEMBER(ScalePosKeys, scale.x  )).changed(Changed).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+         add("Scale Y"  , MEMBER(ScalePosKeys, scale.y  )).changed(Changed).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+         add("Scale Z"  , MEMBER(ScalePosKeys, scale.z  )).changed(Changed).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+         add("Scale XYZ", MEMBER(ScalePosKeys, scale_xyz)).changed(Changed).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
+         Rect r=super::create("Scale Pos Keys", Vec2(0.02f, -0.02f), 0.040f, 0.046f); button[2].show();
+         autoData(this);
+         resize(Vec2(0, 0.1f));
+         T+=ok.create(Rect_D(clientWidth()/2, -clientHeight()+0.03f, 0.2f, 0.06f), "OK").func(OK, T);
+         hide();
+         return T;
+      }
       void AnimEditor::TimeRangeSpeed::Apply(TimeRangeSpeed &tsr)
       {
          if(AnimEdit.anim && tsr.speed)
@@ -578,35 +631,54 @@ AnimEditor AnimEdit;
    void AnimEditor::PrevFrame(AnimEditor &editor) {editor.frame(-1);}
    void AnimEditor::NextFrame(AnimEditor &editor) {editor.frame(+1);}
    void  AnimEditor::DelFrame(AnimEditor &editor) {editor.delFrame ();}
-   void  AnimEditor::DelFrames(AnimEditor &editor) {editor.delFrames();}
+   void  AnimEditor::DelFrames(AnimEditor &editor) {editor.delFrames(editor.sel_bone);}
    void  AnimEditor::DelFramesAtEnd(AnimEditor &editor) {editor.delFramesAtEnd();}
    void AnimEditor::Optimize(AnimEditor &editor) {editor.optimize_anim.activate();}
+   void AnimEditor::ScalePosKey(AnimEditor &editor) {editor.scale_pos_keys.activate();}
    void AnimEditor::TimeRangeSp(AnimEditor &editor) {editor.time_range_speed.display();}
    void AnimEditor::ReverseFrames(AnimEditor &editor) {editor.reverseFrames();}
    void AnimEditor::RemMovement(AnimEditor &editor) {editor.removeMovement();}
    void AnimEditor::FreezeBone(AnimEditor &editor) {editor.freezeBone();}
-   void AnimEditor::Mirror(AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim->mirror   (                            editor.skel ? *editor.skel : temp      ); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
-   void AnimEditor::RotX(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateX(PI_2), editor.skel ? *editor.skel : temp, true); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
-   void AnimEditor::RotY(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateY(PI_2), editor.skel ? *editor.skel : temp, true); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
-   void AnimEditor::RotZ(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateZ(PI_2), editor.skel ? *editor.skel : temp, true); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   void AnimEditor::Mirror(AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim->mirror(editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   void AnimEditor::rotate(C Matrix3 &m)
+   {
+      if(anim)
+      {
+         undos.set("rot", true);
+         if(ElmAnim *d=data())if(d->rootMove()){Vec root_move=d->root_move*m; d->rootMove(root_move);} // !! don't do "d.root_move*=m" because we need to call 'rootMove' !!
+         Skeleton temp; anim->transform(m, skel ? *skel : temp, true); prepMeshSkel(); setOrnTarget(); setChanged(); toGui();
+      }
+   }
+   void AnimEditor::RotX(AnimEditor &editor) {editor.rotate(Matrix3().setRotateX(PI_2));}
+   void AnimEditor::RotY(AnimEditor &editor) {editor.rotate(Matrix3().setRotateY(PI_2));}
+   void AnimEditor::RotZ(AnimEditor &editor) {editor.rotate(Matrix3().setRotateZ(PI_2));}
+   void AnimEditor::RotXH(AnimEditor &editor) {editor.rotate(Matrix3().setRotateX(PI_4));}
+   void AnimEditor::RotYH(AnimEditor &editor) {editor.rotate(Matrix3().setRotateY(PI_4));}
+   void AnimEditor::RotZH(AnimEditor &editor) {editor.rotate(Matrix3().setRotateZ(PI_4));}
    void AnimEditor::DrawBones(AnimEditor &editor) {editor.draw_bones.push();}
    void AnimEditor::DrawMesh(AnimEditor &editor) {editor.draw_mesh .push();}
    void AnimEditor::Grid(AnimEditor &editor) {editor.show_grid .push();}
    void AnimEditor::TransformObj(AnimEditor &editor)
    {
       Dialog &dialog=Gui.getMsgBox(transform_obj_dialog_id);
-      dialog.set("Transform Object", "Warning: this option will open the original object in the Object Editor, clear undo levels (if any) and transform it, including its Mesh and Skeleton according to current animation. This cannot be undone. Are you sure you want to do this?", Memt<Str>().add("Yes").add("Cancel"));
-      dialog.buttons[0].func(TransformObjDo, editor);
-      dialog.buttons[1].func(Hide          , SCAST(GuiObj, dialog));
+      dialog.set("Transform Object", "Warning: this option will open the original object in the Object Editor, clear undo levels (if any) and transform it, including its Mesh and Skeleton according to current Animation. This cannot be undone. Are you sure you want to do this?", Memt<Str>().add("Yes").add("Yes (preserve this Animation)").add("Yes (preserve all Animations)").add("Cancel"));
+      dialog.buttons[0].func(TransformObjYes            , editor).desc("This Animation will be transformed among other Object Animations to the new Skeleton.\nChoose this option if you intend to use this Animation on the transformed Object.");
+      dialog.buttons[1].func(TransformObjYesPreserveThis, editor).desc("Other Object Animations will be transformed to the new Skeleton, except this one which will remain unmodified.\nChoose this option if you don't intend to use this Animation on the transformed Object, but instead keep it as backup to transform the original Object again in the future.");
+      dialog.buttons[2].func(TransformObjYesPreserveAll , editor).desc("No Animations will be transformed to the new Skeleton, all will remain unmodified.\nChoose this option if you want to keep animations as they are.");
+      dialog.buttons[3].func(Hide                       , SCAST(GuiObj, dialog));
       dialog.activate();
    }
-   void AnimEditor::TransformObjDo(AnimEditor &editor)
+   void AnimEditor::TransformObjYes(AnimEditor &editor) {editor.transformObj();}
+   void AnimEditor::TransformObjYesPreserveThis(AnimEditor &editor) {editor.transformObj(true, editor.elm_id);}
+   void AnimEditor::TransformObjYesPreserveAll(AnimEditor &editor) {editor.transformObj(false);}
+          void AnimEditor::transformObj(bool transform_anims, C UID &ignore_anim_id)
    {
       Gui.closeMsgBox(transform_obj_dialog_id);
-      if(Elm *obj=Proj.animToObjElm(editor.elm))
+      if(anim)
+      if(Elm *obj=Proj.animToObjElm(elm))
       {
          ObjEdit.activate(obj);
-         ObjEdit.animate(editor.anim_skel);
+         ObjEdit.animate(*anim, animTime(), transform_anims, ignore_anim_id); // can't use 'anim_skel' because this operates on game mesh/skel, which can be different if using object body, we need mesh original skel
       }else Gui.msgBox(S, "There's no Object associated with this Animation.");
    }
    void AnimEditor::Undo(AnimEditor &editor) {editor.undos.undo();}
@@ -652,13 +724,25 @@ AnimEditor AnimEdit;
          }
       }
    }
-   void AnimEditor::RootDelPosX(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelPos"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_POS_X); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_POS_X){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_POSITION_X); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
-   void AnimEditor::RootDelPosY(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelPos"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_POS_Y); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_POS_Y){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_POSITION_Y); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
-   void AnimEditor::RootDelPosZ(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelPos"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_POS_Z); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_POS_Z){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_POSITION_Z); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
-   void AnimEditor::RootDelRotX(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelRot"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_ROT_X); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_ROT_X){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_ROTATION_X); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
-   void AnimEditor::RootDelRotY(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelRot"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_ROT_Y); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_ROT_Y){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_ROTATION_Y); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
-   void AnimEditor::RootDelRotZ(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelRot"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_ROT_Z); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_ROT_Z){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_ROTATION_Z); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
-   void AnimEditor::RootSmooth(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootSmooth"  ); FlagToggle(d->flag, ElmAnim::ROOT_SMOOTH   ); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_SMOOTH   ){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_SMOOTH        ); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   void AnimEditor::RootSmooth(AnimEditor &editor)
+   {
+      if(ElmAnim *d=editor.data())
+      {
+         editor.undos.set("rootSmooth");
+         bool on=!FlagTest(d->flag, ElmAnim::ROOT_SMOOTH_ROT_POS);
+         editor.root_smooth_rot.set(on, QUIET);
+         editor.root_smooth_pos.set(on, QUIET);
+         FlagSet(d->flag, ElmAnim::ROOT_SMOOTH_ROT_POS, on); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(on){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_SMOOTH_ROT_POS); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();
+      }
+   }
+   void AnimEditor::RootDelPosX(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelPos"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_POS_X ); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_POS_X ){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_POSITION_X); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   void AnimEditor::RootDelPosY(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelPos"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_POS_Y ); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_POS_Y ){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_POSITION_Y); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   void AnimEditor::RootDelPosZ(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelPos"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_POS_Z ); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_POS_Z ){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_POSITION_Z); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   void AnimEditor::RootDelRotX(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelRot"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_ROT_X ); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_ROT_X ){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_ROTATION_X); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   void AnimEditor::RootDelRotY(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelRot"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_ROT_Y ); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_ROT_Y ){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_ROTATION_Y); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   void AnimEditor::RootDelRotZ(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelRot"  ); FlagToggle(d->flag, ElmAnim::ROOT_DEL_ROT_Z ); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_DEL_ROT_Z ){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_ROTATION_Z); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   void AnimEditor::RootSmoothRot(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootSmooth"  ); FlagToggle(d->flag, ElmAnim::ROOT_SMOOTH_ROT); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_SMOOTH_ROT){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_SMOOTH_ROT    ); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
+   void AnimEditor::RootSmoothPos(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootSmooth"  ); FlagToggle(d->flag, ElmAnim::ROOT_SMOOTH_POS); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d->flag&ElmAnim::ROOT_SMOOTH_POS){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim->adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_SMOOTH_POS    ); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
    void AnimEditor::RootFromBody(AnimEditor &editor)
    {
       if(ElmAnim *d=editor.data())
@@ -759,7 +843,23 @@ AnimEditor AnimEdit;
    void AnimEditor::RootRotZ(  AnimEditor &editor, C Str &t) {if(ElmAnim *d=editor.data()){editor.undos.set("rootRot"); editor.root_set_rot.set(true, QUIET); if(!d->rootRot())d->root_rot=editor.anim->rootTransform().axisAngle(); d->root_rot.z=DegToRad(TextFlt(t)); d->rootRot(d->root_rot); /*d.file_time.getUTC(); already changed in 'setChanged' */ d->setRoot(*editor.anim); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
    void AnimEditor::SetSelMirror(AnimEditor &editor) {editor.setSelMirror(false);}
    void AnimEditor::SetMirrorSel(AnimEditor &editor) {editor.setSelMirror(true );}
-          void AnimEditor::setSelMirror(bool set_other)
+          void AnimEditor::setSelMirror(int i, int bone_i, bool set_other)
+   {
+      if(set_other)Swap(i, bone_i);
+      AnimKeys *src=findKeys(i, false), *dest=(src ? getKeys(bone_i, false) : findKeys(bone_i, false));
+      if(dest)
+      {
+         if(src)
+         {
+           *dest=*src;
+            dest->mirrorX();
+         }else anim->bones.remove(bone_i, true);
+      }
+      prepMeshSkel();
+      setOrnTarget();
+      setChanged();
+   }
+   void AnimEditor::setSelMirror(bool set_other)
    {
       if(skel)
       {
@@ -770,21 +870,12 @@ AnimEditor AnimEdit;
             Str bone_name=BoneNeutralName(bone->name);
             REPA(skel->bones)if(i!=bone_i && bone_name==BoneNeutralName(skel->bones[i].name))
             {
-               if(set_other)Swap(i, bone_i);
-               AnimKeys *src=findKeys(i, false), *dest=(src ? getKeys(bone_i, false) : findKeys(bone_i, false));
-               if(dest)
-               {
-                  if(src)
-                  {
-                    *dest=*src;
-                     dest->mirrorX();
-                  }else anim->bones.remove(bone_i, true);
-               }
-               prepMeshSkel();
-               setOrnTarget();
-               setChanged();
-               break;
+               setSelMirror(i, bone_i, set_other);
+               return;
             }
+            int mirror_type_index=-bone->type_index-1;
+            int i=skel->findBoneI(bone->type, mirror_type_index, bone->type_sub);
+            if(i>=0)setSelMirror(i, bone_i, set_other);
          }
       }
    }
@@ -827,7 +918,7 @@ AnimEditor AnimEdit;
       flush();
    }
    ElmAnim* AnimEditor::data()C {return elm ? elm->animData() : null;}
-   Animation* AnimEditor::getVisAnim() {return optimize_anim.visibleFull() ? optimize_anim.getAnim() : anim;}
+   Animation* AnimEditor::getVisAnim() {return scale_pos_keys.visibleFull() ? scale_pos_keys.getAnim() : optimize_anim.visibleFull() ? optimize_anim.getAnim() : anim;}
    flt  AnimEditor::timeToFrac(flt time)C {return (anim && anim->length()) ? time/anim->length() : 0;}
    bool AnimEditor::timeToFrame(flt time, flt &frame)C
    {
@@ -940,11 +1031,11 @@ AnimEditor AnimEdit;
       n.New().create("Delete KeyFrames"                , DelFrames     , T).kbsc(KbSc(KB_DEL, KBSC_CTRL_CMD|KBSC_SHIFT)).desc("This will delete all keyframes for selected bone");
       n.New().create("Delete All Bone KeyFrames at End", DelFramesAtEnd, T).kbsc(KbSc(KB_DEL, KBSC_CTRL_CMD|KBSC_WIN_CTRL)).desc("This will delete keyframes located at the end of the animation, for all bones (except root motion).");
       n++;
-      n.New().create("Reduce KeyFrames", Optimize, T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD));
-      n++;
       n.New().create("Reverse KeyFrames", ReverseFrames, T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_SHIFT)); // avoid Ctrl+R collision with reload project element
       n++;
-      n.New().create("Change Speed for Time Range", TimeRangeSp, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD));
+      n.New().create("Reduce KeyFrames"           , Optimize   , T).kbsc(KbSc(KB_O, KBSC_CTRL_CMD));
+      n.New().create("Scale Position Keys"        , ScalePosKey, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD));
+      n.New().create("Change Speed for Time Range", TimeRangeSp, T).kbsc(KbSc(KB_S, KBSC_CTRL_CMD|KBSC_SHIFT));
       n++;
     //n.New().create("Remove Movement", RemMovement, T).desc("This option can be used for animations that include actual movement - ending position is not the same as the starting position.\nThis option will adjust the animation so that the ending position is the same as starting position.").kbsc(KbSc(KB_M, KBSC_CTRL_CMD|KBSC_ALT));
       n.New().create("Freeze Bone"    , FreezeBone , T).desc("This option will adjust position offset to the root bone, so that currently selected bone will appear without movement.").kbsc(KbSc(KB_F, KBSC_CTRL_CMD|KBSC_ALT));
@@ -963,10 +1054,13 @@ AnimEditor AnimEdit;
       n.New().create("Set Root From Body XZ"     , RootFromBodyXZ, T).kbsc(KbSc(KB_B, KBSC_CTRL_CMD|KBSC_ALT));
       n.New().create("Del Root Position+Rotation", RootDel       , T).kbsc(KbSc(KB_R, KBSC_CTRL_CMD|KBSC_ALT));
       n++;
-      n.New().create("Mirror"  , Mirror, T).desc("Mirror entire animation along X axis");
-      n.New().create("Rotate X", RotX  , T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along X axis");
-      n.New().create("Rotate Y", RotY  , T).kbsc(KbSc(KB_Y, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along Y axis");
-      n.New().create("Rotate Z", RotZ  , T).kbsc(KbSc(KB_Z, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along Z axis");
+      n.New().create("Mirror"   , Mirror, T).desc("Mirror entire animation along X axis");
+      n.New().create("Rotate X" , RotX  , T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along X axis (hold Shift for half rotation)");
+      n.New().create("Rotate Y" , RotY  , T).kbsc(KbSc(KB_Y, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along Y axis (hold Shift for half rotation)");
+      n.New().create("Rotate Z" , RotZ  , T).kbsc(KbSc(KB_Z, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT)).desc("Rotate entire animation along Z axis (hold Shift for half rotation)");
+      n.New().create("Rotate XH", RotXH , T).kbsc(KbSc(KB_X, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate entire animation along X axis (hold Shift for half rotation)").flag(MENU_HIDDEN);
+      n.New().create("Rotate YH", RotYH , T).kbsc(KbSc(KB_Y, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate entire animation along Y axis (hold Shift for half rotation)").flag(MENU_HIDDEN);
+      n.New().create("Rotate ZH", RotZH , T).kbsc(KbSc(KB_Z, KBSC_CTRL_CMD|KBSC_ALT|KBSC_REPEAT|KBSC_SHIFT)).desc("Rotate entire animation along Z axis (hold Shift for half rotation)").flag(MENU_HIDDEN);
       n++;
       n.New().create("Transform Original Object", TransformObj, T);
       T+=cmd.create(Rect_LU(op.rect().ru(), h), n).focusable(false); cmd.flag|=COMBOBOX_CONST_TEXT;
@@ -993,14 +1087,17 @@ AnimEditor AnimEdit;
          settings_region+=root_del_rot_y.create(Rect_LU(root_del_rot_x.rect().ru()              , h, h), "Y").func(RootDelRotY, T).subType(BUTTON_TYPE_TAB_HORIZONTAL); root_del_rot_y.mode=BUTTON_TOGGLE;
          settings_region+=root_del_rot_z.create(Rect_LU(root_del_rot_y.rect().ru()              , h, h), "Z").func(RootDelRotZ, T).subType(BUTTON_TYPE_TAB_RIGHT     ); root_del_rot_z.mode=BUTTON_TOGGLE;
          y-=l;
-       //settings_region+=root_del_scale.create(Rect_LU(x, y, w, h), "Del Scale"   ).func(RootDelScale, T); root_del_scale.mode=BUTTON_TOGGLE; y-=l;
-         settings_region+=root_from_body.create(Rect_LU(x, y, w, h), "From Body"   ).func(RootFromBody, T); root_from_body.mode=BUTTON_TOGGLE; y-=l;
-       //settings_region+=root_2_keys   .create(Rect_LU(x, y, w, h), "2 Keys Only" ).func(Root2Keys   , T); root_2_keys   .mode=BUTTON_TOGGLE; y-=l; root_2_keys.desc("Limit number of keyframes to 2 keys only: Start+End");
-         settings_region+=root_smooth   .create(Rect_LU(x, y, w, h), "Smooth"      ).func(RootSmooth  , T); root_smooth   .mode=BUTTON_TOGGLE; y-=l; root_smooth.desc("Set smooth root movement with constant velocities");
-         settings_region+=root_set_move .create(Rect_LU(x, y, w, h), "Set Movement").func(RootSetMove , T); root_set_move .mode=BUTTON_TOGGLE; root_set_move.desc("Override Animation's root movement with a custom value");
-         settings_region+=root_set_rot  .create(Rect_LU(x, y-3*ph, w, h), "Set Rotation").func(RootSetRot  , T); root_set_rot  .mode=BUTTON_TOGGLE; root_set_rot.desc("Override Animation's root rotation with a custom value");
-       //settings_region+=reload        .create(Rect_U (settings_region.clientWidth()/2, y-6*ph-0.01, 0.18, h+0.005), "Reload").func(Reload, T);
-         settings_region+=reload        .create(Rect_LD(x, y-6*ph, 0.18f, h+0.005f), "Reload").func(Reload, T);
+       //settings_region+=root_del_scale .create(Rect_LU(x, y, w, h), "Del Scale"   ).func(RootDelScale, T); root_del_scale.mode=BUTTON_TOGGLE; y-=l;
+         settings_region+=root_from_body .create(Rect_LU(x, y, w, h), "From Body"   ).func(RootFromBody, T); root_from_body.mode=BUTTON_TOGGLE; y-=l;
+       //settings_region+=root_2_keys    .create(Rect_LU(x, y, w, h), "2 Keys Only" ).func(Root2Keys   , T); root_2_keys   .mode=BUTTON_TOGGLE; y-=l; root_2_keys.desc("Limit number of keyframes to 2 keys only: Start+End");
+         settings_region+=root_smooth    .create(Rect_LU(x, y, w, h), "Smooth"      ).func(RootSmooth  , T); root_smooth.desc("Set smooth root rotation and movement with constant velocities");
+         settings_region+=root_smooth_rot.create(Rect_LU(root_smooth    .rect().ru()+Vec2(0.01f, 0), h*2, h), "Rot").func(RootSmoothRot, T).subType(BUTTON_TYPE_TAB_LEFT ); root_smooth_rot.mode=BUTTON_TOGGLE; root_smooth_rot.desc("Set smooth root rotation with constant velocities");
+         settings_region+=root_smooth_pos.create(Rect_LU(root_smooth_rot.rect().ru()              , h*2, h), "Pos").func(RootSmoothPos, T).subType(BUTTON_TYPE_TAB_RIGHT); root_smooth_pos.mode=BUTTON_TOGGLE; root_smooth_pos.desc("Set smooth root movement with constant velocities");
+         y-=l;
+         settings_region+=root_set_move  .create(Rect_LU(x, y, w, h), "Set Movement").func(RootSetMove , T); root_set_move .mode=BUTTON_TOGGLE; root_set_move.desc("Override Animation's root movement with a custom value");
+         settings_region+=root_set_rot   .create(Rect_LU(x, y-3*ph, w, h), "Set Rotation").func(RootSetRot  , T); root_set_rot  .mode=BUTTON_TOGGLE; root_set_rot.desc("Override Animation's root rotation with a custom value");
+       //settings_region+=reload         .create(Rect_U (settings_region.clientWidth()/2, y-6*ph-0.01, 0.18, h+0.005), "Reload").func(Reload, T);
+         settings_region+=reload         .create(Rect_LD(x, y-6*ph, 0.18f, h+0.005f), "Reload").func(Reload, T);
          root_props.New().create("X", MemberDesc(DATA_REAL).setFunc(RootMoveX, RootMoveX));
          root_props.New().create("Y", MemberDesc(DATA_REAL).setFunc(RootMoveY, RootMoveY));
          root_props.New().create("Z", MemberDesc(DATA_REAL).setFunc(RootMoveZ, RootMoveZ));
@@ -1018,6 +1115,7 @@ AnimEditor AnimEdit;
       T+=end       .create("]").focusable(false).func(End      , T).desc(S+"Go to animation end\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+End, "+Kb.ctrlCmdName()+"+]");
       T+=track           .create(false);
       T+=optimize_anim   .create();
+      T+=scale_pos_keys  .create();
       T+=time_range_speed.create();
       preview.create();
       return T;
@@ -1055,16 +1153,7 @@ AnimEditor AnimEdit;
    {
       return skel ? skel->boneParent(bone) : -1;
    }
-   AnimKeys* AnimEditor::findVisKeys(int sbon_index, bool root)
-   {
-      if(Animation *anim=getVisAnim())
-      {
-         if(skel)if(C SkelBone *sbon=skel->bones.addr(sbon_index))return anim->findBone(sbon->name, sbon->type, sbon->type_index, sbon->type_sub); // use types in case animation was from another skeleton and we haven't adjusted types
-         if(root)return &anim->keys;
-      }
-      return null;
-   }
-   AnimKeys* AnimEditor::findKeys(int sbon_index, bool root)
+   AnimKeys* AnimEditor::findKeys(Animation *anim, int sbon_index, bool root)
    {
       if(anim)
       {
@@ -1073,7 +1162,9 @@ AnimEditor AnimEdit;
       }
       return null;
    }
-   AnimKeys* AnimEditor::getKeys(int sbon_index, bool root)
+   AnimKeys* AnimEditor::findVisKeys(int sbon_index, bool root) {return findKeys(getVisAnim(), sbon_index, root);}
+   AnimKeys* AnimEditor::findKeys(int sbon_index, bool root) {return findKeys(      anim  , sbon_index, root);}
+   AnimKeys*  AnimEditor::getKeys(int sbon_index, bool root)
    {
       if(anim)
       {
@@ -1103,12 +1194,14 @@ AnimEditor AnimEdit;
       }
       return BlendSmoothCube(delta/blend_range);
    }
+   void AnimEditor::ScaleScaleFactor(Vec &scale_factor, C Vec &scale) {scale_factor=ScaleFactorR(ScaleFactor(scale_factor)*scale);}
    void AnimEditor::update(C GuiPC &gpc)
 {
       lit_bone=-1;
       if(visible() && gpc.visible)
       {
-         optimize_anim.refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
+         optimize_anim .refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
+         scale_pos_keys.refresh(); // refresh all the time because animation can be changed all the time (since we're accessing it directly from 'Animations' cache)
          playUpdate();
          prepMeshSkel();
 
@@ -1329,13 +1422,14 @@ AnimEditor AnimEdit;
                            case  2: d.z+=AlignDirToCamEx(bone.dir    , Ms.d()*mul)      ; break;
                            default: d  +=                             (Ms.d()*mul).sum(); break;
                         }
+                        Vec mul=ScaleFactor(d);
                         if(Kb.ctrlCmd()) // all
                         {
-                           if(use_blend)REPA (keys->scales)keys->scales[i].scale+=d*getBlend(keys->scales[i]);
-                           else         REPAO(keys->scales).scale+=d;
+                           if(use_blend)REPA(keys->scales)ScaleScaleFactor(keys->scales[i].scale, ScaleFactor(d*getBlend(keys->scales[i])));
+                           else         REPA(keys->scales)ScaleScaleFactor(keys->scales[i].scale, mul);
                         }else // single
                         {
-                           scale->scale+=d;
+                           ScaleScaleFactor(scale->scale, mul);
                         }
                         keys->setTangents(anim->loop(), anim->length());
                         anim->setRootMatrix();
@@ -1344,6 +1438,9 @@ AnimEditor AnimEdit;
                      }break;
                   }
                }
+               if(Kb.ctrlCmd() && Kb.shift() && Kb.b(KB_BACK)) // fast delete of highlighted bone keyframes
+                  if(lit_bone>=0) // only if have any highlighted bone (to skip root)
+                     delFrames(lit_bone);
             }
          }
          if(Ms.bp(2)) // close on middle click
@@ -1404,7 +1501,8 @@ AnimEditor AnimEdit;
       prev_frame.rect(Rect_RD(force_play.rect().ld(), 0.08f, 0.07f));
       start     .rect(Rect_RD(prev_frame.rect().ld(), 0.07f, 0.07f));
       v4.rect(Rect(v4.rect().min.x, Proj.visible() ? track.rect().max.y : Misc.rect().h()-clientHeight(), v4.rect().max.x, v4.rect().max.y));
-      optimize_anim.move(Vec2(rect().w(), rect().h()/-2)-optimize_anim.rect().right());
+      optimize_anim .move(Vec2(rect().w(), rect().h()/-2)-optimize_anim .rect().right());
+      scale_pos_keys.move(Vec2(rect().w(), rect().h()/-2)-scale_pos_keys.rect().right());
    }
    void AnimEditor::frame(int d)
    {
@@ -1494,32 +1592,21 @@ AnimEditor AnimEdit;
       if(op()==OP_SCALE || op()<0)changed|=delFrameScale(sel_bone);
       if(changed){prepMeshSkel(); setOrnTarget(); anim->setRootMatrix(); setChanged();}
    }
-   void AnimEditor::delFrames()
+   void AnimEditor::delFrames(int bone)
    {
       bool changed=false;
-      if(op()==OP_ORN   || op()<0)changed|=delFramesOrn  (sel_bone);
-      if(op()==OP_ORN2           )changed|=delFramesOrn  (sel_bone)|delFramesOrn(boneParent(sel_bone));
-      if(op()==OP_POS   || op()<0)changed|=delFramesPos  (sel_bone);
-      if(op()==OP_SCALE || op()<0)changed|=delFramesScale(sel_bone);
+      if(op()==OP_ORN   || op()<0)changed|=delFramesOrn  (bone);
+      if(op()==OP_ORN2           )changed|=delFramesOrn  (bone)|delFramesOrn(boneParent(bone));
+      if(op()==OP_POS   || op()<0)changed|=delFramesPos  (bone);
+      if(op()==OP_SCALE || op()<0)changed|=delFramesScale(bone);
       if(changed){prepMeshSkel(); setOrnTarget(); anim->setRootMatrix(); setChanged();}
    }
    void AnimEditor::delFramesAtEnd()
    {
       if(anim)
       {
-         bool changed=false;
-         undos.set("delAtEnd");
-         flt time=anim->length()-EPS;
-         REP(anim->bones.elms())
-         {
-            bool bone_changed=false;
-            AnimBone &bone=anim->bones[i];
-            if(bone.poss  .elms()>=2 && bone.poss  .last().time>=time && bone.poss  .first().time<=EPS){bone.poss  .removeLast(); bone_changed=true;}
-            if(bone.orns  .elms()>=2 && bone.orns  .last().time>=time && bone.orns  .first().time<=EPS){bone.orns  .removeLast(); bone_changed=true;}
-            if(bone.scales.elms()>=2 && bone.scales.last().time>=time && bone.scales.first().time<=EPS){bone.scales.removeLast(); bone_changed=true;}
-            if(bone_changed){bone.setTangents(anim->loop(), anim->length()); changed=true;}
-         }
-         if(changed){prepMeshSkel(); setOrnTarget(); /*anim.setRootMatrix(); we don't change root, only bones*/ setChanged();}
+         undos.set("delEndKeys");
+         if(DelEndKeys(*anim)){prepMeshSkel(); setOrnTarget(); setChanged();}
       }
    }
    void AnimEditor::reverseFrames()
@@ -1618,18 +1705,19 @@ AnimEditor AnimEdit;
       REPAO(root_props).toGui();
                 preview.toGui();
       ElmAnim *data=T.data();
-      loop          .set(data && data->loop  (), QUIET);
-      linear        .set(data && data->linear(), QUIET);
-      root_from_body.set(data && FlagTest(data->flag, ElmAnim::ROOT_FROM_BODY), QUIET);
-      root_del_pos_x.set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_POS_X), QUIET);
-      root_del_pos_y.set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_POS_Y), QUIET);
-      root_del_pos_z.set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_POS_Z), QUIET);
-      root_del_rot_x.set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_ROT_X), QUIET);
-      root_del_rot_y.set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_ROT_Y), QUIET);
-      root_del_rot_z.set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_ROT_Z), QUIET);
-      root_smooth   .set(data && FlagTest(data->flag, ElmAnim::ROOT_SMOOTH   ), QUIET);
-      root_set_move .set(data && data->rootMove(), QUIET);
-      root_set_rot  .set(data && data->rootRot (), QUIET);
+      loop           .set(data && data->loop  (), QUIET);
+      linear         .set(data && data->linear(), QUIET);
+      root_from_body .set(data && FlagTest(data->flag, ElmAnim::ROOT_FROM_BODY ), QUIET);
+      root_del_pos_x .set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_POS_X ), QUIET);
+      root_del_pos_y .set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_POS_Y ), QUIET);
+      root_del_pos_z .set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_POS_Z ), QUIET);
+      root_del_rot_x .set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_ROT_X ), QUIET);
+      root_del_rot_y .set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_ROT_Y ), QUIET);
+      root_del_rot_z .set(data && FlagTest(data->flag, ElmAnim::ROOT_DEL_ROT_Z ), QUIET);
+      root_smooth_rot.set(data && FlagTest(data->flag, ElmAnim::ROOT_SMOOTH_ROT), QUIET);
+      root_smooth_pos.set(data && FlagTest(data->flag, ElmAnim::ROOT_SMOOTH_POS), QUIET);
+      root_set_move  .set(data && data->rootMove(), QUIET);
+      root_set_rot   .set(data && data->rootRot (), QUIET);
    }
    void AnimEditor::applySpeed()
    {
@@ -1712,7 +1800,8 @@ AnimEditor AnimEdit;
             data->newVer();
             if(anim)data->from(*anim);
             if(file)data->file_time.getUTC();
-            optimize_anim.refresh();
+            optimize_anim .refresh();
+            scale_pos_keys.refresh();
          }
       }
    }
@@ -1750,11 +1839,13 @@ AnimEditor AnimEdit;
          validateFullscreen();
          RenameEvent.hide();
 
-         optimize_anim.refresh();
+         optimize_anim .refresh();
+         scale_pos_keys.refresh();
          prepMeshSkel();
          selBone(skel ? skel->findBoneI(sel_bone_name) : -1);
          setOrnTarget();
-         optimize_anim.hide();
+         optimize_anim   .hide();
+         scale_pos_keys  .hide();
          time_range_speed.hide();
          Gui.closeMsgBox(transform_obj_dialog_id);
          preview.moveToTop();
@@ -1856,5 +1947,7 @@ AnimEditor::AnimEditor() : elm_id(UIDZero), elm(null), changed(false), fullscree
 AnimEditor::Preview::Preview() : draw_bones(false), draw_slots(false), draw_axis(false), draw_plane(false), event_lit(-1), event_sel(-1), time_speed(1), prop_max_x(0), cam_yaw(PI), cam_pitch(0), cam_zoom(1), length(null), event(null) {}
 
 AnimEditor::OptimizeAnim::OptimizeAnim() : refresh_needed(true), preview(true), angle_eps(EPS_ANIM_ANGLE), pos_eps(EPS_ANIM_POS), scale_eps(EPS_ANIM_SCALE), file_size(null), optimized_size(null) {}
+
+AnimEditor::ScalePosKeys::ScalePosKeys() : refresh_needed(true), preview(true), scale(1), scale_xyz(1) {}
 
 /******************************************************************************/

@@ -356,7 +356,7 @@ MaterialTech mtrl_techs[]=
    Str  MaterialRegion::Bump(C MaterialRegion &mr          ) {return mr.edit.bump/BumpScale;}
    void MaterialRegion::Bump(  MaterialRegion &mr, C Str &t) {mr.edit.bump=TextFlt(t)*BumpScale; mr.edit.bump_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::NrmScale(C MaterialRegion &mr          ) {return mr.edit.normal;}
-   void MaterialRegion::NrmScale(  MaterialRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
+   void MaterialRegion::NrmScale(  MaterialRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::FNY(C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
    void MaterialRegion::FNY(  MaterialRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
    Str  MaterialRegion::Smooth(C MaterialRegion &mr          ) {return mr.edit.smooth;}

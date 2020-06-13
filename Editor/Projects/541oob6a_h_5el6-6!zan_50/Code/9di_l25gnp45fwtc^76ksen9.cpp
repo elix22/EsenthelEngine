@@ -61,7 +61,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    D.text (0, 0.7, "Press Space to sort");
    
    Str s="floats:  "; FREPA(floats){s+=floats[i]     ; s+="  ";} D.text(0,  0.2, s); // draw 'floats'    in one string

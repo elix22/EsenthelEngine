@@ -1652,21 +1652,31 @@ Bool   Image::blur(Image &dest, C Vec &range, Bool clamp)C
    return img.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, flags);
 }
 /******************************************************************************/
-Image& Image::sharpen(Flt power, Byte range, Bool clamp, Bool blur)
+Image& Image::sharpen(Flt power, C Vec &range, Bool clamp, Bool blur)
 {
    IMAGE_TYPE type;
    IMAGE_MODE mode;
    Int        mip_maps;
-   if(range && Decompress(T, type, mode, mip_maps) && lock())
+   if(range.x>0
+   || range.y>0
+   || range.z>0)
+   if(Decompress(T, type, mode, mip_maps) && lock())
    {
-      Image temp(w(), h(), d(), T.type(), IMAGE_SOFT, 1); if(copySoft(temp))
-      {
-         if(blur)temp.blur   (range, clamp);
-         else    temp.average(range, clamp);
+      Image temp;
+      if(blur)T.blur   (temp,       range , clamp);
+      else    T.average(temp, Round(range), clamp);
 
-         REPD(z, T.d())
-         REPD(y, T.h())
-         REPD(x, T.w())
+      Bool hp=T.highPrecision();
+      REPD(z, T.d())
+      REPD(y, T.h())
+      REPD(x, T.w())
+      {
+         if(hp)
+         {
+            Vec4 col_src =     color3DF(x, y, z),
+                 col_blur=temp.color3DF(x, y, z);
+            color3DF(x, y, z, col_src+(col_src-col_blur)*power);
+         }else
          {
             Color col_src =     color3D(x, y, z),
                   col_blur=temp.color3D(x, y, z), c;

@@ -186,7 +186,7 @@ public:
    void setScale();
    void setScale   (flt  scale); 
    void setScaleWin(bool scale); 
-   void tAA        (bool on   )C; // use only -0.5 because for movement when TAA gets disabled, we would get flickering if value was smaller
+   void tAA        (bool on   )C; // !! Warning: this might still be used even though 'Renderer.allow_taa' is off !! use only -0.5 because for movement when TAA gets disabled, we would get flickering if value was smaller
 
    UID  skinID   (C Str &name)C;
    int  skinIndex(C UID &id  )C;

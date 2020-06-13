@@ -7,6 +7,7 @@ LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%) -DUSE_PTHREADS -mfpu=neon -mfloat-abi=
 # apply these flags if needed 
 # -ffast-math -funsafe-math-optimizations
 
+# ESENTHEL CHANGED
 LOCAL_CFLAGS       += -O3 -fshort-wchar -ffast-math -funsafe-math-optimizations -fomit-frame-pointer
 LOCAL_CPPFLAGS     += -O3 -fshort-wchar -ffast-math -funsafe-math-optimizations -fomit-frame-pointer
 LOCAL_CPP_FEATURES := rtti

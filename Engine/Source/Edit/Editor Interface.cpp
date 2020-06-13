@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 39 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 40 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
@@ -1176,11 +1176,11 @@ UID EditorInterface::curAnimation()
    }
    return UIDZero;
 }
-Bool EditorInterface::curAnimation(C UID &elm_id)
+Bool EditorInterface::curAnimation(C UID &anim_elm_id)
 {
    if(connected())
    {
-      File &f=_conn.data.reset(); f.putByte(EI_SET_ANIM_CUR).putUID(elm_id).pos(0);
+      File &f=_conn.data.reset(); f.putByte(EI_SET_ANIM_CUR).putUID(anim_elm_id).pos(0);
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME))
       if(f.getByte()==EI_SET_ANIM_CUR)return f.getBool();
@@ -1188,11 +1188,11 @@ Bool EditorInterface::curAnimation(C UID &elm_id)
    }
    return false;
 }
-Bool EditorInterface::getAnimation(C UID &elm_id, Animation &anim)
+Bool EditorInterface::getAnimation(C UID &anim_elm_id, Animation &anim)
 {
-   if(elm_id.valid() && connected())
+   if(anim_elm_id.valid() && connected())
    {
-      File &f=_conn.data.reset(); f.putByte(EI_GET_ANIM).putUID(elm_id).pos(0);
+      File &f=_conn.data.reset(); f.putByte(EI_GET_ANIM).putUID(anim_elm_id).pos(0);
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME))
       if(f.getByte()==EI_GET_ANIM)
@@ -1202,19 +1202,31 @@ Bool EditorInterface::getAnimation(C UID &elm_id, Animation &anim)
       }
       disconnect();
    }
-   anim.del(); return !elm_id.valid();
+   anim.del(); return !anim_elm_id.valid();
 }
-Bool EditorInterface::setAnimation(C UID &elm_id, C Animation &anim)
+Bool EditorInterface::setAnimation(C UID &anim_elm_id, C Animation &anim)
 {
-   if(elm_id.valid() && connected())
+   if(anim_elm_id.valid() && connected())
    {
-      File &f=_conn.data.reset(); f.putByte(EI_SET_ANIM).putUID(elm_id); anim.save(f); f.pos(0);
+      File &f=_conn.data.reset(); f.putByte(EI_SET_ANIM).putUID(anim_elm_id); anim.save(f); f.pos(0);
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME))
       if(f.getByte()==EI_SET_ANIM)return f.getBool();
       disconnect();
    }
    return false;
+}
+UID EditorInterface::animationSkel(C UID &anim_elm_id)
+{
+   if(anim_elm_id.valid() && connected())
+   {
+      File &f=_conn.data.reset(); f.putByte(EI_GET_ANIM_SKEL).putUID(anim_elm_id).pos(0);
+      if(_conn.send(f))
+      if(_conn.receive(CLIENT_WAIT_TIME))
+      if(f.getByte()==EI_GET_ANIM_SKEL)return f.getUID();
+      disconnect();
+   }
+   return UIDZero;
 }
 /******************************************************************************/
 // OBJECT

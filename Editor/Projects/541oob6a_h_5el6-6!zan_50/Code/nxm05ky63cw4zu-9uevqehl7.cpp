@@ -56,7 +56,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D  .clear(TURQ);
+   D  .clear(AZURE);
    Gui.draw ();
    D.text(0, D.h()-0.1, S+"Mouse Cursor on the Circle Object: "+(Gui.ms()==&circle));
 }

@@ -56,7 +56,7 @@ void Draw(C Matrix &matrix) // this function handles optional 'matrix' drawing
 }
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    // box
    {

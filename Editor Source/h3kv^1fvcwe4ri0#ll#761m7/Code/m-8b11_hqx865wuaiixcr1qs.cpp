@@ -426,9 +426,9 @@ class MaterialRegion : Region
 
    static const flt BumpScale=0.10;
    static Str  Bump    (C MaterialRegion &mr          ) {return mr.edit.bump/BumpScale;}
-   static void Bump    (  MaterialRegion &mr, C Str &t) {mr.edit.bump=TextFlt(t)*BumpScale; mr.edit.bump_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   static void Bump    (  MaterialRegion &mr, C Str &t) {mr.edit.bump=TextFlt(t)*BumpScale; mr.edit.bump_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  NrmScale(C MaterialRegion &mr          ) {return mr.edit.normal;}
-   static void NrmScale(  MaterialRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
+   static void NrmScale(  MaterialRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  FNY     (C MaterialRegion &mr          ) {return mr.edit.flip_normal_y;}
    static void FNY     (  MaterialRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
 
@@ -449,11 +449,11 @@ class MaterialRegion : Region
  //static Str  SSS     (C MaterialRegion &mr          ) {return mr.edit.sss;}
  //static void SSS     (  MaterialRegion &mr, C Str &t) {mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
    static Str  AmbR    (C MaterialRegion &mr          ) {return mr.edit.ambient.x;}
-   static void AmbR    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.x=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   static void AmbR    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.x=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  AmbG    (C MaterialRegion &mr          ) {return mr.edit.ambient.y;}
-   static void AmbG    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.y=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   static void AmbG    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.y=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  AmbB    (C MaterialRegion &mr          ) {return mr.edit.ambient.z;}
-   static void AmbB    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.z=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
+   static void AmbB    (  MaterialRegion &mr, C Str &t) {mr.edit.ambient.z=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());} // call 'setChanged' manually because it needs to be called before 'setShader'
    static Str  TexScale(C MaterialRegion &mr          ) {return mr.edit.tex_scale;}
    static void TexScale(  MaterialRegion &mr, C Str &t) {mr.edit.tex_scale=TextFlt(t); mr.edit.tex_scale_time.getUTC();}
 

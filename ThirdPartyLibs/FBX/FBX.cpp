@@ -988,143 +988,180 @@ struct FBX
          }
       }
    }
+   static void AddKeyTimes(FbxAnimCurve *curve, Memc<FbxTime> &times, Dbl fps)
+   {
+      if(curve)
+      {
+         Int  keys=curve->KeyGetCount(); times.reserve(keys);
+         FREP(keys) // process in order to avoid moving elements when inserting with 'binaryInclude'
+         {
+            FbxTime time=curve->KeyGetTime(i);
+            times.binaryInclude(time, CompareTime);
+            if(InRange(i+1, keys) && curve->KeyGetInterpolation(i)!=FbxAnimCurveDef::eInterpolationLinear) // have next key, and interpolation is not linear
+            { // this is needed for keys that use non-linear interpolation (cubic/spline/tangets)
+               Dbl  t =time.GetSecondDouble(), t1 =curve->KeyGetTime(i+1).GetSecondDouble(); // time in seconds for current and next key
+               Long ti=RoundL(t*fps)         , ti1=RoundL(t1*fps); // frames
+               if(ti1>ti)
+               {
+                  // add keys between
+                  const Int max_steps=256; // some FBX can have invalid data, for example 1st keyframe time 0, and 2nd keyframe millions of seconds later which would result in heaps of keyframes, so limit up to 256 steps between keyframes
+                //times.reserve(Min(ti1-ti, max_steps)); skip to avoid overhead because most likely we will already have enough room since frame containers are now allocated outside of the loop
+                  if(ti1-ti<=max_steps)for(Long t=ti+1; t<ti1      ; t++){time.SetSecondDouble(t/fps                        ); times.binaryInclude(time, CompareTime);} // if within limit, then place keyframes on exact frame times according to FPS
+                  else                 for(Int  i=   1; i<max_steps; i++){time.SetSecondDouble(Lerp(t, t1, i/Dbl(max_steps))); times.binaryInclude(time, CompareTime);} // place keyframes spread linearly between start end
+               }
+            }
+         }
+      }
+   }
    void set(Skeleton *skeleton, MemPtr<XAnimation> animations)
    {
       if(skeleton && animations)
+      {
+         Memc<FbxTime> rot_times, pos_times, scale_times, times; // declare outside of loop to reuse memory allocations
          FREP(scene->GetSrcObjectCount<FbxAnimStack>())
             if(FbxAnimStack *anim_stack=scene->GetSrcObject<FbxAnimStack>(i))
-      {
-         scene->SetCurrentAnimationStack(anim_stack);
-
-         Int anim_layers=anim_stack->GetMemberCount<FbxAnimLayer>();
-         if( anim_layers>0)
          {
-            FbxTimeSpan time_span=anim_stack->GetLocalTimeSpan(); Dbl time_start=time_span.GetStart().GetSecondDouble(), time_stop=time_span.GetStop().GetSecondDouble(), fps=FbxTime::GetFrameRate(global_settings->GetTimeMode()); // alternative is GetReferenceTimeSpan()
-            XAnimation &xanim    =animations.New();
-            xanim.fps  =fps;
-            xanim.start=time_start;
-            xanim.name =FromUTF8(anim_stack->GetName());
-            xanim.anim.length(time_stop-time_start, false);
-            if(anim_layers>1)
+            scene->SetCurrentAnimationStack(anim_stack);
+
+            Int anim_layers=anim_stack->GetMemberCount<FbxAnimLayer>();
+            if( anim_layers>0)
             {
-               Bool ok=anim_stack->BakeLayers(null, 0, time_stop, 1.0/fps);
-               anim_layers=1;
-            }
-            REPD(layer, anim_layers)
-               if(FbxAnimLayer *anim_layer=anim_stack->GetMember<FbxAnimLayer>(layer))
-            {
-               FREPAD(n, nodes)
+               FbxTimeSpan time_span=anim_stack->GetLocalTimeSpan(); Dbl time_start=time_span.GetStart().GetSecondDouble(), time_stop=time_span.GetStop().GetSecondDouble(), fps=FbxTime::GetFrameRate(global_settings->GetTimeMode()); // alternative is GetReferenceTimeSpan()
+               XAnimation &xanim    =animations.New();
+               xanim.fps  =fps;
+               xanim.start=time_start;
+               xanim.name =FromUTF8(anim_stack->GetName());
+               xanim.anim.length(time_stop-time_start, false);
+               if(anim_layers>1)
                {
-                  Node &node=nodes[n]; if(InRange(node.bone_index, skeleton->bones))
+                  Bool ok=anim_stack->BakeLayers(null, 0, time_stop, 1.0/fps);
+                  anim_layers=1;
+               }
+               REPD(layer, anim_layers)
+                  if(FbxAnimLayer *anim_layer=anim_stack->GetMember<FbxAnimLayer>(layer))
+               {
+                  FREPAD(n, nodes)
                   {
-                     Memc<FbxTime> rot_times, pos_times, scale_times;
-
-                     Node *animated_node_ancestor=&node; // there's following node hierarchy starting from root: null <-> root <-> .. <-> bone_node_parent (nearest node that is a bone) <-> .. (some bones) <-> animated_node_ancestor (first node that has some animations, in most cases this is 'node' however if there were some parent bones that are ignored, then this could point to one of them) <-> .. <-> node (currently processed node), at start set to "&node" so we don't have to call 'hasAnim' below, this is never set to another node that is a bone (only 'node' can be set or another nodes that have animations but aren't bones)
-
-                     for(Node *cur=&node; ; )
+                     Node &node=nodes[n]; if(InRange(node.bone_index, skeleton->bones))
                      {
-                        if(cur!=&node && cur->hasAnim(anim_layer))animated_node_ancestor=cur; // remember the last encountered node that has some animations !! 'hasAnim' assumes that 'SetCurrentAnimationStack' was already called !!
+                        rot_times.clear(); pos_times.clear(); scale_times.clear();
 
-                        if(FbxAnimCurve *curve=cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X))FREP(curve->KeyGetCount())rot_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y))FREP(curve->KeyGetCount())rot_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z))FREP(curve->KeyGetCount())rot_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
+                        Node *animated_node_ancestor=&node; // there's following node hierarchy starting from root: null <-> root <-> .. <-> bone_node_parent (nearest node that is a bone) <-> .. (some bones) <-> animated_node_ancestor (first node that has some animations, in most cases this is 'node' however if there were some parent bones that are ignored, then this could point to one of them) <-> .. <-> node (currently processed node), at start set to "&node" so we don't have to call 'hasAnim' below, this is never set to another node that is a bone (only 'node' can be set or another nodes that have animations but aren't bones)
 
-                        if(FbxAnimCurve *curve=cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X))FREP(curve->KeyGetCount())pos_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y))FREP(curve->KeyGetCount())pos_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z))FREP(curve->KeyGetCount())pos_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-
-                        if(FbxAnimCurve *curve=cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X))FREP(curve->KeyGetCount())scale_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y))FREP(curve->KeyGetCount())scale_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-                        if(FbxAnimCurve *curve=cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z))FREP(curve->KeyGetCount())scale_times.binaryInclude(curve->KeyGetTime(i), CompareTime);
-
-                        cur=cur->parent; if(!cur || InRange(cur->bone_index, skeleton->bones))break; // if there's no parent, or it's a bone (its animations are alread stored in it so we can skip them), then break
-                     }
-
-                     if(rot_times.elms() || pos_times.elms() || scale_times.elms())
-                     {
-                        Memc<FbxTime> times;
-                        FREPA(  rot_times)times.binaryInclude(  rot_times[i], CompareTime);
-                        FREPA(  pos_times)times.binaryInclude(  pos_times[i], CompareTime);
-                        FREPA(scale_times)times.binaryInclude(scale_times[i], CompareTime);
-
-                     #if DEBUG
-                      //if(!node.bone)Exit("Animated Node is not a Bone");
-                     #endif
-                        SkelBone &sbon=skeleton->bones[node.bone_index];
-                        AnimBone &abon=xanim.anim.bones.New(); abon.set(sbon.name);
-                        MatrixD3  parent_matrix_inv; if(sbon.parent!=0xFF)skeleton->bones[sbon.parent].inverse(parent_matrix_inv);
-                        MatrixD3     local_to_world; animated_node_ancestor->local.orn().inverseNonOrthogonal(local_to_world); local_to_world*=animated_node_ancestor->global.orn(); // GetTransform(animated_node_ancestor->local.orn(), animated_node_ancestor->global.orn());
-
-                        abon.orns  .setNum(  rot_times.elms());
-                        abon.poss  .setNum(  pos_times.elms());
-                        abon.scales.setNum(scale_times.elms());
-
-                     #if KEY_SAFETY
-                        REPAO(abon.orns  ).time=NAN;
-                        REPAO(abon.poss  ).time=NAN;
-                        REPAO(abon.scales).time=NAN;
-                     #endif
-
-                        FREPA(times)
+                        for(Node *cur=&node; ; )
                         {
-                           Int        index;
-                         C FbxTime   &time      =times[i];
-                           Flt        t         =time.GetSecondDouble()-time_start;
-                           FbxAMatrix transform =node.node->EvaluateLocalTransform(time);
-                           MatrixD    node_local=node.local;
-                           for(Node *n=&node; n!=animated_node_ancestor; ) // gather all transforms starting from this 'node' to 'animated_node_ancestor' inclusive
-                           {
-                              n=n->parent;
-                              transform=n->node->EvaluateLocalTransform(time)*transform; // FBX multiply order is reversed compared to EE
-                              node_local*=n->local;
-                           }
-                           MatrixD anim_matrix=MATRIX(transform);
+                           if(cur!=&node && cur->hasAnim(anim_layer))animated_node_ancestor=cur; // remember the last encountered node that has some animations !! 'hasAnim' assumes that 'SetCurrentAnimationStack' was already called !!
 
-                           // orientation
-                           if(rot_times.binarySearch(time, index, CompareTime))
-                           {
-                              MatrixD3 anim;
-                              anim.x=anim_matrix.z;
-                              anim.y=anim_matrix.y;
-                              anim.z=anim_matrix.x;
-                              anim*=local_to_world;
-                              if(sbon.parent!=0xFF)anim*=parent_matrix_inv;
+                           AddKeyTimes(cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X), rot_times, fps);
+                           AddKeyTimes(cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y), rot_times, fps);
+                           AddKeyTimes(cur->node->LclRotation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z), rot_times, fps);
 
-                              OrientD o=anim; o.fix();
-                              AnimKeys::Orn &orn=abon.orns[index]; orn.time=t; orn.orn=o;
-                           }
+                           AddKeyTimes(cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X), pos_times, fps);
+                           AddKeyTimes(cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y), pos_times, fps);
+                           AddKeyTimes(cur->node->LclTranslation.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z), pos_times, fps);
 
-                           // position
-                           if(pos_times.binarySearch(time, index, CompareTime))
-                           {
-                              VecD p=anim_matrix.pos-node_local.pos;
-                              if(Node *parent=animated_node_ancestor->parent)p*=parent->global.orn();
-                              if(sbon.parent!=0xFF)p*=parent_matrix_inv;
-                              AnimKeys::Pos &pos=abon.poss[index]; pos.time=t; pos.pos=p;
-                           }
+                           AddKeyTimes(cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_X), scale_times, fps);
+                           AddKeyTimes(cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Y), scale_times, fps);
+                           AddKeyTimes(cur->node->LclScaling.GetCurve(anim_layer, FBXSDK_CURVENODE_COMPONENT_Z), scale_times, fps);
 
-                           // scale
-                           if(scale_times.binarySearch(time, index, CompareTime))
-                           {
-                              AnimKeys::Scale &scale=abon.scales[index]; scale.time=t;
-                              scale.scale.x=ScaleFactorR(anim_matrix.z.length()/node_local.z.length());
-                              scale.scale.y=ScaleFactorR(anim_matrix.y.length()/node_local.y.length());
-                              scale.scale.z=ScaleFactorR(anim_matrix.x.length()/node_local.x.length());
-                           }
+                           cur=cur->parent; if(!cur || InRange(cur->bone_index, skeleton->bones))break; // if there's no parent, or it's a bone (its animations are alread stored in it so we can skip them), then break
                         }
 
-                     #if KEY_SAFETY
-                        REPA(abon.orns  )if(NaN(abon.orns  [i].time))abon.orns  .remove(i, true);
-                        REPA(abon.poss  )if(NaN(abon.poss  [i].time))abon.poss  .remove(i, true);
-                        REPA(abon.scales)if(NaN(abon.scales[i].time))abon.scales.remove(i, true);
-                     #endif
+                        if(rot_times.elms() || pos_times.elms() || scale_times.elms())
+                        {
+                           times.clear();
+                        #if 0 // force keys for all frames, this can be used for testing
+                           Int steps=Round(fps*xanim.anim.length())+1;
+                           if(  rot_times.elms()){  rot_times.setNum(steps); FREP(steps)  rot_times[i].SetSecondDouble(time_start+i/fps);}
+                           if(  pos_times.elms()){  pos_times.setNum(steps); FREP(steps)  pos_times[i].SetSecondDouble(time_start+i/fps);}
+                           if(scale_times.elms()){scale_times.setNum(steps); FREP(steps)scale_times[i].SetSecondDouble(time_start+i/fps);}
+                                                        times.setNum(steps); FREP(steps)      times[i].SetSecondDouble(time_start+i/fps);
+                        #else
+                           times.reserve(Max(rot_times.elms(), pos_times.elms(), scale_times.elms()));
+                           FREPA(  rot_times)times.binaryInclude(  rot_times[i], CompareTime);
+                           FREPA(  pos_times)times.binaryInclude(  pos_times[i], CompareTime);
+                           FREPA(scale_times)times.binaryInclude(scale_times[i], CompareTime);
+                        #endif
 
-                        abon.sortFrames(); // sort just in case FbxTime is weird somehow
+                        #if DEBUG
+                         //if(!node.bone)Exit("Animated Node is not a Bone");
+                        #endif
+                           SkelBone &sbon=skeleton->bones[node.bone_index];
+                           AnimBone &abon=xanim.anim.bones.New(); abon.set(sbon.name);
+                           MatrixD3  parent_matrix_inv; if(sbon.parent!=0xFF)skeleton->bones[sbon.parent].inverse(parent_matrix_inv);
+                           MatrixD3     local_to_world; animated_node_ancestor->local.orn().inverseNonOrthogonal(local_to_world); local_to_world*=animated_node_ancestor->global.orn(); // GetTransform(animated_node_ancestor->local.orn(), animated_node_ancestor->global.orn());
+
+                           abon.orns  .setNum(  rot_times.elms());
+                           abon.poss  .setNum(  pos_times.elms());
+                           abon.scales.setNum(scale_times.elms());
+
+                        #if KEY_SAFETY
+                           REPAO(abon.orns  ).time=NAN;
+                           REPAO(abon.poss  ).time=NAN;
+                           REPAO(abon.scales).time=NAN;
+                        #endif
+
+                           FREPA(times)
+                           {
+                              Int        index;
+                            C FbxTime   &time      =times[i];
+                              Flt        t         =time.GetSecondDouble()-time_start;
+                              FbxAMatrix transform =node.node->EvaluateLocalTransform(time);
+                              MatrixD    node_local=node.local;
+                              for(Node *n=&node; n!=animated_node_ancestor; ) // gather all transforms starting from this 'node' to 'animated_node_ancestor' inclusive
+                              {
+                                 n=n->parent;
+                                 transform=n->node->EvaluateLocalTransform(time)*transform; // FBX multiply order is reversed compared to EE
+                                 node_local*=n->local;
+                              }
+                              MatrixD anim_matrix=MATRIX(transform);
+
+                              // orientation
+                              if(rot_times.binarySearch(time, index, CompareTime))
+                              {
+                                 MatrixD3 anim;
+                                 anim.x=anim_matrix.z;
+                                 anim.y=anim_matrix.y;
+                                 anim.z=anim_matrix.x;
+                                 anim*=local_to_world;
+                                 if(sbon.parent!=0xFF)anim*=parent_matrix_inv;
+
+                                 OrientD o=anim; o.fix();
+                                 AnimKeys::Orn &orn=abon.orns[index]; orn.time=t; orn.orn=o;
+                              }
+
+                              // position
+                              if(pos_times.binarySearch(time, index, CompareTime))
+                              {
+                                 VecD p=anim_matrix.pos-node_local.pos;
+                                 if(Node *parent=animated_node_ancestor->parent)p*=parent->global.orn();
+                                 if(sbon.parent!=0xFF)p*=parent_matrix_inv;
+                                 AnimKeys::Pos &pos=abon.poss[index]; pos.time=t; pos.pos=p;
+                              }
+
+                              // scale
+                              if(scale_times.binarySearch(time, index, CompareTime))
+                              {
+                                 AnimKeys::Scale &scale=abon.scales[index]; scale.time=t;
+                                 scale.scale.x=ScaleFactorR(anim_matrix.z.length()/node_local.z.length());
+                                 scale.scale.y=ScaleFactorR(anim_matrix.y.length()/node_local.y.length());
+                                 scale.scale.z=ScaleFactorR(anim_matrix.x.length()/node_local.x.length());
+                              }
+                           }
+
+                        #if KEY_SAFETY
+                           REPA(abon.orns  )if(NaN(abon.orns  [i].time))abon.orns  .remove(i, true);
+                           REPA(abon.poss  )if(NaN(abon.poss  [i].time))abon.poss  .remove(i, true);
+                           REPA(abon.scales)if(NaN(abon.scales[i].time))abon.scales.remove(i, true);
+                        #endif
+
+                           abon.sortFrames(); // sort just in case FbxTime is weird somehow
+                        }
                      }
                   }
                }
+               xanim.anim.setTangents().setRootMatrix();
             }
-            xanim.anim.setTangents().setRootMatrix();
          }
       }
    }

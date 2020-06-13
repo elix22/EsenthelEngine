@@ -9,8 +9,8 @@ SkyClass::SkyClass()
    frac(0.8f); // !! if changing default value, then also change in 'Environment.Sky' !!
   _dns_exp=1;
   _hor_exp=3.5f; // !! if changing default value, then also change in 'Environment.Sky' !!
-  _hor_col_l=SRGBToLinear(Vec4(0.32f, 0.46f, 0.58f, 1.0f)); // !! if changing default value, then also change in 'Environment.Sky' !!
-  _sky_col_l=SRGBToLinear(Vec4(0.16f, 0.36f, 0.54f, 1.0f)); // !! if changing default value, then also change in 'Environment.Sky' !!
+  _hor_col_l=Vec4(SRGBToLinear(Vec(0.32f, 0.46f, 0.58f))*1.05f, 1.0f); // !! if changing default value, then also change in 'Environment.Sky' !!
+  _sky_col_l=Vec4(SRGBToLinear(Vec(0.16f, 0.36f, 0.54f))*1.05f, 1.0f); // !! if changing default value, then also change in 'Environment.Sky' !!
   _stars_m.identity();
   _box_blend=0.5f;
    atmosphericPrecision(!MOBILE);

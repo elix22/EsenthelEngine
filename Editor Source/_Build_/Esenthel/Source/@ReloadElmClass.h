@@ -4,7 +4,7 @@ class ReloadElmClass : ClosableWindow
 {
    TextNoTest text, text_all, t_name;
    TextLine   path, name, start_frame, end_frame, speed, optimize;
-   Button     path_sel, yes, yes_all, set_start_frame, set_end_frame, set_speed, set_optimize, mirror;
+   Button     path_sel, yes, yes_all, set_start_frame, set_end_frame, set_speed, set_optimize, mirror, del_end_keys;
    WindowIO   win_io;
    Memc<UID>  elms;
 

@@ -152,8 +152,8 @@ private:
 
 #if EE_PRIVATE
       Cube&    create(Viewport4 &v4, View &view);
-      void    setView(C GuiPC &gpc, Display::ViewportSettings &view,   Camera &camera, MatrixM &matrix);
-      void  resetView(            C Display::ViewportSettings &view, C Camera &camera);
+      void    setView(C GuiPC &gpc, DisplayClass::ViewportSettings &view,   Camera &camera, MatrixM &matrix);
+      void  resetView(            C DisplayClass::ViewportSettings &view, C Camera &camera);
 #endif
 
       virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);

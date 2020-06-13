@@ -138,7 +138,7 @@ Bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    if(image)image->draw(Rect_C(-0.5, 0, 0.5, 0.5)); // draw 'Image*'
 

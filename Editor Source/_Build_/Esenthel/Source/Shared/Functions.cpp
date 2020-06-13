@@ -769,8 +769,8 @@ void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines)
    {
       pi.drawScaledLines(RED, lu); pi.drawScaledLines(RED, ru);
       pi.drawScaledLines(RED, ld); pi.drawScaledLines(RED, rd);
-      lu.draw(TURQ, false); ru.draw(TURQ, false);
-      ld.draw(TURQ, false); rd.draw(TURQ, false);
+      lu.draw(AZURE, false); ru.draw(AZURE, false);
+      ld.draw(AZURE, false); rd.draw(AZURE, false);
    }
 }
 /******************************************************************************/
@@ -906,7 +906,7 @@ bool HighPrecTransform(C Str &name)
        || name=="normalize"
        || name=="scale" || name=="scaleXY"
        || name=="lerpRGB" || name=="iLerpRGB"
-       || name=="blur"
+       || name=="blur" || name=="sharpen"
        || name=="bump"
        || name=="contrast" || name=="contrastLum" || name=="contrastAlphaWeight" || name=="contrastLumAlphaWeight"
        || name=="brightness" || name=="brightnessLum"
@@ -914,7 +914,7 @@ bool HighPrecTransform(C Str &name)
        || name=="SRGBToLinear" || name=="LinearToSRGB"
        || name=="greyPhoto"
        || name=="avgLum" || name=="medLum" || name=="avgContrastLum" || name=="medContrastLum"
-       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="setHue" || name=="contrastHue" || name=="medContrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
+       || name=="avgHue" || name=="medHue" || name=="addHue" || name=="addHuePhoto" || name=="setHue" || name=="contrastHue" || name=="medContrastHue" || name=="contrastHueAlphaWeight" || name=="contrastHuePow"
        || name=="lerpHue" || name=="lerpHueSat" || name=="rollHue" || name=="rollHueSat" || name=="lerpHuePhoto" || name=="lerpHueSatPhoto" || name=="rollHuePhoto" || name=="rollHueSatPhoto"
        || name=="addSat" || name=="mulSat" || name=="mulSatPhoto" || name=="avgSat" || name=="medSat" || name=="contrastSat" || name=="medContrastSat" || name=="contrastSatAlphaWeight"
        || name=="addHueSat" || name=="setHueSat" || name=="setHueSatPhoto"
@@ -924,6 +924,7 @@ bool HighPrecTransform(C Str &name)
 bool SizeDependentTransform(C TextParam &p)
 {
    return p.name=="blur" // range depends on size
+       || p.name=="sharpen" // range depends on size
        || p.name=="bump" // range depends on size
        || p.name=="crop" // coordinates/size depend on size
        || p.name=="resizeNoStretch"
@@ -1052,7 +1053,7 @@ void ContrastHue(Image &image, flt contrast, C Vec &avg_col, C BoxI &box)
       image.unlock();
    }
 }
-void AddHue(Image &image, flt hue, C BoxI &box)
+void AddHue(Image &image, flt hue, C BoxI &box, bool photo)
 {
    hue=Frac(hue);
    if(hue && image.lock())
@@ -1062,9 +1063,16 @@ void AddHue(Image &image, flt hue, C BoxI &box)
       for(int x=box.min.x; x<box.max.x; x++)
       {
          Vec4 c=image.color3DF(x, y, z);
+         flt  lin_lum; if(photo)lin_lum=LinearLumOfSRGBColor(c.xyz);
+       //flt      lum; if(photo)    lum=  SRGBLumOfSRGBColor(c.xyz);
          c.xyz=RgbToHsb(c.xyz);
          c.x +=hue;
          c.xyz=HsbToRgb(c.xyz);
+         if(photo)
+         {
+            c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
+          //                           if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ;
+         }
          image.color3DF(x, y, z, c);
       }
       image.unlock();
@@ -1295,6 +1303,17 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          image.color3DF(x, y, z, c);
       }
    }else
+   if(param.name=="satLum")
+   {
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         flt lum=c.xyz.max(); if(lum>1)c.xyz/=lum;
+         image.color3DF(x, y, z, c);
+      }
+   }else
    if(param.name=="blur")
    {
       UNIT_TYPE unit=GetUnitType(param.value);
@@ -1308,6 +1327,22 @@ void TransformImage(Image &image, TextParam param, bool clamp)
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, temp.color3DF(x, y, z));
+      }
+   }else
+   if(param.name=="sharpen")
+   {
+      Memc<Str> c; Split(c, param.value, ',');
+      if(c.elms()>=1 && c.elms()<=2)
+      {
+         flt power=TextFlt(c[0]);
+         flt range=((c.elms()>=2) ? TextFlt(c[1]) : 1);
+         if(box.min.allZero() && box.max==image.size3())image.sharpen(power, range, clamp);else
+         {
+            Image temp; image.copyTry(temp); temp.sharpen(power, range, clamp);
+            for(int z=box.min.z; z<box.max.z; z++)
+            for(int y=box.min.y; y<box.max.y; y++)
+            for(int x=box.min.x; x<box.max.x; x++)image.color3DF(x, y, z, temp.color3DF(x, y, z));
+         }
       }
    }else
    if(param.name=="lerpRGB")
@@ -1360,9 +1395,9 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       {
          Vec4 c=image.color3DF(x, y, z);
          flt  sat=RgbToHsb(c.xyz).y;
-         c.x=Lerp(c.x, c.x*mul.x, sat);  // red
-         c.y=Lerp(c.y, c.y*mul.y, sat);  // green
-         c.z=Lerp(c.z, c.z*mul.z, sat);  // blue
+         c.x=Lerp(c.x, c.x*mul.x, sat); // red
+         c.y=Lerp(c.y, c.y*mul.y, sat); // green
+         c.z=Lerp(c.z, c.z*mul.z, sat); // blue
          image.color3DF(x, y, z, c);
       }
    }else
@@ -1416,23 +1451,23 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(param.name=="brightness")
    {
-      Vec b=TextVecEx(param.value), mul; if(b.any())
+      Vec bright=TextVecEx(param.value), mul; if(bright.any())
       {
          flt (*R)(flt);
          flt (*G)(flt);
          flt (*B)(flt);
-         if(!b.x){b.x=1; mul.x=1; R=FloatSelf;}else if(b.x<0){b.x=SigmoidSqrt(b.x); mul.x=1/SigmoidSqrtInv(b.x); R=SigmoidSqrtInv;}else{mul.x=1/SigmoidSqrt(b.x); R=SigmoidSqrt;}
-         if(!b.y){b.y=1; mul.y=1; G=FloatSelf;}else if(b.y<0){b.y=SigmoidSqrt(b.y); mul.y=1/SigmoidSqrtInv(b.y); G=SigmoidSqrtInv;}else{mul.y=1/SigmoidSqrt(b.y); G=SigmoidSqrt;}
-         if(!b.z){b.z=1; mul.z=1; B=FloatSelf;}else if(b.z<0){b.z=SigmoidSqrt(b.z); mul.z=1/SigmoidSqrtInv(b.z); B=SigmoidSqrtInv;}else{mul.z=1/SigmoidSqrt(b.z); B=SigmoidSqrt;}
+         if(!bright.x){bright.x=1; mul.x=1; R=FloatSelf;}else if(bright.x<0){bright.x=SigmoidSqrt(bright.x); mul.x=1/SigmoidSqrtInv(bright.x); R=SigmoidSqrtInv;}else{mul.x=1/SigmoidSqrt(bright.x); R=SigmoidSqrt;}
+         if(!bright.y){bright.y=1; mul.y=1; G=FloatSelf;}else if(bright.y<0){bright.y=SigmoidSqrt(bright.y); mul.y=1/SigmoidSqrtInv(bright.y); G=SigmoidSqrtInv;}else{mul.y=1/SigmoidSqrt(bright.y); G=SigmoidSqrt;}
+         if(!bright.z){bright.z=1; mul.z=1; B=FloatSelf;}else if(bright.z<0){bright.z=SigmoidSqrt(bright.z); mul.z=1/SigmoidSqrtInv(bright.z); B=SigmoidSqrtInv;}else{mul.z=1/SigmoidSqrt(bright.z); B=SigmoidSqrt;}
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
             c.xyz=Sqr(c.xyz);
-            c.x=R(c.x*b.x)*mul.x;
-            c.y=G(c.y*b.y)*mul.y;
-            c.z=B(c.z*b.z)*mul.z;
+            c.x=R(c.x*bright.x)*mul.x;
+            c.y=G(c.y*bright.y)*mul.y;
+            c.z=B(c.z*bright.z)*mul.z;
             c.xyz=Sqrt(c.xyz);
             image.color3DF(x, y, z, c);
          }
@@ -1440,21 +1475,21 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    }else
    if(param.name=="brightnessLum")
    {
-      flt b=param.asFlt(), mul; flt (*f)(flt);
-      if(b)
+      flt bright=param.asFlt(), mul; flt (*f)(flt);
+      if( bright)
       {
-         if(b<0){b=SigmoidSqrt(b); mul=1/SigmoidSqrtInv(b); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(b); f=SigmoidSqrt;}
+         if(bright<0){bright=SigmoidSqrt(bright); mul=1/SigmoidSqrtInv(bright); f=SigmoidSqrtInv;}else{mul=1/SigmoidSqrt(bright); f=SigmoidSqrt;}
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-            if(flt l=c.xyz.max())
+            if(flt old_lum=c.xyz.max())
             {
-               flt new_lum=Sqr(l);
-               new_lum=f(new_lum*b)*mul;
+               flt new_lum=Sqr(old_lum);
+               new_lum=f(new_lum*bright)*mul;
                new_lum=Sqrt(new_lum);
-               c.xyz*=new_lum/l;
+               c.xyz*=new_lum/old_lum;
                image.color3DF(x, y, z, c);
             }
          }
@@ -1578,7 +1613,8 @@ void TransformImage(Image &image, TextParam param, bool clamp)
    {
       Vec4 med; if(image.stats(null, null, null, &med, null, null, &box))AvgContrastLum(image, param.asFlt(), med.xyz.max(), box);
    }else
-   if(param.name=="addHue")AddHue(image, param.asFlt(), box);else
+   if(param.name=="addHue"     )AddHue(image, param.asFlt(), box);else
+   if(param.name=="addHuePhoto")AddHue(image, param.asFlt(), box, true);else
    if(param.name=="avgHue")
    {
       if(image.lock()) // lock for writing because we will use this lock for applying hue too
@@ -1730,12 +1766,14 @@ void TransformImage(Image &image, TextParam param, bool clamp)
       {
          Vec2 hue_sat=param.asVec2();
          Vec  rgb=HsbToRgb(Vec(hue_sat, 1));
+              rgb=SRGBToLinear(rgb);
          for(int z=box.min.z; z<box.max.z; z++)
          for(int y=box.min.y; y<box.max.y; y++)
          for(int x=box.min.x; x<box.max.x; x++)
          {
             Vec4 c=image.color3DF(x, y, z);
-            c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz);
+          //c.xyz=rgb*SRGBLumOfSRGBColor(c.xyz);
+            c.xyz=LinearToSRGB(rgb*LinearLumOfSRGBColor(c.xyz));
             image.color3DF(x, y, z, c);
          }
          image.unlock();
@@ -2506,10 +2544,13 @@ void SetRootMoveRot(Animation &anim, C Vec *root_move, C Vec *root_rot)
             }else
             {
                num--;
-               VecD pos=anim.rootStart().pos, dir=*root_move/num, axis=*root_rot; dbl angle=axis.normalize(); MatrixD3 rot; rot.setRotate(axis, angle/num);
+               const bool simple=false; // these are not perfect, but not bad
+               VecD pos=anim.rootStart().pos, dir=*root_move/(simple ? num : num*2), // for advanced mode, make 'dir' 2x smaller, because we will process it 2 times per step
+                   axis=*root_rot; dbl angle=axis.normalize(); MatrixD3 rot; rot.setRotate(axis, angle/num);
                for(int i=1; i<=num; i++)
                {
-                  dir*=rot; pos+=dir;
+                  if(simple){dir*=rot; pos+=dir;}
+                  else      {pos+=dir; dir*=rot; pos+=dir;} // much more precise
                   anim.keys.poss[i].time=flt(i)/num*anim.length();
                   anim.keys.poss[i].pos =pos;
                }
@@ -2522,6 +2563,22 @@ void SetRootMoveRot(Animation &anim, C Vec *root_move, C Vec *root_rot)
       anim.keys.setTangents(anim.loop(), anim.length());
       anim.setRootMatrix();
    }
+}
+bool DelEndKeys(Animation &anim) // return if any change was made
+{
+   bool changed=false;
+   flt time=anim.length()-EPS;
+   REPA(anim.bones)
+   {
+      bool bone_changed=false;
+      AnimBone &bone=anim.bones[i];
+      if(bone.poss  .elms()>=2 && bone.poss  .last().time>=time && bone.poss  .first().time<=EPS){bone.poss  .removeLast(); bone_changed=true;}
+      if(bone.orns  .elms()>=2 && bone.orns  .last().time>=time && bone.orns  .first().time<=EPS){bone.orns  .removeLast(); bone_changed=true;}
+      if(bone.scales.elms()>=2 && bone.scales.last().time>=time && bone.scales.first().time<=EPS){bone.scales.removeLast(); bone_changed=true;}
+      if(bone_changed){bone.setTangents(anim.loop(), anim.length()); changed=true;}
+   }
+   //anim.setRootMatrix(); we don't change root, only bones
+   return changed;
 }
 /******************************************************************************/
 // MATH

@@ -52,7 +52,7 @@ EnumEditor EnumEdit;
                T.skin(null);
                D.clip(gpc.clip);
                flt y=visToScreenPos(elm, &gpc).y, b=0.005f;
-               Rect(-D.w(), y-b, D.w(), y+b).draw(ColorAlpha(TURQ, 0.5f));
+               Rect(-D.w(), y-b, D.w(), y+b).draw(ColorAlpha(AZURE, 0.5f));
             }
          }
       }

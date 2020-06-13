@@ -160,7 +160,7 @@ DetectSimilarTextures DST;
          rect(Rect_C(0, 0, 1.6f, D.h()*1.75f));
          progress.clear().show();
 
-         threads.create(false);
+         threads.create(false, Cpu.threads(), 0, "Editor.DetectSimilarTextures");
          reset();
       }
       return T;

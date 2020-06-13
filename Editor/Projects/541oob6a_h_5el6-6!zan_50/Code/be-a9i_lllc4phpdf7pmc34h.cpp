@@ -74,7 +74,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    if(connection.state()!=CONNECT_GREETED)
    {
       D.text(0, 0, S+"Invalid connection");

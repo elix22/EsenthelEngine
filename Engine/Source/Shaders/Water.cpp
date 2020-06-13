@@ -51,7 +51,7 @@ This code calculates lighting by taking samples along the view ray, which is ref
          }
          light*=Sat(-Dot(light_dir, nrm));
          if(Kb.ctrl())light=LinearToSRGB(light);
-         Color c=ColorBrightness(TURQ, light);
+         Color c=ColorBrightness(AZURE, light);
          VI.dot(c, screen, 0.014f);
       }
    }

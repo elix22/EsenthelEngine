@@ -12,11 +12,13 @@ class ElmAnim : ElmData
       ROOT_DEL_ROT_X=1<<5,
       ROOT_DEL_ROT_Y=1<<6,
       ROOT_DEL_ROT_Z=1<<7,
-      ROOT_SMOOTH   =1<<8,
-      ROOT_FROM_BODY=1<<9,
-      ROOT_DEL_POS  =ROOT_DEL_POS_X|ROOT_DEL_POS_Y|ROOT_DEL_POS_Z,
-      ROOT_DEL_ROT  =ROOT_DEL_ROT_X|ROOT_DEL_ROT_Y|ROOT_DEL_ROT_Z,
-      ROOT_ALL      =ROOT_DEL_POS|ROOT_DEL_ROT|ROOT_SMOOTH|ROOT_FROM_BODY,
+      ROOT_FROM_BODY=1<<8,
+      ROOT_SMOOTH_ROT=1<<9,
+      ROOT_SMOOTH_POS=1<<10,
+      ROOT_DEL_ROT       =ROOT_DEL_ROT_X|ROOT_DEL_ROT_Y|ROOT_DEL_ROT_Z,
+      ROOT_DEL_POS       =ROOT_DEL_POS_X|ROOT_DEL_POS_Y|ROOT_DEL_POS_Z,
+      ROOT_SMOOTH_ROT_POS=ROOT_SMOOTH_ROT|ROOT_SMOOTH_POS,
+      ROOT_ALL           =ROOT_DEL_POS|ROOT_DEL_ROT|ROOT_SMOOTH_ROT_POS|ROOT_FROM_BODY,
    };
    UID       skel_id;
    Pose      transform;
@@ -51,6 +53,7 @@ class ElmAnim : ElmData
    bool syncFile(C ElmAnim &src);
 
    // io
+   static uint OldFlag1(ushort old);
    static uint OldFlag(byte old);
    virtual bool save(File &f)C override;
    virtual bool load(File &f)override;

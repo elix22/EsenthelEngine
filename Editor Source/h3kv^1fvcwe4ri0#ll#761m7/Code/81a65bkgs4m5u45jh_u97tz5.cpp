@@ -362,6 +362,7 @@ class ProjectEx : ProjectHierarchy
    static void MtrlSetRGB              (ProjectEx &proj) {                SetMtrlColor.display    (proj.menu_list_sel);}
    static void MtrlMulRGB              (ProjectEx &proj) {                SetMtrlColor.display    (proj.menu_list_sel, true);}
    static void MtrlSetRGBCur           (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetRGB         (proj.menu_list_sel, MtrlEdit.edit.color_s.xyz);else Gui.msgBox(S, "There's no Material opened");}
+   static void MtrlSetBumpCur          (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetBump        (proj.menu_list_sel, MtrlEdit.edit.bump       );else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetNormalCur        (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetNormal      (proj.menu_list_sel, MtrlEdit.edit.normal     );else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetSmoothCur        (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetSmooth      (proj.menu_list_sel, MtrlEdit.edit.smooth     );else Gui.msgBox(S, "There's no Material opened");}
    static void MtrlSetReflectCur       (ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlSetReflect     (proj.menu_list_sel, MtrlEdit.edit.reflect    );else Gui.msgBox(S, "There's no Material opened");}
@@ -1317,6 +1318,7 @@ class ProjectEx : ProjectHierarchy
    {
       Mems<FileParams> files=FileParams.Decode(file); if(files.elms())
       {
+         Str resize_name;
        //if(relative) // for relative we need to remove any existing "resize" before calling 'loadImages', actually do this always, because there are now many "resize" commands and we want to remove all of them
             REPA(files) // go from end
          {
@@ -1325,13 +1327,19 @@ class ProjectEx : ProjectHierarchy
             REPA(file.params) // go from end
             {
                TextParam &p=file.params[i];
-               if(ResizeTransform(p.name))file.params.remove(i, true);else // remove resize transforms
+               if(ResizeTransform(p.name))
+               {
+                  if(!resize_name.is())resize_name=p.name; // get the name of resize at the end (check if not yet set because we're processing from the end), this is needed to preserve filtering choice
+                  file.params.remove(i, true); // remove resize transforms
+               }else
                if(SizeDependentTransform(p))goto skip; // if encountered a size dependent transform then it means we can't remove any other resize transforms
             }
             if(!file.is())files.remove(i, true); // if nothing left then remove it
          }
       skip:
-         if(files.elms() && !(relative && !size.x && !size.y)) // "relative && !size" means original size, for which we don't need to do anything, because "resize" was already removed
+         if(!resize_name.is())resize_name="resize"; // set default resize name
+         bool specific_resize=(resize_name!="resize"); // if not default
+         if(files.elms() && !(relative && !size.x && !size.y && !specific_resize)) // "relative && !size" means original size, for which we don't need to do anything, because "resize" was already removed
          {
             VecI2 s=size;
             if(relative) // for relative size, we need to get information about the source image size
@@ -1342,7 +1350,7 @@ class ProjectEx : ProjectHierarchy
             }
 
             // set "resize" param into 'files'
-            if(s.any())SetResizeTransform(files, "resize", VecI2AsText(s)); // only if any specified
+            if(specific_resize || s.any())SetResizeTransform(files, resize_name, s.any() ? VecI2AsText(s) : S); // only if any specified
          }
          file=FileParams.Encode(files);
          return true;
@@ -1420,6 +1428,21 @@ class ProjectEx : ProjectHierarchy
             Server.setElmLong(mtrl.id);
          }
       }
+   }
+   bool mtrlSetBump(C MemPtr<UID> &elm_ids, flt bump, bool mul=false)
+   {
+      bool ok=true;
+      if(!mul || bump!=1)
+      REPA(elm_ids)
+      {
+         EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
+         if(mul || edit.bump!=bump)
+         {
+            if(mul)edit.bump*=bump;else edit.bump=bump; edit.bump_time.now();
+            ok&=mtrlSync(elm_ids[i], edit, false, false, "setBump");
+         }
+      }
+      return ok;
    }
    bool mtrlSetNormal(C MemPtr<UID> &elm_ids, flt normal, bool mul=false)
    {
@@ -2722,11 +2745,11 @@ class ProjectEx : ProjectHierarchy
          }
       }
    }
-   void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id)
+   void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id, C UID &ignore_anim_id=UIDZero)
    {
       REPA(elms) // iterate all project elements
       {
-         Elm &anim_elm=elms[i]; if(ElmAnim *anim_data=anim_elm.animData())if(anim_data.skel_id==skel_id) // process animations using this skeleton
+         Elm &anim_elm=elms[i]; if(ElmAnim *anim_data=anim_elm.animData())if(anim_data.skel_id==skel_id && anim_elm.id!=ignore_anim_id) // process animations using this skeleton
          {
             Animation temp, *anim=getAnim(anim_elm.id, temp);
             if(anim.is()) // process if has any data (this also skips animations that haven't finished downloading from the server)
@@ -4017,6 +4040,7 @@ class ProjectEx : ProjectHierarchy
                   m++;
                   m.New().create("Reload Base Textures", MtrlReloadBaseTex, T);
                   m++;
+                  m.New().create("Set Bump Value to Edited Material"   , MtrlSetBumpCur   , T);
                   m.New().create("Set Normal Value to Edited Material" , MtrlSetNormalCur , T);
                   m.New().create("Set Smooth Value to Edited Material" , MtrlSetSmoothCur , T);
                   m.New().create("Set Reflect Value to Edited Material", MtrlSetReflectCur, T);

@@ -111,6 +111,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\Engine\EsenthelEngine32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Setupapi.lib;Mscms.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -150,6 +151,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -187,6 +189,7 @@
       <DebugInformationFormat />
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\Engine\EsenthelEngine32DX11.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;dinput8.lib;dsound.lib;dxgi.lib;dxguid.lib;Xinput9_1_0.lib;xaudio2.lib;imm32.lib;wininet.lib;winmm.lib;libcmt.lib;libcpmt.lib;libucrt.lib;libvcruntime.lib;psapi.lib;ws2_32.lib;oldnames.lib;rpcrt4.lib;version.lib;iphlpapi.lib;Setupapi.lib;Mscms.lib;Dbghelp.lib;comsupp.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -227,6 +230,7 @@
       <DebugInformationFormat />
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>

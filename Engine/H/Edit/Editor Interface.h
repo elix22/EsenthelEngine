@@ -350,10 +350,11 @@ struct EditorInterface
       Bool setMesh(C UID &elm_id, C Mesh &mesh                     ); // set mesh of 'elm_id' ELM_OBJ ELM_MESH elements in the project, false on fail
 
       // animation
-      UID  curAnimation(                                ); // get ID of currently opened ELM_ANIM element, 'UIDZero' is returned if no animation is opened
-      Bool curAnimation(C UID &elm_id                   ); // open animation editor of 'elm_id' ELM_ANIM element in the project, if 'UIDZero' is passed then editor will close the animation editor, false on fail
-      Bool getAnimation(C UID &elm_id,   Animation &anim); // get  animation        of 'elm_id' ELM_ANIM element in the project, false on fail
-      Bool setAnimation(C UID &elm_id, C Animation &anim); // set  animation        of 'elm_id' ELM_ANIM element in the project, false on fail
+      UID  curAnimation    (                                     ); // get ID of currently opened ELM_ANIM element, 'UIDZero' is returned if no animation is opened
+      Bool curAnimation    (C UID &anim_elm_id                   ); // open animation editor of 'anim_elm_id' ELM_ANIM element in the project, if 'UIDZero' is passed then editor will close the animation editor, false on fail
+      Bool getAnimation    (C UID &anim_elm_id,   Animation &anim); // get  animation        of 'anim_elm_id' ELM_ANIM element in the project, false on fail
+      Bool setAnimation    (C UID &anim_elm_id, C Animation &anim); // set  animation        of 'anim_elm_id' ELM_ANIM element in the project, false on fail
+      UID     animationSkel(C UID &anim_elm_id                   ); // get  skeleton ELM_SKEL element ID associated with animation 'anim_elm_id' ELM_ANIM element in the project
 
       // object
       UID     curObject(                                                              ); // get ID of currently opened ELM_OBJ element, 'UIDZero' is returned if no object is opened
@@ -473,6 +474,7 @@ enum EDITOR_INTERFACE_COMMANDS
    EI_SET_ANIM_CUR,
    EI_GET_ANIM,
    EI_SET_ANIM,
+   EI_GET_ANIM_SKEL,
    EI_GET_OBJ_CUR,
    EI_SET_OBJ_CUR,
    EI_GET_OBJ,

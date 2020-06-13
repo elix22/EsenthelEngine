@@ -227,6 +227,7 @@ public:
    static void MtrlSetRGB              (ProjectEx &proj);
    static void MtrlMulRGB              (ProjectEx &proj);
    static void MtrlSetRGBCur           (ProjectEx &proj);
+   static void MtrlSetBumpCur          (ProjectEx &proj);
    static void MtrlSetNormalCur        (ProjectEx &proj);
    static void MtrlSetSmoothCur        (ProjectEx &proj);
    static void MtrlSetReflectCur       (ProjectEx &proj);
@@ -362,6 +363,7 @@ public:
    void imageResize(C MemPtr<UID> &elm_ids, C VecI2 &size);
    void mtrlResetAlpha(C MemPtr<UID> &elm_ids);
    void mtrlSetRGB(C MemPtr<UID> &elm_ids, C Vec &srgb, bool mul=false);
+   bool mtrlSetBump(C MemPtr<UID> &elm_ids, flt bump, bool mul=false);
    bool mtrlSetNormal(C MemPtr<UID> &elm_ids, flt normal, bool mul=false);
    bool mtrlSetSmooth(C MemPtr<UID> &elm_ids, flt smooth, bool mul=false);
    bool mtrlSetReflect(C MemPtr<UID> &elm_ids, flt reflect, bool mul=false);
@@ -473,7 +475,7 @@ public:
    void mulSoundVolume(C MemPtr<UID> &elm_ids, flt volume);
 
    void adjustAnimations(C UID &skel_id, C EditSkeleton &old_edit_skel, C Skeleton &old_skel, C Skeleton &new_skel, C MemPtr<Mems<IndexWeight>> &bone_weights, int old_bone_as_root=-1);
-   void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id);
+   void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id, C UID &ignore_anim_id=UIDZero);
  /*void updateSkelBoneTypes()
    {
       REPA(elms)

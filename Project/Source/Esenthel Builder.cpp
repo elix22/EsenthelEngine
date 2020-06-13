@@ -1488,10 +1488,13 @@ Bool Update()
 
    if(!build_threads.queued() && Todo.elms())
    {
-      App.stayAwake(AWAKE_SYSTEM); // don't sleep when building
-      done++; // start with small progress
-      WindowSetProgress(Flt(done)/(Todo.elms()+done));
-      if(TaskBase *t=Todo.popFirst())t->call();
+      MemcThreadSafeLock lock(Todo); if(Todo.elms())
+      {
+         App.stayAwake(AWAKE_SYSTEM); // don't sleep when building
+         done++; // start with small progress
+         WindowSetProgress(Flt(done)/(Todo.elms()+done));
+         if(TaskBase *t=Todo.lockedPopFirst())t->call();
+      }
    }
    if(done && !build_threads.queued() && !Todo.elms()) // finished all tasks
    {
@@ -1519,7 +1522,7 @@ Bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    TextStyleParams ts; ts.size=0.055; ts.align.set(1, -1); D.text(ts, -D.w()+0.01, D.h()-0.01, S+"Busy:"+build_threads.queued()+", Queued:"+Todo.elms());
    Gui.draw();
 }

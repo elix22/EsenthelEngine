@@ -17,6 +17,7 @@ inline Int Compare(C ULong  &a, C ULong  &b) {if(a<b)return -1; if(a>b)return +1
 inline Int Compare(C Flt    &a, C Flt    &b) {if(a<b)return -1; if(a>b)return +1; return 0;} // compare 'a' 'b' values and return -1, 0, +1
 inline Int Compare(C Dbl    &a, C Dbl    &b) {if(a<b)return -1; if(a>b)return +1; return 0;} // compare 'a' 'b' values and return -1, 0, +1
 inline Int Compare(C Ptr    &a, C Ptr    &b) {if(a<b)return -1; if(a>b)return +1; return 0;} // compare 'a' 'b' values and return -1, 0, +1
+inline Int Compare(C CPtr   &a, C CPtr   &b) {if(a<b)return -1; if(a>b)return +1; return 0;} // compare 'a' 'b' values and return -1, 0, +1
 
 T1(TYPE) ENABLE_IF_ENUM(TYPE, Int) Compare(C TYPE &a, C TYPE &b) {if(a<b)return -1; if(a>b)return +1; return 0;} // compare 'a' 'b' enum values and return -1, 0, +1
 

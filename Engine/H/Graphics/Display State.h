@@ -61,7 +61,7 @@ enum STENCIL_REF : Byte
    STENCIL_REF_OUTLINE  =0x10, // Outline
 };
 #endif
-struct DisplayState // Display States Control, this class methods can be called by the use of 'D' display object
+struct DisplayState // Display States Control, this class methods can be called by the use of 'Display' object
 {
           ALPHA_MODE alpha      (                    )C {return _alpha;} // get alpha blending mode
    static ALPHA_MODE alpha      (ALPHA_MODE alpha    );                  // set alpha blending mode and return previous mode

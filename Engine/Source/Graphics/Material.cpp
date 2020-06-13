@@ -44,6 +44,7 @@ namespace EE{
 
    Metals Linear Specular/Color:
                   R           G           B
+      Iron        0.563       0.579       0.579
       Silver      0.971519    0.959915    0.915324
       Aluminium   0.913183    0.921494    0.924524
       Gold        1           0.765557    0.336057
@@ -53,9 +54,6 @@ namespace EE{
       Titanium    0.541931    0.496791    0.449419
       Cobalt      0.662124    0.654864    0.633732
       Platinum    0.672411    0.637331    0.585456
-
-   https://marmoset.co/posts/basic-theory-of-physically-based-rendering/
-   https://www.substance3d.com/system/files/software/download/build/PBR_Guide_Vol.1.pdf
 
 /******************************************************************************/
 enum MTRL_TEX_LAYOUT : Byte

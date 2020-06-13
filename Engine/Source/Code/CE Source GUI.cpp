@@ -690,7 +690,7 @@ void Source::update(C GuiPC &gpc)
                   if(!Kb.k('/') && !Kb.k(' ') && prev[cur.x-2]=='/' && prev[cur.x-3]=='/'                                   && !TextType(prev.Type(cur.x-2))){prev.insert(cur.x-1, ' '); cur.x++;} // if we started typing after comment then make sure it's separated with at least one space
                }
 
-               Keyboard::Key *k=Kb.nextKeyPtr(); if(k && k->c && !k->ctrlCmd() && !k->lalt()){Kb.nextKey(); goto char_loop;}
+               KeyboardKey *k=Kb.nextKeyPtr(); if(k && k->c && !k->ctrlCmd() && !k->lalt()){Kb.nextKey(); goto char_loop;}
             }
 
             changed(cur.y-1, 3);

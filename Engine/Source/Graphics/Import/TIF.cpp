@@ -153,9 +153,10 @@ Bool Image::ExportTIF(File &f, Flt compression_level)C
       if(TIFF *tif=TIFFClientOpen("", "w", &tf, TIFRead, TIFWrite, TIFSeek, TIFClose, TIFSize, null, null)) // can't use null because crash will occur
       {
          ok=true;
-       C ImageTypeInfo &type_info=src->typeInfo();
-         Bool alpha   =(type_info.a>0), bit16=(src->type()==IMAGE_I16);
-         Byte channels= type_info.channels; if(channels==2)channels=3;
+       C ImageTypeInfo     &type_info=src->typeInfo();
+         Bool alpha       =(type_info.a>0), bit16=(src->hwType()==IMAGE_I16);
+         Byte channels    = type_info.channels; if(channels==2)channels=3;
+         Bool ignore_gamma=IgnoreGamma(0, src->hwType(), IMAGE_R8G8B8A8_SRGB);
          TIFFSetField(tif, TIFFTAG_IMAGEWIDTH     , src->w());
          TIFFSetField(tif, TIFFTAG_IMAGELENGTH    , src->h());
          TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, channels);
@@ -172,7 +173,7 @@ Bool Image::ExportTIF(File &f, Flt compression_level)C
             if(bit16)CopyFast(b, src->data()+src->pitch()*y, buf.elms());else
             FREPD(x, src->w())
             {
-               Color c=src->color(x, y);
+               Color c=(ignore_gamma ? src->color(x, y) : (Color)src->colorS(x, y));
                switch(channels)
                {
                   case 1:

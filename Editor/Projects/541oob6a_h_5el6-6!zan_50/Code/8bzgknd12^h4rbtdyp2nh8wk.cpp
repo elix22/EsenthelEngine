@@ -38,7 +38,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
 
    if(image.is())     // when image is downloaded and created
       image.drawFs(); // draw it

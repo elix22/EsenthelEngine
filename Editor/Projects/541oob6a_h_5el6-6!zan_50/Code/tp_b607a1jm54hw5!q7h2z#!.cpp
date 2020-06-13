@@ -91,7 +91,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    Gui.draw();
    DrawMap();
 }

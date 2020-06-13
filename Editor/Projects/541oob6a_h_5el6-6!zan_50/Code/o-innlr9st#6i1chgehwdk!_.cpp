@@ -51,7 +51,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D  .clear(TURQ);
+   D  .clear(AZURE);
    Gui.draw ();
 
    if(Data *cur=list())D.text(0, -0.7, S+"current element 'Integer' value: "+cur.i);

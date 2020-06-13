@@ -138,9 +138,8 @@ class Obj : ObjData
       }
       if(!visible)
       {
-         Selection.deselect   (T);
-         Selection.unhighlight(T);
-         WorldEdit.obj_visible.binaryExclude(this, ComparePtr);
+         Selection.removed(T);
+         WorldEdit.removed(T);
       }else
       {
          WorldEdit.obj_visible.binaryInclude(this, ComparePtr);

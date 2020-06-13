@@ -1,53 +1,52 @@
 /******************************************************************************
 
-   Use 'Kb' to access Keyboard input.
+   Use 'Keyboard' to access Keyboard input.
 
    Use 'KbSc' to describe keyboard shortcuts.
 
 /******************************************************************************/
-struct Keyboard // Keyboard Input
+struct KeyboardKey
 {
-   struct Key
+   Char   c;
+   KB_KEY k;
+   Byte   flags;
+
+   Bool any    ()C {return  c || k                ;} // if any character or key pressed
+   Bool ctrl   ()C {return  FlagTest(flags, CTRL );} // if any  Control pressed
+   Bool shift  ()C {return  FlagTest(flags, SHIFT);} // if any  Shift   pressed
+   Bool alt    ()C {return  FlagTest(flags, ALT  );} // if any  Alt     pressed
+   Bool win    ()C {return  FlagTest(flags, WIN  );} // if any  Win     pressed
+   Bool lalt   ()C {return  FlagTest(flags, LALT );} // if Left Alt     pressed
+   Bool first  ()C {return  FlagTest(flags, FIRST);} // if this is the first press of the key (if false then it's a repeated press)
+   Bool ctrlCmd()C {return APPLE ? win () : ctrl();} // if any Ctrl is on (on platforms other than Apple), and if any Command is on (on Apple platforms)
+   Bool winCtrl()C {return APPLE ? ctrl() : win ();} // if any Win  is on (on platforms other than Apple), and if any Control is on (on Apple platforms)
+
+   Bool operator()(Char   c)C {return T.c==c;} // use simple == instead of 'EqualCS' for performance reasons
+   Bool operator()(Char8  c)C {return T.c==c;} // use simple == instead of 'EqualCS' for performance reasons
+   Bool operator()(KB_KEY k)C {return T.k==k;}
+   Bool first     (KB_KEY k)C {return T.k==k && first();} // if this is the first press of 'k' key
+
+   void clear() {c='\0'; k=KB_NONE; flags=0;}
+
+   void eat()C; // eat this key input from this frame so it will not be processed by the remaining codes in frame
+
+   enum
    {
-      Char   c;
-      KB_KEY k;
-      Byte   flags;
-
-      Bool any    ()C {return  c || k                ;} // if any character or key pressed
-      Bool ctrl   ()C {return  FlagTest(flags, CTRL );} // if any  Control pressed
-      Bool shift  ()C {return  FlagTest(flags, SHIFT);} // if any  Shift   pressed
-      Bool alt    ()C {return  FlagTest(flags, ALT  );} // if any  Alt     pressed
-      Bool win    ()C {return  FlagTest(flags, WIN  );} // if any  Win     pressed
-      Bool lalt   ()C {return  FlagTest(flags, LALT );} // if Left Alt     pressed
-      Bool first  ()C {return  FlagTest(flags, FIRST);} // if this is the first press of the key (if false then it's a repeated press)
-      Bool ctrlCmd()C {return APPLE ? win () : ctrl();} // if any Ctrl is on (on platforms other than Apple), and if any Command is on (on Apple platforms)
-      Bool winCtrl()C {return APPLE ? ctrl() : win ();} // if any Win  is on (on platforms other than Apple), and if any Control is on (on Apple platforms)
-
-      Bool operator()(Char   c)C {return T.c==c;} // use simple == instead of 'EqualCS' for performance reasons
-      Bool operator()(Char8  c)C {return T.c==c;} // use simple == instead of 'EqualCS' for performance reasons
-      Bool operator()(KB_KEY k)C {return T.k==k;}
-      Bool first     (KB_KEY k)C {return T.k==k && first();} // if this is the first press of 'k' key
-
-      void clear() {c='\0'; k=KB_NONE; flags=0;}
-
-      void eat()C; // eat this key input from this frame so it will not be processed by the remaining codes in frame
-
-      enum
-      {
-         CTRL =1<<0,
-         SHIFT=1<<1,
-         ALT  =1<<2,
-         WIN  =1<<3,
-         LALT =1<<4,
-         FIRST=1<<5,
-      };
+      CTRL =1<<0,
+      SHIFT=1<<1,
+      ALT  =1<<2,
+      WIN  =1<<3,
+      LALT =1<<4,
+      FIRST=1<<5,
    };
-
+};
+struct KeyboardClass // Keyboard Input
+{
    // get
 #if EE_PRIVATE
-   Key k;
+   KeyboardKey k;
 #else
-   const Key k; // key pressed in this frame
+   const KeyboardKey k; // key pressed in this frame
 #endif
    Bool kf(KB_KEY k)C {return T.k.first(k);} // if key 'k' is pressed and it's the first press
 
@@ -87,12 +86,12 @@ struct Keyboard // Keyboard Input
    void eatKey(       ); // eat 'Kb.k' input from this frame so it will not be processed by the remaining codes in frame
 
 #if EE_PRIVATE
-   void nextInQueue(); // proceed to next key from the buffer, same like 'nextKey' but without 'eatKey'
-   Key* nextKeyPtr(); // get next key in the queue, without calling 'eatKey' and without moving it to 'Kb.k' but just return a pointer to it, null if none
+   void         nextInQueue(); // proceed to next key from the buffer, same like 'nextKey' but without 'eatKey'
+   KeyboardKey* nextKeyPtr (); // get next key in the queue, without calling 'eatKey' and without moving it to 'Kb.k' but just return a pointer to it, null if none
 #endif
    void nextKey(); // specify that you've processed 'Kb.k' and would like to proceed to the next key in the queue
 
-   void queue(C Key &key); // manually add 'key' to the buffer to be processed later
+   void queue(C KeyboardKey &key); // manually add 'key' to the buffer to be processed later
 
    Bool exclusive()C {return _exclusive;}   void exclusive(Bool on); // get/set keyboard exclusive mode (which disables Windows key on Windows platform), default=false
 
@@ -139,34 +138,35 @@ struct Keyboard // Keyboard Input
 #if !EE_PRIVATE
 private:
 #endif
-   Bool      _ctrl, _shift, _alt, _win, _hidden, _swapped_ctrl_cmd, _text_input, _visible, _refresh_visible, _imm, _imm_candidate_hidden, _exclusive;
-   Byte      _button[256], _key_buffer_pos, _key_buffer_len;
-   Char8     _key_char[256];
-   Key       _key_buffer[256];
-   KB_KEY    _qwerty[256];
-   Int       _cur, _last, _imm_cursor, _last_key_scan_code;
-   Flt       _curh_t, _curh_tn;
-   Dbl       _last_t;
-   RectI     _recti;
-   VecI2     _imm_selection;
-   Str       _imm_buffer;
-   Memc<Str> _imm_candidate, _imm_candidate_temp;
-   CChar8   *_key_name[256];
+   Bool        _ctrl, _shift, _alt, _win, _hidden, _swapped_ctrl_cmd, _text_input, _visible, _refresh_visible, _imm, _imm_candidate_hidden, _exclusive;
+   Byte        _button[256], _key_buffer_pos, _key_buffer_len;
+   Char8       _key_char[256];
+   KeyboardKey _key_buffer[256];
+   KB_KEY      _qwerty[256];
+   Int         _cur, _last, _imm_cursor, _last_key_scan_code;
+   Flt         _curh_t, _curh_tn;
+   Dbl         _last_t;
+   RectI       _recti;
+   VecI2       _imm_selection;
+   Str         _imm_buffer;
+   Memc<Str>   _imm_candidate, _imm_candidate_temp;
+   CChar8     *_key_name[256];
 #if EE_PRIVATE
    #if WINDOWS_OLD
       IDirectInputDevice8 *_did;
    #else
-      Ptr    _did;
+      Ptr      _did;
    #endif
    PLATFORM(HIMC, Ptr) _imc;
 #else
-   Ptr       _did, _imc;
+   Ptr         _did, _imc;
 #endif
 
-	Keyboard();
-   NO_COPY_CONSTRUCTOR(Keyboard);
+	KeyboardClass();
+   NO_COPY_CONSTRUCTOR(KeyboardClass);
 }extern
    Kb;
+inline KeyboardClass &Keyboard=Kb; // 'Keyboard' alias ('Keyboard' can be used the same way as 'Kb')
 /******************************************************************************/
 enum KBSC_FLAG // Keyboard Shortcut Flags
 {

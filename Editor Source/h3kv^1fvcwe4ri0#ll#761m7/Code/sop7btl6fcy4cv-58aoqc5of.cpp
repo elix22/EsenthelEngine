@@ -195,7 +195,7 @@ class MeshParts : Window
       ObjEdit.mesh_undos.set("merge");
       if(ObjEdit.mesh_parts.list.sel.elms()>=2)
       {
-         flt pos_eps=EPS*ObjEdit.posScale();
+         flt  pos_eps=ObjEdit.posEps();
          MeshLod &lod=ObjEdit.getLod();
          for(ObjEdit.mesh_parts.list.sel.sort(Compare); ObjEdit.mesh_parts.list.sel.elms()>=2; )
          {

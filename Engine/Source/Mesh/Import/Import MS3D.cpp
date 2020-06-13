@@ -205,7 +205,7 @@ static void CreateSkeleton(Skeleton &skeleton, msModel &ms3d, Int bones, XAnimat
       if(Flt fps=ms3d.GetAnimationFps())anim.length(anim.length()/fps, true);
 
       // process
-      anim.setTangents().removeUnused().setRootMatrix();
+      anim.removeUnused().setTangents().setRootMatrix();
    }
 }
 /******************************************************************************/

@@ -87,7 +87,7 @@ bool Update()
 /******************************************************************************/
 void Draw()
 {
-   D.clear(TURQ);
+   D.clear(AZURE);
    
    // draw the data member values on the screen to visualize them in each frame
    D.text(0, 0.9, S+   "bool_member: "+data. bool_member);

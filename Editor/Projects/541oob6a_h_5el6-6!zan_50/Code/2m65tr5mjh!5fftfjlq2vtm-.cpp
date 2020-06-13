@@ -46,7 +46,7 @@ class BackgroundLoader
    }
    void customDraw() // you can modify this method and perform custom drawing of the loading screen
    {
-      D.clear(TURQ);
+      D.clear(AZURE);
       D.text (0, 0, S+"Loading... ("+Round(Game.World.updateProgress()*100)+"%)");
    }
 }

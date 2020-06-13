@@ -144,7 +144,7 @@ class MeshVariations : Window
                T.skin(null);
                D.clip(gpc.clip);
                flt y=visToScreenPos(elm, &gpc).y, b=0.005;
-               Rect(-D.w(), y-b, D.w(), y+b).draw(ColorAlpha(TURQ, 0.5));
+               Rect(-D.w(), y-b, D.w(), y+b).draw(ColorAlpha(AZURE, 0.5));
             }
          }
       }

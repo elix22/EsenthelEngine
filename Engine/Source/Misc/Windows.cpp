@@ -900,7 +900,13 @@ void WindowClose(Ptr hwnd)
 void WindowMinimize(Bool force, Ptr hwnd)
 {
 #if WINDOWS_NEW
-   //if(hwnd==App.hwnd())Windows::ApplicationModel::Core::CoreApplication::Exit(); this causes a crash, TODO: find alternative
+   if(hwnd==App.hwnd())
+   {
+      /* TODO:
+      IList<AppDiagnosticInfo> infos=await AppDiagnosticInfo.RequestInfoForAppAsync();
+      IList<AppResourceGroupInfo> resourceInfos=infos[0].GetResourceGroups();
+      await resourceInfos[0].StartSuspendAsync();*/
+   }
 #elif ANDROID
    if(hwnd==App.hwnd() && AndroidApp && AndroidApp->activity)ANativeActivity_finish(AndroidApp->activity);
 #endif
